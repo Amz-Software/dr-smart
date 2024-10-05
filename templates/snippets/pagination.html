@@ -1,0 +1,59 @@
+<!-- Paginacao Padrão (Desktop) -->
+{% if page_obj.has_previous or page_obj.has_next %}
+<div class="pagination d-none d-md-flex justify-content-center mt-3 mb-3" style="gap: 3px;">
+    <!-- Primeira Página -->
+    {% if page_obj.has_previous %}
+    <a href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="btn btn-primary btn-sm">Primeira</a>
+    <a href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="btn btn-primary btn-sm">Anterior</a>
+    {% endif %}
+
+    <!-- Páginas Numeradas (somente 2 antes e 2 depois) -->
+    {% for num in page_obj.paginator.page_range %}
+        {% if num >= page_obj.number|add:-2 and num <= page_obj.number|add:2 %}
+            {% if page_obj.number == num %}
+                <span class="btn btn-primary btn-sm">{{ num }}</span>
+            {% else %}
+                <a href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="btn btn-primary btn-sm">{{ num }}</a>
+            {% endif %}
+        {% endif %}
+    {% endfor %}
+
+    <!-- Próxima Página -->
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="btn btn-primary btn-sm">Próxima</a>
+    <a href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="btn btn-primary btn-sm">Última</a>
+    {% endif %}
+</div>
+
+<!-- Paginacao Mobile -->
+<div class="pagination-dropdown d-md-none text-center mt-3">
+    <div class="d-flex justify-content-center align-items-center p-3" style="gap: 5px;">
+        <!-- Botão Anterior -->
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="btn btn-primary btn-sm">Anterior</a>
+        {% endif %}
+
+        <!-- Dropdown de Páginas -->
+        <select class="form-select form-select-sm w-auto" onchange="window.location.href=this.value;">
+            <!-- Primeira Página -->
+            <option value="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Primeira</option>
+            <!-- Última Página -->
+            <option value="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Última</option>
+
+            <!-- Páginas Numeradas -->
+            {% for num in page_obj.paginator.page_range %}
+                <option value="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" {% if page_obj.number == num %}selected{% endif %}>
+                    Página {{ num }}
+                </option>
+            {% endfor %}
+
+        </select>
+
+        <!-- Botão Próxima -->
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="btn btn-primary btn-sm">Próxima</a>
+        {% endif %}
+    </div>
+</div>
+
+{% endif %}

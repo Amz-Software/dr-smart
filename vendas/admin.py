@@ -1,3 +1,7 @@
 from django.contrib import admin
+from django.contrib.auth.models import Permission
 
-# Register your models here.
+class PermissionAdmin(admin.ModelAdmin):
+    list_display = ('name', 'codename', 'content_type')
+
+admin.site.register(Permission, PermissionAdmin)
