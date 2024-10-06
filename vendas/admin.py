@@ -1,7 +1,37 @@
 from django.contrib import admin
 from django.contrib.auth.models import Permission
+from .models import Venda, ProdutoVenda, Pagamento, TipoPagamento
 
+@admin.register(Permission)
 class PermissionAdmin(admin.ModelAdmin):
     list_display = ('name', 'codename', 'content_type')
 
-admin.site.register(Permission, PermissionAdmin)
+
+class AdminBase(admin.ModelAdmin):
+    list_display = ('criado_em', 'modificado_em')
+    readonly_fields = ('criado_em', 'modificado_em')
+    
+    def save_model(self, request, obj, form, change):
+        obj.save(user=request.user)  # Passa o usuário para o método save
+        super().save_model(request, obj, form, change)
+
+class ProdutoVendaInline(admin.TabularInline):
+    model = ProdutoVenda
+    extra = 1
+    
+class PagamentoInline(admin.TabularInline):
+    model = Pagamento
+    extra = 1
+
+@admin.register(Venda)
+class VendaAdmin(AdminBase):
+    list_display = ('data_venda', 'cliente', 'vendedor', 'calcular_valor_total')
+    inlines = [ProdutoVendaInline, PagamentoInline]
+
+@admin.register(Pagamento)
+class PagamentoAdmin(AdminBase):
+    list_display = ('venda', 'tipo_pagamento', 'valor', 'parcelas', 'valor_parcela', 'data_primeira_parcela')
+
+@admin.register(TipoPagamento)
+class TipoPagamentoAdmin(AdminBase):
+    list_display = ('nome', 'caixa', 'parcelas', 'financeira')
