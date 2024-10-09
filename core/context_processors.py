@@ -12,7 +12,7 @@ def menu_items(request):
             "label": "Menu Principal",
             "url_name": "vendas:index",
             "icon": "bx bx-home-circle",
-            "permission": "core.view_menu",
+            "permission": "vendas.view_loja",
             "section": "Dr Smart",
         },
         # {
