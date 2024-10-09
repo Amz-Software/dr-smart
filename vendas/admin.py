@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.models import Permission
-from .models import Venda, ProdutoVenda, Pagamento, TipoPagamento
+from .models import *
 
 @admin.register(Permission)
 class PermissionAdmin(admin.ModelAdmin):
@@ -35,3 +35,7 @@ class PagamentoAdmin(AdminBase):
 @admin.register(TipoPagamento)
 class TipoPagamentoAdmin(AdminBase):
     list_display = ('nome', 'caixa', 'parcelas', 'financeira')
+    
+@admin.register(Caixa)
+class CaixaAdmin(AdminBase):
+    list_display = ('data_abertura', 'data_fechamento')

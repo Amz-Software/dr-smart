@@ -21,7 +21,14 @@ class Base(models.Model):
 class Caixa(Base):
     data_abertura = models.DateField(auto_now_add=True)
     data_fechamento = models.DateField(null=True, blank=True)
-    total_vendas = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    
+    @property
+    def saldo_total(self):
+        return sum(venda.calcular_valor_total() for venda in self.vendas.all())
+    
+    @property
+    def quantidade_vendas(self):
+        return self.vendas.count()
     
     @classmethod
     def caixa_aberto(cls, data):
