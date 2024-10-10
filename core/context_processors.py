@@ -15,6 +15,44 @@ def menu_items(request):
             "permission": "vendas.view_loja",
             "section": "Dr Smart",
         },
+        {
+            "label": "Produtos",
+            "icon": "bx bx-home-circle",
+            "permission": "produtos.view_produto",
+            "section": "Dr Smart",
+            "sub_items": [
+                {
+                    "label": "Produtos",
+                    "url_name": "produtos:produtos",
+                    "permission": "produtos.view_produto",
+                },
+                {
+                    "label": "Cor",
+                    "url_name": "produtos:produtos",
+                    "permission": "produtos.view_produto",
+                },
+                {
+                    "label": "Estado",
+                    "url_name": "produtos:produtos",
+                    "permission": "produtos.view_produto",
+                },
+                {
+                    "label": "Fabricante",
+                    "url_name": "produtos:produtos",
+                    "permission": "produtos.view_produto",
+                },
+                {
+                    "label": "Memoria",
+                    "url_name": "produtos:produtos",
+                    "permission": "produtos.view_produto",
+                },
+                {
+                    "label": "Tipo",
+                    "url_name": "produtos:produtos",
+                    "permission": "produtos.view_produto",
+                },
+            ]
+        },
         # {
         #     "label": "Exemplo",
         #     "icon": "bx bx-dollar-circle",
