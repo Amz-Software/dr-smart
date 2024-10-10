@@ -19,7 +19,7 @@ class Base(models.Model):
 
 
 class Caixa(Base):
-    data_abertura = models.DateField(auto_now_add=True)
+    data_abertura = models.DateField(default=timezone.now)
     data_fechamento = models.DateField(null=True, blank=True)
     
     @property

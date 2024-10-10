@@ -5,6 +5,7 @@ from .models import *
 @admin.register(Permission)
 class PermissionAdmin(admin.ModelAdmin):
     list_display = ('name', 'codename', 'content_type')
+    search_fields = ('name', 'codename', 'content_type__app_label')
 
 
 class AdminBase(admin.ModelAdmin):
@@ -12,7 +13,7 @@ class AdminBase(admin.ModelAdmin):
     readonly_fields = ('criado_em', 'modificado_em')
     
     def save_model(self, request, obj, form, change):
-        obj.save(user=request.user)  # Passa o usuário para o método save
+        obj.save(user=request.user) 
         super().save_model(request, obj, form, change)
 
 class ProdutoVendaInline(admin.TabularInline):

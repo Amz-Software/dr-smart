@@ -15,29 +15,13 @@ def menu_items(request):
             "permission": "vendas.view_loja",
             "section": "Dr Smart",
         },
-        # {
-        #     "label": "Exemplo",
-        #     "icon": "bx bx-dollar-circle",
-        #     "permission": "app.permission",
-        #     "sub_items": [
-        #         {
-        #             "label": "",
-        #             "url_name": "",
-        #             "permission": ""
-        #         },
-        #         {
-        #             "label": "",
-        #             "url_name": "main:pre_sale_Form",
-        #             "permission": "main.add_presale"
-        #         },
-        #         {
-        #             "label": "",
-        #             "url_name": "",
-        #             "permission": ""
-        #         }
-        #     ],
-        #     "section": "Portal do Vendedor"
-        # },
+        {
+            "label": "Caixa",
+            "icon": "bx bx-cart",
+            "permission": "vendas.view_caixa",
+            "url_name": "vendas:caixa_list",
+            "section": "Vendas"
+        },
 
         
 
