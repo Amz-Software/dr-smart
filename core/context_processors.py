@@ -53,6 +53,13 @@ def menu_items(request):
                 },
             ]
         },
+        {          
+            "label": "Caixa",
+            "icon": "bx bx-cart",
+            "permission": "vendas.view_caixa",
+            "url_name": "vendas:caixa_list",
+            "section": "Vendas"
+        },
         # {
         #     "label": "Exemplo",
         #     "icon": "bx bx-dollar-circle",
@@ -75,9 +82,7 @@ def menu_items(request):
         #         }
         #     ],
         #     "section": "Portal do Vendedor"
-        # },
-
-        
+        # },        
 
     ]
   
