@@ -4,8 +4,8 @@ from django.contrib import admin
 from .models import CorProduto, EstadoProduto, Fabricante, MemoriaProduto, Produto, TipoProduto
 
 class AdminBase(admin.ModelAdmin):
-    list_display = ('criado_em', 'modificado_em')
-    readonly_fields = ('criado_em', 'modificado_em')
+    list_display = ('criado_em', 'modificado_em', 'criado_por', 'modificado_por')
+    readonly_fields = ('criado_em', 'modificado_em', 'criado_por', 'modificado_por')
     
     def save_model(self, request, obj, form, change):
         obj.save(user=request.user)  # Passa o usuário para o método save
