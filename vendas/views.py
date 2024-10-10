@@ -28,25 +28,20 @@ class CaixaListView(UserPassesTestMixin, ListView):
     
     def post(self, request, *args, **kwargs):
         criar_caixa = request.POST.get('criar_caixa')
-        print('Criar caixa:', criar_caixa)  
 
         if criar_caixa:
-            print('Criando caixa')
             today = datetime.now(timezone.utc).date()
 
             if not Caixa.caixa_aberto(today):
-                # Cria o caixa
                 Caixa.objects.create(
                     data_abertura=today,
                     criado_por=request.user,
                     modificado_por=request.user,
                     )
                 messages.success(request, 'Caixa aberto com sucesso')
-                print('Caixa aberto com sucesso')
                 return redirect('vendas:caixa_list')
             else:
                 messages.warning(request, 'Já existe um caixa aberto para hoje')
-                print('Já existe um caixa aberto para hoje')
                 return redirect('vendas:caixa_list')
         
         return self.get(request, *args, **kwargs)
