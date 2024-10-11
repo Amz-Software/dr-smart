@@ -7,4 +7,5 @@ app_name = 'vendas'
 urlpatterns = [
     path('', IndexView.as_view(), name='index'),
     path('caixas/', CaixaListView.as_view(), name='caixa_list'),
+    path('caixas/<int:pk>/', CaixaDetailView.as_view(), name='caixa_detail'),
 ]

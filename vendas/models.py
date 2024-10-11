@@ -4,8 +4,8 @@ from django.utils import timezone
 class Base(models.Model):
     criado_em = models.DateTimeField(auto_now_add=True,editable=False)
     modificado_em = models.DateTimeField(auto_now=True,editable=False)
-    criado_por = models.ForeignKey('auth.User', on_delete=models.PROTECT, related_name='%(class)s_criadas',editable=False)
-    modificado_por = models.ForeignKey('auth.User', on_delete=models.PROTECT, related_name='%(class)s_modificadas',editable=False)
+    criado_por = models.ForeignKey('auth.User', on_delete=models.PROTECT, related_name='%(class)s_criadas',editable=False, null=True, blank=True)
+    modificado_por = models.ForeignKey('auth.User', on_delete=models.PROTECT, related_name='%(class)s_modificadas',editable=False, null=True, blank=True)
     
     def save(self, *args, user=None, **kwargs):
         if user:
@@ -29,6 +29,13 @@ class Caixa(Base):
     @property
     def quantidade_vendas(self):
         return self.vendas.count()
+    
+    @property
+    def caixa_fechado(self):
+        if self.data_fechamento:
+            return True
+        return False
+        
     
     @classmethod
     def caixa_aberto(cls, data):
@@ -69,7 +76,7 @@ class Cliente(Base):
     rg = models.CharField(max_length=20)
     cliente_cred_facil = models.BooleanField(default=False)
     Endereco = models.ForeignKey('vendas.Endereco', on_delete=models.PROTECT, related_name='informacoes_clientes')
-    ComprovantesCliente = models.ForeignKey('vendas.ComprovantesCliente', on_delete=models.PROTECT, related_name='comprovantes_clientes')
+    ComprovantesCliente = models.ForeignKey('vendas.ComprovantesCliente', on_delete=models.PROTECT, related_name='comprovantes_clientes', null=True, blank=True)
     
     def __str__(self):
         return self.nome
@@ -123,7 +130,7 @@ class Venda(Base):
         verbose_name_plural = 'Vendas'
         
 
-class ProdutoVenda(Base):
+class ProdutoVenda(models.Model):
     produto = models.ForeignKey('produtos.Produto', on_delete=models.PROTECT, related_name='produto_vendas')
     venda = models.ForeignKey('vendas.Venda', on_delete=models.PROTECT, related_name='itens_venda')
     valor_unitario = models.DecimalField(max_digits=10, decimal_places=2)
@@ -141,13 +148,12 @@ class Pagamento(Base):
     tipo_pagamento = models.ForeignKey('vendas.TipoPagamento', on_delete=models.PROTECT, related_name='pagamentos_tipo')
     valor = models.DecimalField(max_digits=10, decimal_places=2)
     parcelas = models.PositiveIntegerField(default=1)
-    valor_parcela = models.DecimalField(max_digits=10, decimal_places=2)
+    # valor_parcela = models.DecimalField(max_digits=10, decimal_places=2)
     data_primeira_parcela = models.DateField()
     
-    def save(self, *args, **kwargs):
-        if self.parcelas > 0:
-            self.valor_parcela = self.valor / self.parcelas
-        super().save(*args, **kwargs)
+    @property
+    def valor_parcela(self):
+        return self.valor / self.parcelas
     
     def __str__(self):
         return f"Pagamento de R$ {self.valor} via {self.tipo_pagamento.nome}"

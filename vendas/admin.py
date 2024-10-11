@@ -19,10 +19,22 @@ class AdminBase(admin.ModelAdmin):
 class ProdutoVendaInline(admin.TabularInline):
     model = ProdutoVenda
     extra = 1
-    
+
+    def save_model(self, request, obj, form, change):
+        if not obj.pk:
+            obj.criado_por = request.user
+        obj.modificado_por = request.user
+        super().save_model(request, obj, form, change)
+
 class PagamentoInline(admin.TabularInline):
     model = Pagamento
     extra = 1
+
+    def save_model(self, request, obj, form, change):
+        if not obj.pk:
+            obj.criado_por = request.user
+        obj.modificado_por = request.user
+        super().save_model(request, obj, form, change)
 
 @admin.register(Venda)
 class VendaAdmin(AdminBase):
@@ -40,3 +52,25 @@ class TipoPagamentoAdmin(AdminBase):
 @admin.register(Caixa)
 class CaixaAdmin(AdminBase):
     list_display = ('data_abertura', 'data_fechamento')
+    
+@admin.register(ProdutoVenda)
+class ProdutoVendaAdmin(admin.ModelAdmin):
+    list_display = ('produto', 'quantidade', 'venda')
+
+@admin.register(Cliente)
+class ClienteAdmin(AdminBase):
+    list_display = ('nome', 'email', 'telefone', 'cpf')
+
+
+@admin.register(TipoVenda)
+class TipoVendaAdmin(AdminBase):
+    list_display = ('nome',)
+
+@admin.register(TipoEntrega)
+class TipoEntregaAdmin(AdminBase):
+    list_display = ('nome',)
+
+
+@admin.register(Endereco)
+class EnderecoAdmin(AdminBase):
+    list_display = ('numero', 'bairro', 'cidade', 'cep')

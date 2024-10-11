@@ -4,10 +4,31 @@ from django.core.exceptions import ValidationError
 from .models import Estoque, EntradaEstoque
 from vendas.models import ProdutoVenda
 
+from django.db.models.signals import pre_save, post_save
+from django.dispatch import receiver
+
+@receiver(pre_save, sender=EntradaEstoque)
+def salvar_quantidade_antiga(sender, instance, **kwargs):
+    if instance.pk:
+        instance._quantidade_antiga = EntradaEstoque.objects.get(pk=instance.pk).quantidade
+    else:
+        instance._quantidade_antiga = 0
+
 @receiver(post_save, sender=EntradaEstoque)
 def atualizar_estoque_entrada(sender, instance, created, **kwargs):
-    estoque, _ = Estoque.objects.get_or_create(produto=instance.produto)
-    estoque.adicionar_estoque(instance.quantidade)
+    if created:
+        estoque, _ = Estoque.objects.get_or_create(produto=instance.produto)
+        estoque.adicionar_estoque(instance.quantidade)
+    else:
+        estoque = Estoque.objects.get(produto=instance.produto)
+        quantidade_antiga = instance._quantidade_antiga
+        quantidade_nova = instance.quantidade
+        
+        if quantidade_nova > quantidade_antiga:
+            estoque.adicionar_estoque(quantidade_nova - quantidade_antiga)
+        elif quantidade_nova < quantidade_antiga:
+            estoque.remover_estoque(quantidade_antiga - quantidade_nova)
+
 
 @receiver(post_delete, sender=EntradaEstoque)
 def atualizar_estoque_deletar_entrada(sender, instance, **kwargs):
@@ -15,9 +36,9 @@ def atualizar_estoque_deletar_entrada(sender, instance, **kwargs):
     try:
         estoque.remover_estoque(instance.quantidade)
     except ValueError:
-        # Caso não consiga remover, você pode lidar com isso aqui (opcional)
-        estoque.quantidade_disponivel = 0  # Garante que não fique negativo
+        estoque.quantidade_disponivel = 0
         estoque.save()
+
 
 # ATUALIZAR ESTOQUE APÓS VENDA
 @receiver(post_save, sender=ProdutoVenda)
