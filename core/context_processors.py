@@ -28,27 +28,27 @@ def menu_items(request):
                 },
                 {
                     "label": "Cor",
-                    "url_name": "produtos:produtos",
-                    "permission": "produtos.view_produto",
-                },
-                {
-                    "label": "Estado",
-                    "url_name": "produtos:produtos",
-                    "permission": "produtos.view_produto",
-                },
-                {
-                    "label": "Fabricante",
-                    "url_name": "produtos:produtos",
-                    "permission": "produtos.view_produto",
-                },
-                {
-                    "label": "Memoria",
-                    "url_name": "produtos:produtos",
+                    "url_name": "produtos:cores",
                     "permission": "produtos.view_produto",
                 },
                 {
                     "label": "Tipo",
-                    "url_name": "produtos:produtos",
+                    "url_name": "produtos:tipos",
+                    "permission": "produtos.view_produto",
+                },
+                {
+                    "label": "Fabricante",
+                    "url_name": "produtos:fabricantes",
+                    "permission": "produtos.view_produto",
+                },
+                {
+                    "label": "Estado",
+                    "url_name": "produtos:estados",
+                    "permission": "produtos.view_produto",
+                },
+                {
+                    "label": "Memória",
+                    "url_name": "produtos:memorias",
                     "permission": "produtos.view_produto",
                 },
             ]

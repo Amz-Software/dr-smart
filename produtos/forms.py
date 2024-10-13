@@ -1,7 +1,7 @@
 from typing import Any
 from django import forms
 
-from produtos.models import Produto
+from produtos.models import *
 
 
 class ProdutoForms(forms.ModelForm):
@@ -25,6 +25,146 @@ class ProdutoForms(forms.ModelForm):
             'cor': forms.Select(attrs={'class': 'form-control'}),
             'memoria': forms.Select(attrs={'class': 'form-control'}),
             'estado': forms.Select(attrs={'class': 'form-control'}),
+        }
+
+    def __init__(self, *args, disabled=False, **kwargs):
+        self.user = kwargs.pop('user', None)  # Pega o usuário que será passado pela view
+        super().__init__(*args, **kwargs)
+        if disabled:
+            for field in self.fields.values():
+                field.widget.attrs['disabled'] = True
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if self.user:  
+            if not instance.pk: 
+                instance.criado_por = self.user
+            instance.modificado_por = self.user 
+        if commit:
+            instance.save()
+        return instance
+    
+class CorProdutoForms(forms.ModelForm):
+    class Meta:
+        model = CorProduto
+        fields = '__all__'
+        labels = {
+            'nome': 'Nome',
+        }
+        widgets = {
+            'nome': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+
+    def __init__(self, *args, disabled=False, **kwargs):
+        self.user = kwargs.pop('user', None)  # Pega o usuário que será passado pela view
+        super().__init__(*args, **kwargs)
+        if disabled:
+            for field in self.fields.values():
+                field.widget.attrs['disabled'] = True
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if self.user:  
+            if not instance.pk: 
+                instance.criado_por = self.user
+            instance.modificado_por = self.user 
+        if commit:
+            instance.save()
+        return instance
+    
+class TipoForms(forms.ModelForm):
+    class Meta:
+        model = TipoProduto
+        fields = '__all__'
+        labels = {
+            'nome': 'Nome',
+        }
+        widgets = {
+            'nome': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+
+    def __init__(self, *args, disabled=False, **kwargs):
+        self.user = kwargs.pop('user', None)  # Pega o usuário que será passado pela view
+        super().__init__(*args, **kwargs)
+        if disabled:
+            for field in self.fields.values():
+                field.widget.attrs['disabled'] = True
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if self.user:  
+            if not instance.pk: 
+                instance.criado_por = self.user
+            instance.modificado_por = self.user 
+        if commit:
+            instance.save()
+        return instance
+    
+class FabricanteForms(forms.ModelForm):
+    class Meta:
+        model = Fabricante
+        fields = '__all__'
+        labels = {
+            'nome': 'Nome',
+        }
+        widgets = {
+            'nome': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+
+    def __init__(self, *args, disabled=False, **kwargs):
+        self.user = kwargs.pop('user', None)  # Pega o usuário que será passado pela view
+        super().__init__(*args, **kwargs)
+        if disabled:
+            for field in self.fields.values():
+                field.widget.attrs['disabled'] = True
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if self.user:  
+            if not instance.pk: 
+                instance.criado_por = self.user
+            instance.modificado_por = self.user 
+        if commit:
+            instance.save()
+        return instance
+    
+class MemoriaForms(forms.ModelForm):
+    class Meta:
+        model = MemoriaProduto
+        fields = '__all__'
+        labels = {
+            'nome': 'Nome',
+        }
+        widgets = {
+            'nome': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+
+    def __init__(self, *args, disabled=False, **kwargs):
+        self.user = kwargs.pop('user', None)  # Pega o usuário que será passado pela view
+        super().__init__(*args, **kwargs)
+        if disabled:
+            for field in self.fields.values():
+                field.widget.attrs['disabled'] = True
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if self.user:  
+            if not instance.pk: 
+                instance.criado_por = self.user
+            instance.modificado_por = self.user 
+        if commit:
+            instance.save()
+        return instance
+    
+class EstadoProdutoForms(forms.ModelForm):
+    class Meta:
+        model = EstadoProduto
+        fields = '__all__'
+        labels = {
+            'nome': 'Nome',
+        }
+        widgets = {
+            'nome': forms.TextInput(attrs={'class': 'form-control'}),
         }
 
     def __init__(self, *args, disabled=False, **kwargs):
