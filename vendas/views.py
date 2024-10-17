@@ -50,7 +50,7 @@ class CaixaListView(UserPassesTestMixin, ListView):
         if fechar_caixa:
             today = timezone.localtime(timezone.now()).date()
             try:
-                caixa = Caixa.objects.get(data_abertura=today, data_fechamento__isnull=True)
+                caixa = Caixa.objects.get(id=fechar_caixa)
                 caixa.data_fechamento = today
                 caixa.save(user=request.user)
                 messages.success(request, 'Caixa fechado com sucesso')
