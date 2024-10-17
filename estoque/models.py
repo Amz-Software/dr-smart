@@ -2,16 +2,16 @@ from django.db import models
 from vendas.models import Base
 
 class EntradaEstoque(Base):
-    fornecedor = models.ForeignKey('estoque.Fornecedor', on_delete=models.PROTECT, related_name='entradas_estoque')
-    data_entrada = models.DateField()
-    numero_nota = models.CharField(max_length=20)
-    produto = models.ForeignKey('produtos.Produto', on_delete=models.PROTECT, related_name='entradas_estoque')
-    imei = models.CharField(max_length=20, blank=True, null=True)
-    custo_unitario = models.DecimalField(max_digits=10, decimal_places=2)
-    venda_unitaria = models.DecimalField(max_digits=10, decimal_places=2)
-    quantidade = models.PositiveIntegerField()
-    custo_total = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    venda_total = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    fornecedor = models.ForeignKey('estoque.Fornecedor', on_delete=models.PROTECT, related_name='entradas_estoque', verbose_name='Fornecedor')
+    data_entrada = models.DateField(verbose_name='Data de Entrada')
+    numero_nota = models.CharField(max_length=20, verbose_name='Número da Nota')
+    produto = models.ForeignKey('produtos.Produto', on_delete=models.PROTECT, related_name='entradas_estoque', verbose_name='Produto')
+    imei = models.CharField(max_length=20, blank=True, null=True, verbose_name='IMEI')
+    custo_unitario = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Custo Unitário')
+    venda_unitaria = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Venda Unitária')
+    quantidade = models.PositiveIntegerField(verbose_name='Quantidade')
+    custo_total = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True, verbose_name='Custo Total')
+    venda_total = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True, verbose_name='Venda Total')
     
     def __str__(self):
         return f"Nota {self.numero_nota} - {self.produto.nome}"
@@ -22,6 +22,7 @@ class EntradaEstoque(Base):
         super().save(*args, **kwargs)
     
     class Meta:
+        verbose_name = 'Entrada de Estoque'
         verbose_name_plural = 'Entradas de Estoque'
 
 
@@ -46,6 +47,7 @@ class Estoque(Base):
     
     class Meta:
         verbose_name_plural = 'Estoques'
+        ordering = ['quantidade_disponivel']
 
 
 class Fornecedor(Base):

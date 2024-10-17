@@ -10,6 +10,10 @@ class Produto(Base):
     memoria = models.ForeignKey('produtos.MemoriaProduto', on_delete=models.PROTECT, related_name='produtos_memoria')
     estado = models.ForeignKey('produtos.EstadoProduto', on_delete=models.PROTECT, related_name='produtos_estado')
     
+    @property
+    def total_vendas(self):
+        return self.produto_vendas.count()
+    
     def __str__(self):
         return f"{self.nome} ({self.codigo})"
 

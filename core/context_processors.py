@@ -60,6 +60,24 @@ def menu_items(request):
             "url_name": "vendas:caixa_list",
             "section": "Vendas"
         },
+        {
+            "label": "Estoque",
+            "icon": "bx bx-box",
+            "permission": "estoque.view_estoque",
+            "sub_items": [
+                {
+                    "label": "Ver Estoque",
+                    "url_name": "estoque:estoque_list",
+                    "permission": "estoque.view_estoque"
+                },
+                {
+                    "label": "Adicionar Entrada",
+                    "url_name": "estoque:estoque_entrada",
+                    "permission": "estoque.add_entradaestoque"
+                },
+            ],
+            "section": "Portal do Vendedor"
+        },        
         # {
         #     "label": "Exemplo",
         #     "icon": "bx bx-dollar-circle",
