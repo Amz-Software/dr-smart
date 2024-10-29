@@ -14,9 +14,7 @@ class AdminBase(admin.ModelAdmin):
 
 @admin.register(EntradaEstoque)
 class EntradaEstoqueAdmin(AdminBase):
-  list_display = ('quantidade','fornecedor', 'data_entrada', 'numero_nota', 'produto', 'imei', 'custo_unitario', 'venda_unitaria', 'quantidade', 'custo_total', 'venda_total') + AdminBase.list_display
-  search_fields = ('numero_nota', 'produto__nome', 'fornecedor__nome')
-  list_filter = ('data_entrada', 'fornecedor', 'produto')
+  pass
 
 
 @admin.register(Estoque)
@@ -31,3 +29,17 @@ class FornecedorAdmin(AdminBase):
   list_display = ('nome', 'telefone', 'email') + AdminBase.list_display
   search_fields = ('nome', 'telefone', 'email')
   list_filter = ('nome',)
+  
+
+@admin.register(ProdutoEntrada)
+class ProdutoEntradaAdmin(AdminBase):
+  list_display = ('entrada', 'produto', 'imei', 'custo_unitario', 'venda_unitaria', 'quantidade', 'custo_total', 'venda_total') + AdminBase.list_display
+  search_fields = ('produto__nome', 'imei')
+  list_filter = ('entrada', 'produto')
+  
+@admin.register(EstoqueImei)
+class EstoqueImeiAdmin(AdminBase):
+  list_display = ('produto', 'imei', 'vendido') + AdminBase.list_display
+  search_fields = ('produto__nome', 'imei')
+  list_filter = ('produto', 'vendido')
+  

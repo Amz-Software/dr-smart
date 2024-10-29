@@ -9,6 +9,7 @@ class Produto(Base):
     cor = models.ForeignKey('produtos.CorProduto', on_delete=models.PROTECT, related_name='produtos_cor')
     memoria = models.ForeignKey('produtos.MemoriaProduto', on_delete=models.PROTECT, related_name='produtos_memoria')
     estado = models.ForeignKey('produtos.EstadoProduto', on_delete=models.PROTECT, related_name='produtos_estado')
+    serializado = models.BooleanField(default=False)
     
     @property
     def total_vendas(self):

@@ -1,21 +1,21 @@
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from django.core.exceptions import ValidationError
-from .models import Estoque, EntradaEstoque
+from .models import Estoque, EntradaEstoque, ProdutoEntrada
 from vendas.models import ProdutoVenda
 
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 
-@receiver(pre_save, sender=EntradaEstoque)
-def salvar_quantidade_antiga(sender, instance, **kwargs):
+@receiver(pre_save, sender=ProdutoEntrada)
+def salvar_quantidade_antiga(instance, **kwargs):
     if instance.pk:
-        instance._quantidade_antiga = EntradaEstoque.objects.get(pk=instance.pk).quantidade
+        instance._quantidade_antiga = ProdutoEntrada.objects.get(pk=instance.pk).quantidade
     else:
         instance._quantidade_antiga = 0
 
-@receiver(post_save, sender=EntradaEstoque)
-def atualizar_estoque_entrada(sender, instance, created, **kwargs):
+@receiver(post_save, sender=ProdutoEntrada)
+def atualizar_estoque_entrada(instance, created, **kwargs):
     if created:
         estoque, _ = Estoque.objects.get_or_create(produto=instance.produto)
         estoque.adicionar_estoque(instance.quantidade)
@@ -30,14 +30,14 @@ def atualizar_estoque_entrada(sender, instance, created, **kwargs):
             estoque.remover_estoque(quantidade_antiga - quantidade_nova)
 
 
-@receiver(post_delete, sender=EntradaEstoque)
-def atualizar_estoque_deletar_entrada(sender, instance, **kwargs):
-    estoque = Estoque.objects.get(produto=instance.produto)
-    try:
-        estoque.remover_estoque(instance.quantidade)
-    except ValueError:
-        estoque.quantidade_disponivel = 0
-        estoque.save()
+# @receiver(post_delete, sender=EntradaEstoque)
+# def atualizar_estoque_deletar_entrada(sender, instance, **kwargs):
+#     estoque = Estoque.objects.get(produto=instance.produto)
+#     try:
+#         estoque.remover_estoque(instance.quantidade)
+#     except ValueError:
+#         estoque.quantidade_disponivel = 0
+#         estoque.save()
 
 
 # ATUALIZAR ESTOQUE APÓS VENDA

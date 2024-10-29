@@ -1,37 +1,194 @@
 {% extends "base.html" %}
 {% load crispy_forms_tags %}
+
 {% block title %}
 Adicionar Entrada
 {% endblock title %}
 
 {% block content %}
-
 <div class="container-xxl mt-4">
-  <div class="row">
-    <div class="col-12">
-    <div class="card">
-        <div class="container-xxl flex-grow-1 container-p-y">
-            <h4 class="py-3 mb-4"><span class="text-muted fw-light">Entrada/</span> Adicionar</h4>
-            <div class="row">
-              <div class="col-xl">
-                <div class="card mb-4">
-                  <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Entrada</h5>
-                  </div>
-                  <div class="card-body">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
                     <form method="post">
                         {% csrf_token %}
                         {{ form|crispy }}
-                        <button type="submit" class="btn btn-primary">Salvar</button>
+                    
+                        {{ formset.management_form }}
+                        <table id="produto-table" class="table">
+                            <div id="product-counter">Produtos adicionados: 0</div>
+                            <tbody>
+                                {% for form in formset %}
+                                    <tr class="produto-form">
+                                        {% for field in form %}
+                                            <td>{{ field|as_crispy_field }}</td>
+                                        {% endfor %}
+                                        <td>
+                                            <button type="button" class="btn btn-danger remove-product">Remover</button>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr class="produto-form">
+                                        {% for field in formset.empty_form %}
+                                            <td>{{ field|as_crispy_field }}</td>
+                                        {% endfor %}
+                                        <td>
+                                            <button type="button" class="btn btn-danger remove-product">Remover</button>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    
+                        <button type="button" id="add-product" class="btn btn-success">Adicionar Produto</button>
+                        <button type="submit" class="btn btn-primary">Salvar Entrada</button>
                     </form>
-                  </div>
+                    
                 </div>
-              </div>
             </div>
-          </div>
+        </div>
     </div>
-    </div>
-  </div>
 </div>
 
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        let formCount = {{ formset.total_form_count }};  // Número inicial de formulários
+        const formsetPrefix = "{{ formset.prefix }}";
+        const formTable = document.getElementById("produto-table").querySelector("tbody");
+        const addButton = document.getElementById("add-product");
+        const counterDisplay = document.getElementById("product-counter"); // Elemento para o contador visual
+  
+        // Função para verificar se o produto é serializado
+        function checkSerializado(id_produto, imeiInput, quantityInput) {
+            fetch(`/produto/details/${id_produto}/`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.serializado) {
+                        console.log("Produto é serializado");
+                        imeiInput.disabled = false; // Habilita o campo IMEI
+                        quantityInput.value = 1; // Define a quantidade como 1
+                    } else {
+                        console.log("Produto não é serializado");
+                        imeiInput.disabled = true; // Desabilita o campo IMEI
+                        imeiInput.value = ''; // Limpa o valor do IMEI
+                    }
+                })
+                .catch(error => {
+                    console.error("Erro ao verificar se o produto é serializado:", error);
+                });
+        }
+  
+        // Atualiza o contador visual
+        function updateCounter() {
+            counterDisplay.textContent = `Produtos adicionados: ${formCount}`;
+        }
+
+        // Adiciona um novo produto
+        function addNewProductRow() {
+            const lastForm = formTable.querySelector(".produto-form:last-child");
+            if (lastForm) {
+                const newForm = lastForm.cloneNode(true);
+  
+                // Atualiza os índices do novo formulário
+                newForm.querySelectorAll('input, select').forEach(function(element) {
+                    const name = element.name.replace(/-\d+-/, `-${formCount}-`);
+                    const id = element.id.replace(/-\d+-/, `-${formCount}-`);
+                    element.name = name;
+                    element.id = id;
+  
+                    // Limpa os valores do novo formulário, exceto a quantidade se o produto for serializado
+                    if (element.tagName === "SELECT") {
+                        element.value = ""; // Limpa o valor do select
+                    } else if (element.type === "checkbox") {
+                        element.checked = false; // Desmarca checkbox
+                        element.dispatchEvent(new Event('change')); // Dispara evento de mudança para atualizar o IMEI
+                    } else {
+                        if (!element.id.includes('quantidade')) {
+                            element.value = ""; // Limpa o valor do input, exceto quantidade
+                        }
+                    }
+                });
+
+                // Copia os valores da linha anterior
+                const lastProdutoInput = lastForm.querySelector("select[id*='produto']");
+                const lastCustoUnitarioInput = lastForm.querySelector("input[id*='custo_unitario']");
+                const lastVendaUnitarioInput = lastForm.querySelector("input[id*='venda_unitaria']");
+                const newQuantityInput = newForm.querySelector("input[id*='quantidade']");
+                
+                if (lastProdutoInput) {
+                    const selectedProdutoId = lastProdutoInput.value;
+                    newForm.querySelector("select[id*='produto']").value = selectedProdutoId; // Copia o ID do produto
+                    checkSerializado(selectedProdutoId, newForm.querySelector("input[id*='imei']"), newQuantityInput); // Verifica se o produto é serializado
+                }
+                if (lastCustoUnitarioInput) {
+                    newForm.querySelector("input[id*='custo_unitario']").value = lastCustoUnitarioInput.value; // Copia o custo unitário
+                }
+                if (lastVendaUnitarioInput) {
+                    newForm.querySelector("input[id*='venda_unitaria']").value = lastVendaUnitarioInput.value; // Copia o preço de venda
+                }
+
+                // Adiciona o novo formulário à tabela
+                formTable.appendChild(newForm);
+                document.getElementById(`id_${formsetPrefix}-TOTAL_FORMS`).value = formCount + 1;
+                formCount++;
+
+                // Atualiza o contador visual
+                updateCounter();
+
+                // Define o foco no campo IMEI da nova linha
+                const imeiInput = newForm.querySelector("input[id*='imei']");
+                imeiInput.focus();
+            }
+        }
+
+        // Adiciona evento para remover produtos
+        formTable.addEventListener("click", function(event) {
+            if (event.target.classList.contains("remove-product")) {
+                const row = event.target.closest(".produto-form");
+                if (row) {
+                    row.remove(); // Remove a linha do formulário
+                    formCount--;
+                    document.getElementById(`id_${formsetPrefix}-TOTAL_FORMS`).value = formCount; // Atualiza o TOTAL_FORMS
+                    // Atualiza o contador visual
+                    updateCounter();
+                }
+            }
+        });
+  
+        // Adiciona evento de mudança para os checkboxes de serializado e selects de produtos
+        formTable.addEventListener("change", function(event) {
+            const target = event.target;
+  
+            // Se o checkbox de serializado for alterado
+            if (target.classList.contains("checkboxinput")) {
+                const checkbox = target;
+                const imeiInput = checkbox.closest("tr").querySelector("input[id*='imei']");
+                const quantityInput = checkbox.closest("tr").querySelector("input[id*='quantidade']");
+                toggleImeiInput(checkbox, imeiInput);
+                checkSerializado(checkbox.closest("tr").querySelector("select[id*='produto']").value, imeiInput, quantityInput);
+            }
+  
+            // Se um produto for selecionado
+            if (target.tagName === "SELECT") {
+                const id_produto = target.value; // Presumindo que o valor do select é o ID do produto
+                const imeiInput = target.closest("tr").querySelector("input[id*='imei']");
+                const quantityInput = target.closest("tr").querySelector("input[id*='quantidade']");
+                checkSerializado(id_produto, imeiInput, quantityInput);
+            }
+        });
+
+        // Adiciona evento para escanear o código de barras
+        formTable.addEventListener("keydown", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault(); // Impede o comportamento padrão de envio do formulário
+                addNewProductRow(); // Adiciona uma nova linha com os mesmos detalhes
+            }
+        });
+
+        // Adiciona o evento de click para o botão de adicionar
+        addButton.addEventListener("click", addNewProductRow);
+    });
+</script>
+  
 {% endblock %}
