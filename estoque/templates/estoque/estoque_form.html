@@ -58,6 +58,7 @@ Adicionar Entrada
         const formTable = document.getElementById("produto-table").querySelector("tbody");
         const addButton = document.getElementById("add-product");
         const counterDisplay = document.getElementById("product-counter"); 
+
         function checkSerializado(id_produto, imeiInput, quantityInput) {
             fetch(`/produto/details/${id_produto}/`)
                 .then(response => response.json())
@@ -66,7 +67,7 @@ Adicionar Entrada
                         console.log("Produto é serializado");
                         imeiInput.disabled = false; 
                         quantityInput.value = 1; 
-                
+                    } else {
                         console.log("Produto não é serializado");
                         imeiInput.disabled = true; 
                         imeiInput.value = ''; 
@@ -76,9 +77,11 @@ Adicionar Entrada
                     console.error("Erro ao verificar se o produto é serializado:", error);
                 });
         }
+
         function updateCounter() {
             counterDisplay.textContent = `Produtos adicionados: ${formCount}`;
-        
+        }  // Chave de fechamento adicionada
+
         function addNewProductRow() {
             const lastForm = formTable.querySelector(".produto-form:last-child");
             if (lastForm) {
@@ -169,5 +172,5 @@ Adicionar Entrada
         addButton.addEventListener("click", addNewProductRow);
     });
 </script>
-  
+
 {% endblock %}

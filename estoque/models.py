@@ -6,7 +6,27 @@ class EntradaEstoque(Base):
     data_entrada = models.DateField(verbose_name='Data de Entrada')
     numero_nota = models.CharField(max_length=20, verbose_name='Número da Nota')
     
+    @property
+    def custo_total(self):
+        total = 0
+        for produto in self.produtos.all():
+            total += produto.custo_total
+        return total
 
+    @property
+    def venda_total(self):
+        total = 0
+        for produto in self.produtos.all():
+            total += produto.venda_total
+        return total
+    
+    @property
+    def quantidade_total(self):
+        total = 0
+        for produto in self.produtos.all():
+            total += produto.quantidade
+        return total
+    
     def __str__(self):
         return f"Entrada {self.numero_nota} - {self.fornecedor.nome}"
 

@@ -1,7 +1,7 @@
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
-from django.views.generic import ListView, CreateView
+from django.views.generic import ListView, CreateView, DetailView
 # from estoque.forms import EntradaForm
 from estoque.models import EntradaEstoque, Estoque, EstoqueImei, ProdutoEntrada
 from django.contrib import messages
@@ -24,18 +24,6 @@ class EstoqueListView(ListView):
             
         return query
 
-# class EstoqueCreateView(CreateView):
-#     model = EntradaEstoque
-#     template_name = 'estoque/estoque_form.html'
-#     form_class = EntradaForm
-#     success_url = reverse_lazy('estoque:estoque_list')
-    
-#     def form_valid(self, form):
-#         estoque = form.save(commit=False)
-#         messages.success(self.request, f"Estoque de {estoque.produto.nome} atualizado.")
-#         return super().form_valid(form)
-    
-
 class EntradaListView(ListView):
     model = EntradaEstoque
     template_name = 'estoque/estoque_entrada_list.html'
@@ -49,6 +37,17 @@ class EntradaListView(ListView):
             query = query.filter(fornecedor__nome__icontains=search)
             
         return query
+    
+class EntradaDetailView(DetailView):
+    model = EntradaEstoque
+    template_name = 'estoque/estoque_entrada_detail.html'
+    context_object_name = 'entrada'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['produtos'] = ProdutoEntrada.objects.filter(entrada=self.object)
+        return context
+    
 
 class EntradaEstoqueCreateView(CreateView):
     model = EntradaEstoque
@@ -70,10 +69,12 @@ class EntradaEstoqueCreateView(CreateView):
         context = self.get_context_data()
         formset = context['formset']
         if form.is_valid() and formset.is_valid():
-            print(form)
-            print(formset)
+            form.instance.criado_por = self.request.user
+            form.instance.modificado_por = self.request.user
             self.object = form.save()
             formset.instance = self.object
+            formset.criado_por = self.request.user
+            formset.modificado_por = self.request.user
             formset.save()
             return redirect(self.success_url)
         else:

@@ -71,6 +71,11 @@ def menu_items(request):
                     "permission": "estoque.view_estoque"
                 },
                 {
+                    "label": "Ver Entradas",
+                    "url_name": "estoque:entrada_list",
+                    "permission": "estoque.view_entradaestoque"
+                },
+                {
                     "label": "Adicionar Entrada",
                     "url_name": "estoque:estoque_entrada",
                     "permission": "estoque.add_entradaestoque"

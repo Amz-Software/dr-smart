@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}
+Estoque
+{% endblock title %}
+
+{% block content %}
+<div class="container-xxl mt-4">
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h4 class="card-title">Entradas</h4>
+          <div>
+            <form action="" method="get" class="d-inline-block me-2" id="searchForm">
+              <input type="text" name="search" class="form-control d-inline-block me-2" style="width: auto;" placeholder="Pesquisar..." onchange="document.getElementById('searchForm').submit();">
+            </form>
+            <a type="button" class="btn btn-primary" href={% url "estoque:estoque_entrada" %}>
+                <i class="bx bx-plus me-1"></i>
+                Adicionar Entrada
+              </a>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead>
+                <tr>
+                  <th scope="col">Fornecedor</th>
+                  <th scope="col" class="text-center">Data da Entrada</th>
+                  {% comment %} <th scope="col" class="text-center">Emitida por</th> {% endcomment %}
+                  <th scope="col" class="text-center">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% if entradas %}
+                  {% for entrada in entradas %}
+                    <tr>
+                        <td>{{ entrada.fornecedor|title }}</td>
+                        <td class="text-center">{{ entrada.data_entrada }}</td>
+                        {% comment %} <td class="text-center">{{ entrada.criado_por }}</td> {% endcomment %}
+                      {% comment %} <td class="text-end">{{ produto.preco|floatformat:2 }}</td> {% endcomment %}
+                        <td class="text-center">
+                            <div class="dropdown">
+                                <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+                                  <i class="bx bx-dots-vertical-rounded"></i>
+                                </button>
+                                <div class="dropdown-menu">
+                                    <a class="dropdown-item" href="{% url "estoque:entrada_detail" entrada.pk %}">
+                                    <i class="bx bx-show me-1"></i> Detalhes
+                                    </a>
+                                    <a class="dropdown-item" href="">
+                                    <i class="bx bx-edit me-1"></i>
+                                    Editar
+                                    </a>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                  {% endfor %}
+                {% else %}
+                  <tr>
+                    <td colspan="4" class="text-center">Nenhum produto encontrado</td>
+                  </tr>
+                {% endif %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}
