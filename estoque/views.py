@@ -48,38 +48,7 @@ class EntradaDetailView(DetailView):
         context['produtos'] = ProdutoEntrada.objects.filter(entrada=self.object)
         return context
     
-
-class EntradaEstoqueCreateView(CreateView):
-    model = EntradaEstoque
-    form_class = EntradaEstoqueForm
-    template_name = 'estoque/estoque_form.html'
     
-    def get_success_url(self):
-        return reverse_lazy('estoque:estoque_list')
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        if self.request.POST:
-            context['formset'] = ProdutoEntradaFormSet(self.request.POST)
-        else:
-            context['formset'] = ProdutoEntradaFormSet()
-        return context
-
-    def form_valid(self, form):
-        context = self.get_context_data()
-        formset = context['formset']
-        if form.is_valid() and formset.is_valid():
-            form.instance.criado_por = self.request.user
-            form.instance.modificado_por = self.request.user
-            self.object = form.save()
-            formset.instance = self.object
-            formset.criado_por = self.request.user
-            formset.modificado_por = self.request.user
-            formset.save()
-            return redirect(self.success_url)
-        else:
-            return self.form_invalid(form)
-        
 class AdicionarEntradaEstoqueView(CreateView):
     model = EntradaEstoque
     form_class = EntradaEstoqueForm
@@ -112,7 +81,9 @@ class AdicionarEntradaEstoqueView(CreateView):
                         imei=produto.imei,
                         produto_entrada=produto  # Associa o ProdutoEntrada
                     )
-
+                    estoque_imei.save()
+            
+            messages.success(self.request, 'Entrada de estoque criada com sucesso!')
             return redirect(self.success_url)
         else:
             return self.form_invalid(form)

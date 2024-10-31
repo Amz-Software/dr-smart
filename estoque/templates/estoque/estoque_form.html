@@ -18,7 +18,6 @@ Adicionar Entrada
                     
                         {{ formset.management_form }}
                         <table id="produto-table" data-form-count="{{ formset.total_form_count }}" data-formset-prefix="{{ formset.prefix }}" class="table">
-                            <div id="product-counter">Produtos adicionados: {{ formset.total_form_count }}</div>
                             <tbody>
                                 {% for form in formset %}
                                     <tr class="produto-form">
@@ -41,7 +40,9 @@ Adicionar Entrada
                                 {% endfor %}
                             </tbody>
                         </table>
-                    
+                        <div id="product-counter" class="alert alert-info mt-3">
+                            <strong>Produtos adicionados:</strong> {{ formset.total_form_count }}
+                        </div>
                         <button type="button" id="add-product" class="btn btn-success">Adicionar Produto</button>
                         <button type="submit" class="btn btn-primary">Salvar Entrada</button>
                     </form>
