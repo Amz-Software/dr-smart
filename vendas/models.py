@@ -71,18 +71,26 @@ class Cliente(Base):
     nome = models.CharField(max_length=100)
     email = models.EmailField()
     telefone = models.CharField(max_length=20)
-    cpf = models.CharField(max_length=11)
+    cpf = models.CharField(max_length=14)
     nascimento = models.DateField()
     rg = models.CharField(max_length=20)
+    cep = models.CharField(max_length=8)
+    bairro = models.CharField(max_length=100)
+    cidade = models.CharField(max_length=100)
     cliente_cred_facil = models.BooleanField(default=False)
-    Endereco = models.ForeignKey('vendas.Endereco', on_delete=models.PROTECT, related_name='informacoes_clientes')
-    ComprovantesCliente = models.ForeignKey('vendas.ComprovantesCliente', on_delete=models.PROTECT, related_name='comprovantes_clientes', null=True, blank=True)
+    comprovantes = models.ForeignKey('vendas.ComprovantesCliente', on_delete=models.PROTECT, related_name='comprovantes_clientes', null=True, blank=True)
+    contato_adicional = models.ForeignKey('vendas.ContatoAdicional', on_delete=models.PROTECT, related_name='contatos_adicionais', null=True, blank=True)
     
     def __str__(self):
         return self.nome
     
     class Meta:
         verbose_name_plural = 'Clientes'
+
+class ContatoAdicional(Base):
+    nome_adicional = models.CharField(max_length=100)
+    contato = models.CharField(max_length=20)
+    endereco = models.CharField(max_length=200)
 
 class Endereco(Base):
     cep = models.CharField(max_length=8)
@@ -99,13 +107,10 @@ class Endereco(Base):
         verbose_name_plural = 'Informacoes Clientes'
 
 class ComprovantesCliente(Base):
-    documento_identificacao_frente = models.ImageField(upload_to='comprovantes_clientes/', null=True, blank=True)
-    documento_identificacao_verso = models.ImageField(upload_to='comprovantes_clientes/', null=True, blank=True)
-    comprovante_residencia = models.ImageField(upload_to='comprovantes_clientes/', null=True, blank=True)
-    consulta_serasa = models.ImageField(upload_to='comprovantes_clientes/', null=True, blank=True)
-    
-    def __str__(self):
-        return self.documento_identificacao_frente
+    documento_identificacao_frente = models.ImageField(upload_to='comprovantes_clientes/%Y/%m/%d/', null=True, blank=True)
+    documento_identificacao_verso = models.ImageField(upload_to='comprovantes_clientes/%Y/%m/%d/', null=True, blank=True)
+    comprovante_residencia = models.ImageField(upload_to='comprovantes_clientes/%Y/%m/%d/', null=True, blank=True)
+    consulta_serasa = models.ImageField(upload_to='comprovantes_clientes/%Y/%m/%d/', null=True, blank=True)
     
     class Meta:
         verbose_name_plural = 'Comprovantes Clientes'
@@ -135,6 +140,9 @@ class ProdutoVenda(models.Model):
     venda = models.ForeignKey('vendas.Venda', on_delete=models.PROTECT, related_name='itens_venda')
     valor_unitario = models.DecimalField(max_digits=10, decimal_places=2)
     quantidade = models.PositiveIntegerField()
+
+    def calcular_valor_total(self):
+        return self.valor_unitario * self.quantidade
     
     def __str__(self):
         return f"{self.produto.nome} x {self.quantidade} (R$ {self.valor_unitario})"

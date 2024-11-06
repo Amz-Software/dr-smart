@@ -1,8 +1,12 @@
 from datetime import datetime
+from typing import Any
 from django.contrib import messages
-from django.shortcuts import redirect, render
-from django.views.generic import TemplateView, ListView, DetailView
-from .models import Caixa
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse_lazy
+from django.views.generic import TemplateView, ListView, DetailView, CreateView
+
+from vendas.forms import ClienteForm, ComprovantesClienteForm, ContatoAdicionalForm, VendaForm, ProdutoVendaFormSet, FormaPagamentoFormSet
+from .models import Caixa, Cliente, Venda
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.utils import timezone
 
@@ -69,3 +73,133 @@ class CaixaDetailView(UserPassesTestMixin, DetailView):
     def test_func(self):
         return self.request.user.has_perm('vendas.view_caixa')
     
+
+class ClienteListView(UserPassesTestMixin, ListView):
+    model = Cliente
+    template_name = 'cliente/cliente_list.html'
+    context_object_name = 'items'
+    paginate_by = 10
+    
+    def test_func(self):
+        return self.request.user.has_perm('vendas.view_cliente')
+    
+    def get_queryset(self):
+        query = super().get_queryset()
+        search = self.request.GET.get('search')
+        if search:
+            return query.filter(nome__icontains=search)
+        
+        return query.order_by('nome')
+    
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        context['form_cliente'] = ClienteForm()
+        context['form_adicional'] = ContatoAdicionalForm() 
+        context['form_comprovantes'] = ComprovantesClienteForm()
+        return context
+    
+    def post(self, request, *args, **kwargs):
+        cliente_id = request.POST.get('cliente_id')  # Verifique se há um cliente_id
+        
+        if cliente_id:  # Se cliente_id existe, é uma edição
+            cliente = Cliente.objects.get(id=cliente_id)
+            form_cliente = ClienteForm(request.POST, instance=cliente)
+            
+            # Usamos as instâncias existentes de contato e comprovantes para evitar duplicação
+            form_adicional = ContatoAdicionalForm(request.POST, instance=cliente.contato_adicional)
+            form_comprovantes = ComprovantesClienteForm(request.POST, request.FILES, instance=cliente.comprovantes)
+        else:  # Se não, é um novo cadastro
+            form_cliente = ClienteForm(request.POST)
+            form_adicional = ContatoAdicionalForm(request.POST)
+            form_comprovantes = ComprovantesClienteForm(request.POST, request.FILES)
+        
+        if form_cliente.is_valid() and form_adicional.is_valid() and form_comprovantes.is_valid():
+            cliente = form_cliente.save(commit=False)
+            endereco = form_adicional.save(commit=False)  # Salve o contato sem commit para associá-lo
+            comprovantes = form_comprovantes.save(commit=False)  # Salve comprovantes sem commit
+            
+            # Associa as instâncias e depois salva tudo
+            cliente.contato_adicional = endereco
+            cliente.comprovantes = comprovantes
+            
+            endereco.save()  # Salva as instâncias associadas
+            comprovantes.save()
+            cliente.save()
+
+            # Mensagem de sucesso baseada em ação de edição ou criação
+            if cliente_id:
+                messages.success(request, 'Cliente atualizado com sucesso')
+            else:
+                messages.success(request, 'Cliente cadastrado com sucesso')
+                    
+            return redirect('vendas:cliente_list')
+        
+        # Mensagem de erro e retorno do formulário em caso de falha na validação
+        messages.error(request, 'Erro ao cadastrar cliente')
+        return self.get(request, *args, **kwargs)
+
+
+def cliente_editar_view(request):
+    cliente_id = request.GET.get('cliente_id')
+    cliente = get_object_or_404(Cliente, id=cliente_id)
+    
+    form_cliente = ClienteForm(instance=cliente)
+    form_adicional = ContatoAdicionalForm(instance=cliente.contato_adicional)
+    form_comprovantes = ComprovantesClienteForm(instance=cliente.comprovantes)
+    
+    return render(request, 'cliente/form_cliente.html', {
+        'form_cliente': form_cliente,
+        'form_adicional': form_adicional,
+        'form_comprovantes': form_comprovantes,
+        'cliente_id': cliente_id,
+    })
+
+class VendaListView(UserPassesTestMixin, ListView):
+    model = Venda
+    template_name = 'venda/venda_list.html'
+    context_object_name = 'vendas'
+    paginate_by = 10
+    
+    def test_func(self):
+        return self.request.user.has_perm('vendas.view_venda')
+    
+    def get_queryset(self):
+        query = super().get_queryset()
+        data_filter = self.request.GET.get('data_filter')
+        if data_filter:
+            return query.filter(data_venda=data_filter)
+        
+        return query.order_by('-criado_em')
+
+class VendaCreateView(UserPassesTestMixin, CreateView):
+    model = Venda
+    form_class = VendaForm
+    template_name = 'vendas/venda_form.html'
+    success_url = reverse_lazy('vendas:venda_list')
+
+    def test_func(self):
+        return self.request.user.has_perm('vendas.add_venda')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.request.POST:
+            context['produto_venda_formset'] = ProdutoVendaFormSet(self.request.POST)
+            context['pagamento_formset'] = FormaPagamentoFormSet(self.request.POST)
+        else:
+            context['produto_venda_formset'] = ProdutoVendaFormSet()
+            context['pagamento_formset'] = FormaPagamentoFormSet()
+        return context
+
+    def form_valid(self, form):
+        context = self.get_context_data()
+        produto_venda_formset = context['produto_venda_formset']
+        pagamento_formset = context['pagamento_formset']
+        if produto_venda_formset.is_valid() and pagamento_formset.is_valid():
+            self.object = form.save()
+            produto_venda_formset.instance = self.object
+            produto_venda_formset.save()
+            pagamento_formset.instance = self.object
+            pagamento_formset.save() 
+            return super().form_valid(form)
+        else:
+            return self.form_invalid(form)

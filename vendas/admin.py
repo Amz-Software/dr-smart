@@ -74,3 +74,8 @@ class TipoEntregaAdmin(AdminBase):
 @admin.register(Endereco)
 class EnderecoAdmin(AdminBase):
     list_display = ('numero', 'bairro', 'cidade', 'cep')
+
+@admin.register(ComprovantesCliente)
+class ComprovantesClienteAdmin(AdminBase):
+    pass 
+

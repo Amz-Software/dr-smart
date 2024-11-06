@@ -82,7 +82,41 @@ def menu_items(request):
                 },
             ],
             "section": "Portal do Vendedor"
-        },        
+        },   
+        {
+            "label": "Vendas",
+            "icon": "bx bx-box",
+            "permission": "vendas.view_vendas",
+            "section": "Vendas",
+            "sub_items": [
+                {
+                    "label": "Iniciar Venda",
+                    "url_name": "vendas:venda_list",
+                    "permission": "vendas.view_venda"
+                },
+                {
+                    "label": "Clientes",
+                    "url_name": "vendas:cliente_list",
+                    "permission": "vendas.view_cliente"
+                },
+                {
+                    "label": "Tipo pagamento",
+                    "url_name": "vendas:tipos_pagamento",
+                    "permission": "vendas.view_tipopagamento"
+                },
+                {
+                    "label": "Tipo venda",
+                    "url_name": "vendas:tipos_venda",
+                    "permission": "vendas.view_tipovenda"
+                },
+                {
+                    "label": "Tipo entrega",
+                    "url_name": "vendas:tipos_entrega",
+                    "permission": "vendas.view_tipoentrega"
+                },
+            ],
+        },     
+
         # {
         #     "label": "Exemplo",
         #     "icon": "bx bx-dollar-circle",
