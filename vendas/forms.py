@@ -138,15 +138,45 @@ class VendaForm(forms.ModelForm):
     class Meta:
         model = Venda
         fields = '__all__'
-        exclude = ['criado_por', 'modificado_por', 'caixa']
+        exclude = ['criado_por', 'modificado_por', 'caixa', 'produtos']
 
         widgets = {
             'cliente': forms.Select(attrs={'class': 'form-control'}),
             'vendedor': forms.Select(attrs={'class': 'form-control'}),
             'tipo_venda': forms.Select(attrs={'class': 'form-control'}),
             'tipo_entrega': forms.Select(attrs={'class': 'form-control'}),
-            'produtos': forms.SelectMultiple(attrs={'class': 'form-control'}),
         }
 
-ProdutoVendaFormSet = forms.inlineformset_factory(Venda, ProdutoVenda, fields=['produto', 'valor_unitario', 'quantidade'], extra=1)
-FormaPagamentoFormSet = forms.inlineformset_factory(Venda, Pagamento, fields=['tipo_pagamento', 'valor', 'parcelas', 'data_primeira_parcela'], extra=1)
+class ProdutoVendaForm(forms.ModelForm):
+    valor_total = forms.DecimalField(label='Valor Total', disabled=True, widget=forms.NumberInput(attrs={'class': 'form-control', 'readonly': 'readonly'}))
+    class Meta:
+        model = ProdutoVenda
+        fields = '__all__'
+        exclude = ['venda']
+        widgets = {
+            'produto': forms.Select(attrs={'class': 'form-control'}),
+            'valor_unitario': forms.NumberInput(attrs={'class': 'form-control'}),
+            'quantidade': forms.NumberInput(attrs={'class': 'form-control'}),
+            'valor_desconto': forms.NumberInput(attrs={'class': 'form-control'}),
+            'imei': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+        labels = {
+            'valor_unitario': 'Valor',
+            'valor_desconto': 'Desconto',
+        }
+
+class PagamentoForm(forms.ModelForm):
+    valor_parcela = forms.DecimalField(label='Valor Parcela', disabled=True, widget=forms.NumberInput(attrs={'class': 'form-control', 'readonly': 'readonly'}))
+    class Meta:
+        model = Pagamento
+        fields = '__all__'
+        exclude = ['venda']
+        widgets = {
+            'tipo_pagamento': forms.Select(attrs={'class': 'form-control'}),
+            'valor': forms.NumberInput(attrs={'class': 'form-control'}),
+            'parcelas': forms.NumberInput(attrs={'class': 'form-control'}),
+            'data_primeira_parcela': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'date'}),
+        }
+
+ProdutoVendaFormSet = forms.inlineformset_factory(Venda, ProdutoVenda, form=ProdutoVendaForm, extra=1, can_delete=False)
+FormaPagamentoFormSet = forms.inlineformset_factory(Venda, Pagamento, form=PagamentoForm, extra=1, can_delete=False)

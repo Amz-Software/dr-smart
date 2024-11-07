@@ -137,12 +137,15 @@ class Venda(Base):
 
 class ProdutoVenda(models.Model):
     produto = models.ForeignKey('produtos.Produto', on_delete=models.PROTECT, related_name='produto_vendas')
-    venda = models.ForeignKey('vendas.Venda', on_delete=models.PROTECT, related_name='itens_venda')
+    imei = models.CharField(max_length=100, null=True, blank=True)
     valor_unitario = models.DecimalField(max_digits=10, decimal_places=2)
     quantidade = models.PositiveIntegerField()
+    valor_desconto = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    venda = models.ForeignKey('vendas.Venda', on_delete=models.PROTECT, related_name='itens_venda')
+    
 
     def calcular_valor_total(self):
-        return self.valor_unitario * self.quantidade
+        return (self.valor_unitario * self.quantidade) - self.valor_desconto
     
     def __str__(self):
         return f"{self.produto.nome} x {self.quantidade} (R$ {self.valor_unitario})"

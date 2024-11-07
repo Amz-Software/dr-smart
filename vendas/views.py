@@ -174,7 +174,7 @@ class VendaListView(UserPassesTestMixin, ListView):
 class VendaCreateView(UserPassesTestMixin, CreateView):
     model = Venda
     form_class = VendaForm
-    template_name = 'vendas/venda_form.html'
+    template_name = 'venda/venda_create.html'
     success_url = reverse_lazy('vendas:venda_list')
 
     def test_func(self):

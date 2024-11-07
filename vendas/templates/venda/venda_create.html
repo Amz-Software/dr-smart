@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}
+Criar Venda
+{% endblock title %}
+
+{% block content %}
+
+<div class="container-xxl mt-4">
+  <div class="row">
+    <div class="col-12">
+    <div class="card">
+        <div class="container-xxl flex-grow-1 container-p-y">
+            <h4 class="py-3 mb-4"><span class="text-muted fw-light">Venda/</span> Criar</h4>
+            <div class="row">
+              <div class="col-xl">
+                <div class="card mb-4">
+                  <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Venda de produto</h5>
+                  </div>
+                  <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <h3>Dados</h3>
+                        <hr>
+                        {{ form.as_p }}
+                        
+                        <h3>Produtos</h3>
+                        <hr>
+                        {{ produto_venda_formset.management_form }}
+                        {% for form in produto_venda_formset %}
+                            {{ form.as_p }}
+                        {% endfor %}
+                        
+                        <h3>Pagamentos</h3>
+                        <hr>
+                        {{ pagamento_formset.management_form }}
+                        {% for form in pagamento_formset %}
+                            {{ form.as_p }}
+                        {% endfor %}
+                        
+                        <button type="submit" class="btn btn-primary">Criar Venda</button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+    </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
