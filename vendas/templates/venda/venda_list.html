@@ -33,6 +33,24 @@ Vendas
           {% for item in vendas %}
           <tr>
           <td>{{ item }}</td>
+          <td>
+            <div class="dropdown">
+              <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+                <i class="bx bx-dots-vertical-rounded"></i>
+              </button>
+              <div class="dropdown-menu">
+                <a class="dropdown-item" href="">
+                <i class="bx bx-show me-1"></i> Detalhes
+                </a>
+                {% if not caixa.data_fechamento %}
+                  <!-- Button trigger modal -->
+                  <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#fecharModal{{ caixa.id }}">
+                  <i class="bx bx-lock me-1"></i> Fechar
+                  </a>
+                {% endif %}
+              </div>
+            </div>
+          </td>
           {% empty %}
           <td colspan="4">Nenhum registro encontrado</td>
           </tr>

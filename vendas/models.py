@@ -129,7 +129,7 @@ class Venda(Base):
         return sum(item.valor_unitario * item.quantidade for item in self.itens_venda.all())
     
     def __str__(self):
-        return f"Venda {self.id} - {self.data_venda.strftime('%d/%m/%Y')}"
+        return f"{self.cliente} - {self.data_venda.strftime('%d/%m/%Y')}"
     
     class Meta:
         verbose_name_plural = 'Vendas'

@@ -1,7 +1,7 @@
-from django.forms import inlineformset_factory
+from django.forms import inlineformset_factory, modelformset_factory
 from estoque.models import EntradaEstoque
 from django import forms
-from .models import EntradaEstoque, ProdutoEntrada
+from .models import EntradaEstoque, EstoqueImei, ProdutoEntrada
 
 
 class EntradaEstoqueForm(forms.ModelForm):
@@ -21,4 +21,23 @@ class ProdutoEntradaForm(forms.ModelForm):
 
 ProdutoEntradaFormSet = inlineformset_factory(
     EntradaEstoque, ProdutoEntrada, form=ProdutoEntradaForm, extra=1, can_delete=False
+)
+
+class EstoqueImeiForm(forms.ModelForm):
+    class Meta:
+        model = EstoqueImei
+        fields = ['imei', 'vendido', 'produto']
+        #deve ser possivel editar a venda?
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['vendido'].widget.attrs.update({
+            'class': 'form-check-input',  # Classe Bootstrap para o toggle switch
+            })
+        
+
+ProdutoEntradaFormSet = modelformset_factory(
+    ProdutoEntrada,
+    fields=['custo_unitario', 'venda_unitaria'],
+    extra=1,
+    can_delete=False
 )

@@ -17,7 +17,7 @@ def menu_items(request):
         },
         {
             "label": "Produtos",
-            "icon": "bx bx-home-circle",
+            "icon": "bx bx-mobile",
             "permission": "produtos.view_produto",
             "section": "Dr Smart",
             "sub_items": [
@@ -71,6 +71,11 @@ def menu_items(request):
                     "permission": "estoque.view_estoque"
                 },
                 {
+                    "label": "Estoque IMEI",
+                    "url_name": "estoque:estoque_imei_list",
+                    "permission": "estoque.view_estoqueimei"  
+                },
+                {
                     "label": "Ver Entradas",
                     "url_name": "estoque:entrada_list",
                     "permission": "estoque.view_entradaestoque"
@@ -115,7 +120,70 @@ def menu_items(request):
                     "permission": "vendas.view_tipoentrega"
                 },
             ],
-        },     
+        },
+        {
+            "label": "Financeiro",
+            "icon": "bx bx-dollar-circle",
+            "permission": "auth.view_user",
+            "section": "Financeiro",
+            "sub_items": [
+                {
+                    "label": "Caixa",
+                    "url_name": "vendas:caixa_list",
+                    "permission": "auth.view_user"
+                },
+                {
+                    "label": "Caixa Total",
+                    "url_name": "vendas:caixa_list",
+                    "permission": "auth.view_group"
+                },
+                {
+                    "label": "Relatótio de Vendas",
+                    "url_name": "vendas:caixa_list",
+                    "permission": "auth.view_group"
+                },
+                {
+                    "label": "Contas a Receber",
+                    "url_name": "vendas:caixa_list",
+                    "permission": "auth.view_group"
+                },
+                {
+                    "label": "Fechamentos Mensais",
+                    "url_name": "vendas:caixa_list",
+                    "permission": "auth.view_group"
+                },
+            ]
+        },
+        {
+            "label": "Usuários",
+            "icon": "bx bx-user",
+            "permission": "auth.view_user",
+            "section": "Configurações",
+            "sub_items": [
+                {
+                    "label": "Usuários",
+                    "url_name": "vendas:caixa_list",
+                    "permission": "auth.view_user"
+                },
+                {
+                    "label": "Grupos",
+                    "url_name": "vendas:caixa_list",
+                    "permission": "auth.view_group"
+                },
+                {
+                    "label": "Permissões",
+                    "url_name": "vendas:caixa_list",
+                    "permission": "auth.view_group"
+                },
+            ]
+        },
+        {
+            "label": "Configurações",
+            "url_name": "vendas:caixa_list",
+            "icon": "bx bx-cog",
+            "permission": "auth.view_user",
+            "section": "Configurações",
+        },
 
         # {
         #     "label": "Exemplo",

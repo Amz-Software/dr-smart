@@ -25,7 +25,7 @@ class CaixaListView(UserPassesTestMixin, ListView):
     
     def get_queryset(self):
         query = super().get_queryset()
-        data_filter = self.request.GET.get('data_filter')
+        data_filter = self.request.GET.get('search')
         if data_filter:
             return query.filter(data_abertura=data_filter)
         

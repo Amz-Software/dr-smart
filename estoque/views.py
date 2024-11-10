@@ -1,14 +1,14 @@
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
-from django.views.generic import ListView, CreateView, DetailView
+from django.views.generic import ListView, CreateView, DetailView, UpdateView
 # from estoque.forms import EntradaForm
 from estoque.models import EntradaEstoque, Estoque, EstoqueImei, ProdutoEntrada
 from django.contrib import messages
-from django.forms import inlineformset_factory
+from django.db.models import Q
 
 from produtos.models import Produto
-from .forms import EntradaEstoqueForm, ProdutoEntradaForm, ProdutoEntradaFormSet
+from .forms import EntradaEstoqueForm, EstoqueImeiForm, ProdutoEntradaForm, ProdutoEntradaFormSet
 
 class EstoqueListView(ListView):
     model = Estoque
@@ -88,6 +88,48 @@ class AdicionarEntradaEstoqueView(CreateView):
         else:
             return self.form_invalid(form)
         
+
+class EstoqueImeiListView(ListView):
+    model = EstoqueImei
+    template_name = 'estoque/estoque_imei_list.html'
+    context_object_name = 'produtos'
+    
+    def get_queryset(self):
+        query = super().get_queryset()
+        
+        search = self.request.GET.get('search', None)
+        if search:
+            query = query.filter(Q(imei__icontains=search)|Q(produto__nome__icontains=search))
+            
+        return query
+    
+
+class EstoqueImeiUpdateView(UpdateView):
+    model = EstoqueImei
+    form_class = EstoqueImeiForm
+    template_name = 'estoque/estoque_imei_form.html'
+    success_url = reverse_lazy('estoque:estoque_imei_list')
+
+    def get_context_data(self, **kwargs):
+        data = super().get_context_data(**kwargs)
+        if self.request.POST:
+            data['produtoentrada_formset'] = ProdutoEntradaFormSet(self.request.POST, queryset=ProdutoEntrada.objects.filter(entrada=self.object.produto_entrada.entrada))
+        else:
+            data['produtoentrada_formset'] = ProdutoEntradaFormSet(queryset=ProdutoEntrada.objects.filter(entrada=self.object.produto_entrada.entrada))
+        return data
+
+    def form_valid(self, form):
+        context = self.get_context_data()
+        produtoentrada_formset = context['produtoentrada_formset']
+        if form.is_valid() and produtoentrada_formset.is_valid():
+            self.object = form.save()
+            produtoentrada_formset.save()
+            messages.success(self.request, 'Estoque IMEI e Produto Entrada atualizados com sucesso!')
+            return redirect(self.success_url)
+        else:
+            messages.error(self.request, 'Erro ao atualizar Estoque IMEI ou Produto Entrada')
+            return self.form_invalid(form)
+
         
 def check_produtos(request, produto_id):
     produto = get_object_or_404(Produto, pk=produto_id)
