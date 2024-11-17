@@ -134,8 +134,8 @@ def menu_items(request):
                 },
                 {
                     "label": "Caixa Total",
-                    "url_name": "vendas:caixa_list",
-                    "permission": "auth.view_group"
+                    "url_name": "vendas:caixa_total",
+                    "permission": "vendas.view_caixa"
                 },
                 {
                     "label": "Relatótio de Vendas",

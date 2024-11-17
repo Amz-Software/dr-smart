@@ -17,6 +17,7 @@ urlpatterns = [
     #caixa
     path('caixas/', CaixaListView.as_view(), name='caixa_list'),
     path('caixas/<int:pk>/', CaixaDetailView.as_view(), name='caixa_detail'),
+    path('caixa/caixa-total/', CaixaTotalView.as_view(), name='caixa_total'),
 
     #cliente
     path('clientes/', ClienteListView.as_view(), name='cliente_list'),

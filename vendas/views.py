@@ -203,3 +203,16 @@ class VendaCreateView(UserPassesTestMixin, CreateView):
             return super().form_valid(form)
         else:
             return self.form_invalid(form)
+        
+
+class CaixaTotalView(UserPassesTestMixin, TemplateView):
+    template_name = 'caixa/caixa_total.html'
+    
+    def test_func(self):
+        return self.request.user.has_perm('vendas.view_caixa')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['caixas'] = Caixa.objects.all()
+        
+        return context

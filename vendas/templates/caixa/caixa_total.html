@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}
+Caixas - Loja
+{% endblock title %}
+
+{% block content %}
+
+<div class="container-xxl mt-4">
+  <!-- Store Details -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card bg-light border-0 shadow-sm p-3">
+        <h4 class="text-primary mb-3"><i class="bx bx-store-alt"></i> Detalhes da Loja</h4>
+        <p><strong>Nome da Loja:</strong> {{ loja.nome }}</p>
+        <p><strong>Endereço:</strong> {{ loja.endereco }}</p>
+        <p><strong>Contato:</strong> {{ loja.contato }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table for Entradas -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm p-3" style="background-color: rgba(0, 128, 0, 0.05);">
+        <h4 class="text-success mb-3"><i class="bx bx-log-in-circle"></i> Entradas</h4>
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th scope="col">Data</th>
+                <th scope="col">Descrição</th>
+                <th scope="col">Valor</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for entrada in entradas %}
+              <tr>
+                <td>{{ entrada.data|date:"d/m/Y" }}</td>
+                <td>{{ entrada.descricao }}</td>
+                <td>{{ entrada.valor }}</td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="3" class="text-center">Nenhuma entrada registrada</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table for Saídas -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm p-3" style="background-color: rgba(255, 0, 0, 0.05);">
+          <!-- Form for Saída -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="text-danger"><i class="bx bx-log-out-circle"></i> Saídas</h4>
+                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#saidaModal">
+                    <i class="bx bx-adjust me-1"></i> Ajuste
+                </button>
+            </div>
+
+        <!-- Modal -->
+        <div class="modal fade" id="saidaModal" tabindex="-1" aria-labelledby="saidaModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="saidaModalLabel">Registrar Saída</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label for="data" class="form-label"><i class="bx bx-calendar"></i> Saída</label>
+                                <select name="saida" id="saida" class="form-control">
+                                    <option value="1">Saída</option>
+                                    <option value="2">Ajuste</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="motivo" class="form-label"><i class="bx bx-edit"></i> Motivo</label>
+                                <input type="text" id="motivo" name="motivo" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="valor" class="form-label"><i class="bx bx-money"></i> Valor</label>
+                                <input type="number" id="valor" name="valor" class="form-control" required>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                                <button type="submit" class="btn btn-danger">Registrar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Table -->
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th scope="col">Data</th>
+                <th scope="col">Motivo</th>
+                <th scope="col">Valor</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for saida in saidas %}
+              <tr>
+                <td>{{ saida.data|date:"d/m/Y" }}</td>
+                <td>{{ saida.motivo }}</td>
+                <td>{{ saida.valor }}</td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="3" class="text-center">Nenhuma saída registrada</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+</div>
+
+{% endblock %}
