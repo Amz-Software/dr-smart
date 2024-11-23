@@ -27,18 +27,45 @@ Criar Venda
                         <h3>Produtos</h3>
                         <hr>
                         {{ produto_venda_formset.management_form }}
+                        <div id="produto-empty-form" style="display: none;">
+                          <div class="produto-form-template">
+                            <hr>
+                            {{ produto_venda_formset.empty_form}}
+                          </div>
+                        </div>
+                        <div id="produtos" class="mb-3">
                         {% for form in produto_venda_formset %}
-                            {{ form.as_p }}
+                          <div class="produto-form">
+                            {{ form }}
+                          </div>
                         {% endfor %}
+                      </div>
+                      <div class="acao mb-3">
+                        <button type="button" id="add-produto" class="btn btn-primary" onclick="adicionarProduto()">Adicionar Produto</button>
+                      </div>
                         
                         <h3>Pagamentos</h3>
                         <hr>
                         {{ pagamento_formset.management_form }}
+                        <div id="pagamento-empty-form" style="display: none;">
+                          <div class="pagamento-form-template">
+                            <hr>
+                            {{ pagamento_formset.empty_form}}
+                          </div>
+                        </div>
+                        <div id="pagamentos" class="mb-3">
                         {% for form in pagamento_formset %}
-                            {{ form.as_p }}
+                          <div class="pagamento-form">
+                            {{ form }}
+                          </div>
                         {% endfor %}
+                      </div>
+                      <div class="acao mb-3">
+                        <button type="button" id="add-pagamento" class="btn btn-primary" onclick="adicionarPagamento()">Adicionar Pagamento</button>
+                      </div>
                         
-                        <button type="submit" class="btn btn-primary">Criar Venda</button>
+                      <hr>
+                      <button type="submit" class="btn btn-primary">Criar Venda</button>
                     </form>
                   </div>
                 </div>
@@ -50,4 +77,58 @@ Criar Venda
   </div>
 </div>
 
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  function adicionarProduto() {
+    const emptyForm = document.querySelector("#produto-empty-form .produto-form-template");
+    let newForm = emptyForm.cloneNode(true);
+  
+    newForm.classList.remove('produto-form-template');
+    newForm.classList.add('produto-form');
+  
+    const produtoForms = document.querySelectorAll(".produto-form");
+    let totalForms = document.getElementById("id_itens_venda-TOTAL_FORMS");
+    let formIndex = produtoForms.length;
+  
+    newForm.innerHTML = newForm.innerHTML.replace(/__prefix__/g, formIndex);
+  
+    // Limpar os valores dos campos clonados
+    let formInputs = newForm.querySelectorAll('input, select, textarea');
+    formInputs.forEach(input => {
+        input.value = '';
+    });
+  
+    totalForms.value = formIndex + 1;
+  
+    document.getElementById("produtos").appendChild(newForm);
+    newForm.style.display = '';  // Certifique-se de que o formulário está visível
+  }
+
+  function adicionarPagamento() {
+    const emptyForm = document.querySelector("#pagamento-empty-form .pagamento-form-template");
+    let newForm = emptyForm.cloneNode(true);
+  
+    newForm.classList.remove('pagamento-form-template');
+    newForm.classList.add('pagamento-form');
+  
+    const pagamentoForms = document.querySelectorAll(".pagamento-form");
+    let totalForms = document.getElementById("id_pagamentos-TOTAL_FORMS");
+    let formIndex = pagamentoForms.length;
+  
+    newForm.innerHTML = newForm.innerHTML.replace(/__prefix__/g, formIndex);
+  
+    // Limpar os valores dos campos clonados
+    let formInputs = newForm.querySelectorAll('input, select, textarea');
+    formInputs.forEach(input => {
+        input.value = '';
+    });
+  
+    totalForms.value = formIndex + 1;
+  
+    document.getElementById("pagamentos").appendChild(newForm);
+    newForm.style.display = '';  // Certifique-se de que o formulário está visível
+  }
+</script>
 {% endblock %}

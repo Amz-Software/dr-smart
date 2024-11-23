@@ -1,4 +1,7 @@
 from django import forms
+from django.db.models import Subquery, OuterRef, Exists
+from estoque.models import Estoque
+from produtos.models import Produto
 from .models import Cliente, ContatoAdicional, Endereco, ComprovantesCliente, Pagamento, TipoPagamento, TipoEntrega, TipoVenda, Venda, ProdutoVenda
 
 
@@ -148,7 +151,7 @@ class VendaForm(forms.ModelForm):
         }
 
 class ProdutoVendaForm(forms.ModelForm):
-    valor_total = forms.DecimalField(label='Valor Total', disabled=True, widget=forms.NumberInput(attrs={'class': 'form-control', 'readonly': 'readonly'}))
+    valor_total = forms.DecimalField(label='Valor Total', disabled=True, required=False, widget=forms.NumberInput(attrs={'class': 'form-control', 'readonly': 'readonly'}))
     class Meta:
         model = ProdutoVenda
         fields = '__all__'
@@ -165,8 +168,21 @@ class ProdutoVendaForm(forms.ModelForm):
             'valor_desconto': 'Desconto',
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Filtra apenas os produtos que estão em estoque (quantidade >  0)
+        self.fields['produto'].queryset = produtos = Produto.objects.filter(
+            Exists(
+                Estoque.objects.filter(
+                    produto=OuterRef('pk'),
+                    quantidade_disponivel__gt=0
+                )
+            )
+        )
+
+
 class PagamentoForm(forms.ModelForm):
-    valor_parcela = forms.DecimalField(label='Valor Parcela', disabled=True, widget=forms.NumberInput(attrs={'class': 'form-control', 'readonly': 'readonly'}))
+    valor_parcela = forms.DecimalField(label='Valor Parcela', disabled=True, required=False, widget=forms.NumberInput(attrs={'class': 'form-control', 'readonly': 'readonly'}))
     class Meta:
         model = Pagamento
         fields = '__all__'

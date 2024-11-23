@@ -194,12 +194,25 @@ class VendaCreateView(UserPassesTestMixin, CreateView):
         context = self.get_context_data()
         produto_venda_formset = context['produto_venda_formset']
         pagamento_formset = context['pagamento_formset']
-        if produto_venda_formset.is_valid() and pagamento_formset.is_valid():
+        if produto_venda_formset.is_valid() and pagamento_formset.is_valid() and form.is_valid():
+            is_caixa_aberto = Caixa.caixa_aberto(timezone.localtime(timezone.now()).date())
+
+            if  not is_caixa_aberto:
+                messages.warning(self.request, 'Não é possível realizar vendas com o caixa fechado')
+                return self.form_invalid(form)
+            
+            form.instance.criado_por = self.request.user
+            form.instance.modificado_por = self.request.user
+            form.instance.caixa = Caixa.objects.get(data_abertura=timezone.localtime(timezone.now()).date())
+            form.instance.data_venda = timezone.localtime(timezone.now())
             self.object = form.save()
+
             produto_venda_formset.instance = self.object
             produto_venda_formset.save()
+
             pagamento_formset.instance = self.object
             pagamento_formset.save() 
+            
             return super().form_valid(form)
         else:
             return self.form_invalid(form)
