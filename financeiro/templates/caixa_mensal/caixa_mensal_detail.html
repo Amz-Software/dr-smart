@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block title %}
+Criar Caixa Mensal - {{ caixa_mensal.loja }} - {{ caixa_mensal.mes|date:"F Y" }}
+{% endblock title %}
+
+{% block content %}
+<h1>Detalhes do Caixa Mensal</h1>
+<p>Caixa mensal: {{caixa_mensal}}</p>
+<p><strong>Loja:</strong> {{ caixa_mensal.loja }}</p>
+<p><strong>Mês:</strong> {{ caixa_mensal.mes }}</p>
+<p><strong>Valor Inicial:</strong> R$ {{ caixa_mensal.valor }}</p>
+<p><strong>Data de Abertura:</strong> {{ caixa_mensal.data_abertura }}</p>
+<p><strong>Data de Fechamento:</strong> {% if caixa_mensal.data_fechamento %} {{ caixa_mensal.data_fechamento }} {% else %} Não fechado {% endif %}</p>
+
+<form method="POST">
+    {% csrf_token %}
+    
+    <h2>Gastos Fixos</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Gasto Fixo</th>
+                <th>Valor</th>
+                <th>Observação</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for form in formset_gastos_fixos %}
+                <tr>
+                    <td>{{ form.gasto_fixo }}</td>
+                    <td>{{ form.valor }}</td>
+                    <td>{{ form.observacao }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="3">Nenhum gasto fixo encontrado.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <h2>Funcionários</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Funcionário</th>
+                <th>Salário</th>
+                <th>Comissão</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for form in formset_funcionarios %}
+                <tr>
+                    <td>{{ form.funcionario }}</td>
+                    <td>{{ form.salario }}</td>
+                    <td>{{ form.comissao }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="3">Nenhum funcionário encontrado.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h2>Gastos Variáveis</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Descrição</th>
+                <th>Valor</th>
+                <th>Observação</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for form in formset_gastos_aleatorios %}
+                <tr>
+                    <td>{{ form.descricao }}</td>
+                    <td>{{ form.valor }}</td>
+                    <td>{{ form.observacao }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="3">Nenhum gasto variável encontrado.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <button type="submit">Salvar</button>
+</form>
+
+
+{% endblock %}
+
+
+{% block extra_scripts %}
+<!-- <script>
+    document.getElementById('add-row').addEventListener('click', function () {
+        var formset = document.getElementById('formset');
+        var totalFormsInput = document.getElementById('id_gastos_aleatorios-TOTAL_FORMS');
+
+        if (!totalFormsInput) {
+            console.error('Elemento id_gastos_aleatorios-TOTAL_FORMS não encontrado.');
+            return;
+        }
+
+        var formCount = parseInt(totalFormsInput.value);
+        var lastForm = formset.querySelector('.form-row');
+
+        var newForm;
+
+        if (lastForm) {
+            // Clonar a última linha se ela existir
+            newForm = lastForm.cloneNode(true);
+        } else {
+            // Criar uma nova linha se nenhuma existir
+            newForm = document.createElement('tr');
+            newForm.classList.add('form-row');
+            newForm.innerHTML = `
+                <td><input type="text" name="form-${formCount}-descricao" class="form-control" value=""></td>
+                <td><input type="number" name="form-${formCount}-valor" class="form-control" value=""></td>
+                <td><input type="text" name="form-${formCount}-observacao" class="form-control" value=""></td>
+                <td><button type="button" class="btn btn-danger remove-row">Remover</button></td>
+            `;
+        }
+
+        // Atualizar índices no formulário clonado
+        var regex = new RegExp(`form-(\\d+)`, 'g');
+        newForm.innerHTML = newForm.innerHTML.replace(regex, `form-${formCount}`);
+
+        // Limpando os valores dos campos
+        var inputs = newForm.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => {
+            input.value = '';
+            var name = input.getAttribute('name');
+            if (name) {
+                input.setAttribute('name', name.replace(regex, `form-${formCount}`));
+            }
+            var id = input.getAttribute('id');
+            if (id) {
+                input.setAttribute('id', id.replace(regex, `form-${formCount}`));
+            }
+        });
+
+        // Adicionar a nova linha ao formset
+        formset.querySelector('tbody').appendChild(newForm);
+
+        // Atualizar o total de formulários
+        totalFormsInput.value = formCount + 1;
+    });
+
+    // Função para remover uma linha do formset
+    document.getElementById('formset').addEventListener('click', function (event) {
+        if (event.target.classList.contains('remove-row')) {
+            var row = event.target.closest('.form-row');
+            if (row) {
+                row.remove();
+
+                // Atualizar os índices de cada linha após remoção
+                var formset = document.getElementById('formset');
+                var rows = formset.querySelectorAll('.form-row');
+                var totalFormsInput = document.getElementById('id_gastos_aleatorios-TOTAL_FORMS');
+
+                rows.forEach(function (row, index) {
+                    var regex = new RegExp(`form-(\\d+)`, 'g');
+                    var inputs = row.querySelectorAll('input, select, textarea');
+                    inputs.forEach(input => {
+                        var name = input.getAttribute('name');
+                        if (name) {
+                            input.setAttribute('name', name.replace(regex, `form-${index}`));
+                        }
+                        var id = input.getAttribute('id');
+                        if (id) {
+                            input.setAttribute('id', id.replace(regex, `form-${index}`));
+                        }
+                    });
+                });
+
+                // Atualizar o total de formulários
+                totalFormsInput.value = rows.length;
+            }
+        }
+    });
+</script>
+ -->
+
+{% endblock %}

@@ -4,8 +4,8 @@ from django.utils import timezone
 class Base(models.Model):
     criado_em = models.DateTimeField(auto_now_add=True,editable=False)
     modificado_em = models.DateTimeField(auto_now=True,editable=False)
-    criado_por = models.ForeignKey('auth.User', on_delete=models.PROTECT, related_name='%(class)s_criadas',editable=False, null=True, blank=True)
-    modificado_por = models.ForeignKey('auth.User', on_delete=models.PROTECT, related_name='%(class)s_modificadas',editable=False, null=True, blank=True)
+    criado_por = models.ForeignKey('accounts.User', on_delete=models.PROTECT, related_name='%(class)s_criadas',editable=False, null=True, blank=True)
+    modificado_por = models.ForeignKey('accounts.User', on_delete=models.PROTECT, related_name='%(class)s_modificadas',editable=False, null=True, blank=True)
     
     def save(self, *args, user=None, **kwargs):
         if user:
@@ -50,16 +50,18 @@ class Caixa(Base):
 
 class Loja(Base):
     nome = models.CharField(max_length=100)
-    cnpj = models.CharField(max_length=14)
-    endereco = models.CharField(max_length=200)
-    inscricao_estadual = models.CharField(max_length=20)
-    telefone = models.CharField(max_length=20)
-    meta_vendas_diaria = models.DecimalField(max_digits=10, decimal_places=2)
-    meta_vendas_mensal = models.DecimalField(max_digits=10, decimal_places=2)
-    entrada_caixa_diaria = models.DecimalField(max_digits=10, decimal_places=2)
+    cnpj = models.CharField(max_length=14, null=True, blank=True)
+    endereco = models.CharField(max_length=200, null=True, blank=True)
+    inscricao_estadual = models.CharField(max_length=20, null=True, blank=True)
+    telefone = models.CharField(max_length=20, null=True, blank=True)
+    meta_vendas_diaria = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    meta_vendas_mensal = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    entrada_caixa_diaria = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     logo_loja = models.ImageField(upload_to='logos_lojas/', null=True, blank=True)
     mensagem_garantia = models.TextField(null=True, blank=True)
     contrato = models.TextField(null=True, blank=True)
+    usuarios = models.ManyToManyField('accounts.User', related_name='lojas')
+
     
     def __str__(self):
         return self.nome
@@ -119,7 +121,7 @@ class ComprovantesCliente(Base):
 class Venda(Base):
     data_venda = models.DateTimeField(auto_now_add=True)
     cliente = models.ForeignKey('vendas.Cliente', on_delete=models.PROTECT, related_name='vendas')
-    vendedor = models.ForeignKey('auth.User', on_delete=models.PROTECT, related_name='vendas_realizadas')
+    vendedor = models.ForeignKey('accounts.User', on_delete=models.PROTECT, related_name='vendas_realizadas')
     tipo_venda = models.ForeignKey('vendas.TipoVenda', on_delete=models.PROTECT, related_name='vendas_tipo_venda')
     tipo_entrega = models.ForeignKey('vendas.TipoEntrega', on_delete=models.PROTECT, related_name='vendas_tipo_entrega')
     produtos = models.ManyToManyField('produtos.Produto', through='ProdutoVenda', related_name='vendas')

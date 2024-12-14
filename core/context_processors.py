@@ -124,7 +124,7 @@ def menu_items(request):
         {
             "label": "Financeiro",
             "icon": "bx bx-dollar-circle",
-            "permission": "auth.view_user",
+            "permission": "financeiro.view_caixamensal",
             "section": "Financeiro",
             "sub_items": [
                 {
@@ -149,8 +149,8 @@ def menu_items(request):
                 },
                 {
                     "label": "Fechamentos Mensais",
-                    "url_name": "vendas:caixa_list",
-                    "permission": "auth.view_group"
+                    "url_name": "financeiro:caixa_mensal_list",
+                    "permission": "financeiro.view_caixamensal"
                 },
             ]
         },

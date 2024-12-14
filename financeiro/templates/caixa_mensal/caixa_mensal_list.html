@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block title %}
+Caixas Mensais
+{% endblock title %}
+
+{% block content %}
+
+<div class="container-xxl mt-4">
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h4 class="card-title">Caixas Mensais</h4>
+          <div>
+            <form action="" method="get" class="d-inline-block me-2" id="searchForm">
+              <div class="input-group">
+                <input type="month" name="search" class="form-control" value="{{ request.GET.search }}" onchange="this.form.submit()">
+                <a href="{% url "financeiro:caixa_mensal_list" %}" class="btn btn-outline-secondary">
+                  <i class="bx bx-x"></i>
+                </a>
+              </div>
+            </form>
+            <!-- Button trigger modal -->
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#confirmModal">
+              <i class="bx bx-plus me-1"></i>
+              Criar Caixa Mensal
+            </button>
+            <!-- Modal -->
+            <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="confirmModalLabel">Confirmar Abertura do Caixa Mensal</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                    Você tem certeza que deseja abrir um novo caixa mensal?
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <form method="post" class="d-inline-block" action="{% url 'financeiro:caixa_mensal_create' %}">
+                      {% csrf_token %}
+                      <input type="hidden" name="criar_caixa_mensal" value="1">
+                      <button type="submit" class="btn btn-primary">Confirmar</button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th scope="col">Loja</th>
+                  <th scope="col">Mês</th>
+                  <th scope="col">Saldo Total</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for caixa in caixas_mensais %}
+                <tr>
+                  <td>{{ caixa.loja }}</td>
+                  <td>{{ caixa.mes|date:"F Y" }}</td>
+                  <td>{{ caixa.valor }}</td>
+                  {% if caixa.data_fechamento %}
+                  <td>
+                    <span class="badge bg-danger">
+                      <i class="bx bx-x-circle"></i> Fechado - {{ caixa.data_fechamento|date:"d/m/Y" }}
+                    </span>
+                  </td>
+                  {% else %}
+                  <td>
+                    <span class="badge bg-success">
+                      <i class="bx bx-check-circle"></i> Aberto
+                    </span>
+                  </td>
+                  {% endif %}
+                  <td>
+                    <div class="dropdown">
+                      <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+                        <i class="bx bx-dots-vertical-rounded"></i>
+                      </button>
+                      <div class="dropdown-menu">
+                        <a class="dropdown-item" href="{% url "financeiro:caixa_mensal_update" caixa.pk %}">
+                          <i class="bx bx-show me-1"></i> Detalhes
+                        </a>
+                        {% if not caixa.data_fechamento %}
+                        <!-- Button trigger modal -->
+                        <a class="dropdown-item" href="#" data-bs-toggle="modal"
+                          data-bs-target="#fecharModal{{ caixa.id }}">
+                          <i class="bx bx-lock me-1"></i> Fechar
+                        </a>
+                        {% else %}
+                        <a class="dropdown-item" href="">
+                          <i class="bx bx-file me-1 text-danger"></i> Gerar PDF
+                        </a>
+                        <a class="dropdown-item" href="{% url "financeiro:caixa_mensal_reopen" caixa.pk %}">
+                          <i class="bx bx-refresh me-1">
+                          </i> Reabrir
+                          Reabrir
+                        </a>
+
+                        {% endif %}
+                      </div>
+                    </div>
+                  </td>
+                  <div class="modal fade" id="fecharModal{{ caixa.id }}" tabindex="-1"
+                    aria-labelledby="fecharModalLabel{{ caixa.id }}" aria-hidden="true">
+                    <div class="modal-dialog">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <h5 class="modal-title" id="fecharModalLabel{{ caixa.id }}">Confirmar Fechamento do Caixa Mensal</h5>
+                          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                          Você tem certeza que deseja fechar o caixa mensal de {{ caixa.mes|date:"F Y" }}?
+                        </div>
+                        <div class="modal-footer">
+                          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                          <form method="post" class="d-inline-block" action="{% url 'financeiro:caixa_mensal_close' caixa.id %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="fechar_caixa_mensal" value="{{ caixa.id }}">
+                            <button type="submit" class="btn btn-primary">Confirmar</button>
+                          </form>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                {% empty %}
+                <td colspan="5">Nenhum registro encontrado</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            {% include "snippets/pagination.html" %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

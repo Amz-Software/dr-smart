@@ -1,0 +1,48 @@
+{% extends 'base_login.html' %}
+{% load static crispy_forms_tags %}
+
+{% block content %}
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 100vh;">
+  <div class="col-md-6">
+    <div class="authentication-inner">
+      <!-- Login -->
+      <div class="card">
+        <div class="card-body">
+          <!-- Logo -->
+          <div class="app-brand justify-content-center">
+            <a href="{% url 'vendas:index' %}" class="app-brand-link gap-2">
+              <!-- Logo aqui -->
+            </a>
+          </div>
+          <!-- /Logo -->
+          <h4 class="mb-2">Bem-vindo! 👋</h4>
+          <p class="mb-4">Faça login na sua conta</p>
+
+          {% if messages %}
+            <div class="alert alert-danger">
+              {% for message in messages %}
+                <p>{{ message }}</p>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          <form id="formAuthentication" class="mb-3" method="post">
+            {% csrf_token %}
+            {{ form|crispy }}
+            <div class="mb-3">
+              <button class="btn btn-primary d-grid w-100" type="submit">Entrar</button>
+            </div>
+          </form>
+
+          <p class="text-center">
+            <span>Esqueci minha senha.</span>
+            <a href="{% url 'accounts:password_reset' %}">
+              <strong>Recuperar senha</strong>
+            </a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

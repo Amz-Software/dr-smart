@@ -1,12 +1,5 @@
 from django.contrib import admin
-from django.contrib.auth.models import Permission
 from .models import *
-
-@admin.register(Permission)
-class PermissionAdmin(admin.ModelAdmin):
-    list_display = ('name', 'codename', 'content_type')
-    search_fields = ('name', 'codename', 'content_type__app_label')
-
 
 class AdminBase(admin.ModelAdmin):
     list_display = ('criado_em', 'modificado_em')
@@ -79,3 +72,7 @@ class EnderecoAdmin(AdminBase):
 class ComprovantesClienteAdmin(AdminBase):
     pass 
 
+
+@admin.register(Loja)
+class LojaAdmin(AdminBase):
+    list_display = ('nome', 'cnpj', 'telefone')
