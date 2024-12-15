@@ -1,14 +1,18 @@
 from datetime import datetime
 from typing import Any
 from django.contrib import messages
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import TemplateView, ListView, DetailView, CreateView
-
+from django.utils.timezone import localtime, now
+from estoque.models import Estoque, EstoqueImei
+from produtos.models import Produto
 from vendas.forms import ClienteForm, ComprovantesClienteForm, ContatoAdicionalForm, VendaForm, ProdutoVendaFormSet, FormaPagamentoFormSet
-from .models import Caixa, Cliente, Venda
+from .models import Caixa, Cliente, Loja, Pagamento, ProdutoVenda, Venda
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.utils import timezone
+from django.db import transaction
 
 
 class IndexView(LoginRequiredMixin, TemplateView):
@@ -165,7 +169,7 @@ class VendaListView(UserPassesTestMixin, ListView):
     
     def get_queryset(self):
         query = super().get_queryset()
-        data_filter = self.request.GET.get('data_filter')
+        data_filter = self.request.GET.get('search')
         if data_filter:
             return query.filter(data_venda=data_filter)
         
@@ -194,30 +198,79 @@ class VendaCreateView(UserPassesTestMixin, CreateView):
         context = self.get_context_data()
         produto_venda_formset = context['produto_venda_formset']
         pagamento_formset = context['pagamento_formset']
+        
         if produto_venda_formset.is_valid() and pagamento_formset.is_valid() and form.is_valid():
-            is_caixa_aberto = Caixa.caixa_aberto(timezone.localtime(timezone.now()).date())
+            is_caixa_aberto = Caixa.caixa_aberto(localtime(now()).date())
 
-            if  not is_caixa_aberto:
+            if not is_caixa_aberto:
                 messages.warning(self.request, 'Não é possível realizar vendas com o caixa fechado')
                 return self.form_invalid(form)
             
-            form.instance.criado_por = self.request.user
-            form.instance.modificado_por = self.request.user
-            form.instance.caixa = Caixa.objects.get(data_abertura=timezone.localtime(timezone.now()).date())
-            form.instance.data_venda = timezone.localtime(timezone.now())
-            self.object = form.save()
+            # Iniciar uma transação atômica
+            try:
+                with transaction.atomic():
+                    form.instance.criado_por = self.request.user
+                    form.instance.modificado_por = self.request.user
+                    form.instance.caixa = Caixa.objects.get(data_abertura=localtime(now()).date())
+                    form.instance.data_venda = localtime(now())
+                    self.object = form.save()
 
-            produto_venda_formset.instance = self.object
-            produto_venda_formset.save()
+                    # Salvar produtos da venda
+                    produto_venda_formset.instance = self.object
 
-            pagamento_formset.instance = self.object
-            pagamento_formset.save() 
-            
-            return super().form_valid(form)
-        else:
-            return self.form_invalid(form)
+                    for produto_venda in produto_venda_formset:
+                        produto = produto_venda.cleaned_data.get('produto')
+                        quantidade = produto_venda.cleaned_data.get('quantidade')
+                        imei = produto_venda.cleaned_data.get('imei')
+
+                        loja = self.request.session.get('loja_id')
+                        produto = Produto.objects.select_related('estoque_atual').get(id=produto.id)
+
+                        if quantidade > produto.estoque_atual.quantidade_disponivel:
+                            messages.warning(self.request, f'Quantidade de {produto} indisponível')
+                            raise ValueError(f'Quantidade indisponível para {produto}')  # Forçar rollback
+                        
+                        if produto.tipo.numero_serial:    
+                            try:
+                                produto_imei = EstoqueImei.objects.get(imei=imei, produto=produto)
+                                if produto_imei.vendido:
+                                    messages.warning(self.request, f'IMEI {imei} já vendido')
+                                    raise ValueError(f'IMEI {imei} já vendido')  # Forçar rollback
+                                produto_imei.vendido = True
+                                produto_imei.save()
+                            except EstoqueImei.DoesNotExist:
+                                messages.warning(self.request, f'IMEI {imei} não encontrado')
+                                raise ValueError(f'IMEI {imei} não encontrado')  # Forçar rollback
+
+                        # Atualizar o estoque
+                        self.atualizar_estoque(produto, quantidade, loja)
+                    
+                    produto_venda_formset.save()
+
+                    # Salvar pagamentos
+                    pagamento_formset.instance = self.object
+                    pagamento_formset.save()
+
+                return super().form_valid(form)
+
+            except Exception as e:
+                # Garantir rollback e exibir erro genérico
+                messages.error(self.request, f"Erro ao processar a venda: {str(e)}")
+                return self.form_invalid(form)
         
+        return self.form_invalid(form)
 
+    def atualizar_estoque(self, produto, quantidade, loja_id):
+        try:
+            loja = get_object_or_404(Loja, id=loja_id)
+            estoque = Estoque.objects.get(produto=produto, loja=loja)
+            if quantidade > estoque.quantidade_disponivel:
+                raise ValueError(f'Estoque insuficiente para o produto {produto.nome}')
+            estoque.remover_estoque(quantidade)
+            estoque.save()
+        except Estoque.DoesNotExist:
+            raise ValueError(f'Estoque não encontrado para o produto {produto.nome} na loja {loja.nome}')
+    
 class CaixaTotalView(UserPassesTestMixin, TemplateView):
     template_name = 'caixa/caixa_total.html'
     
@@ -229,3 +282,33 @@ class CaixaTotalView(UserPassesTestMixin, TemplateView):
         context['caixas'] = Caixa.objects.all()
         
         return context
+    
+
+def product_information(request):
+    product_id = request.GET.get('product_id')
+    imei = request.GET.get('imei')
+    product = get_object_or_404(Produto, id=product_id)
+    if imei:    
+        try:
+            product_imei = EstoqueImei.objects.get(imei=imei, produto=product)
+            if product_imei.vendido:
+                return JsonResponse({'status': 'error', 'message': 'IMEI já vendido'}, status=400)
+            else:
+                return JsonResponse({'status': 'success', 'product': product.nome, 'price': product.estoque_atual.preco_medio()})
+        except EstoqueImei.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'IMEI não encontrado'}, status=404)
+    else:
+        return JsonResponse({'status': 'success', 'product': product.nome, 'price': product.estoque_atual.preco_medio()})
+    
+
+def get_payment_method(request):
+    payment_id = request.GET.get('payment_id')
+    payment = get_object_or_404(Pagamento, id=payment_id)
+    
+    if payment:
+        return JsonResponse({
+            'status': 'success',
+            'parcela': payment.tipo_pagamento.parcelas,
+            'financeira': payment.tipo_pagamento.financeira,
+            'caixa': payment.tipo_pagamento.caixa
+        })

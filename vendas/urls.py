@@ -44,4 +44,8 @@ urlpatterns = [
     #venda
     path('vendas/', VendaListView.as_view(), name='venda_list'),
     path('vendas/nova/', VendaCreateView.as_view(), name='venda_create'),
+    
+    
+    path('info-products/', product_information, name='info_produto'),
+    path('info-payment/', get_payment_method , name='payment_data')
 ]

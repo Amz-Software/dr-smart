@@ -37,7 +37,7 @@ class EstoqueImeiForm(forms.ModelForm):
 
 ProdutoEntradaFormSet = modelformset_factory(
     ProdutoEntrada,
-    fields=['custo_unitario', 'venda_unitaria'],
+    exclude=['entrada'],
     extra=1,
     can_delete=False
 )

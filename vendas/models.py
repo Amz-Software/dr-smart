@@ -160,7 +160,7 @@ class Pagamento(Base):
     venda = models.ForeignKey('vendas.Venda', on_delete=models.PROTECT, related_name='pagamentos')
     tipo_pagamento = models.ForeignKey('vendas.TipoPagamento', on_delete=models.PROTECT, related_name='pagamentos_tipo')
     valor = models.DecimalField(max_digits=10, decimal_places=2)
-    parcelas = models.PositiveIntegerField(default=1)
+    parcelas = models.PositiveIntegerField(default=1, null=True, blank=True)
     # valor_parcela = models.DecimalField(max_digits=10, decimal_places=2)
     data_primeira_parcela = models.DateField()
     

@@ -76,3 +76,8 @@ class ComprovantesClienteAdmin(AdminBase):
 @admin.register(Loja)
 class LojaAdmin(AdminBase):
     list_display = ('nome', 'cnpj', 'telefone')
+    
+    
+@admin.register(Parcela)
+class ParcelaAdmin(AdminBase):
+    list_display = ('pagamento', 'valor', 'data_vencimento', 'pago')

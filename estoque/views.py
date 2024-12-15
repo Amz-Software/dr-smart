@@ -133,7 +133,7 @@ class EstoqueImeiUpdateView(UpdateView):
         
 def check_produtos(request, produto_id):
     produto = get_object_or_404(Produto, pk=produto_id)
-    if produto.serializado:
+    if produto.tipo.numero_serial:
         return JsonResponse({'serializado': True})
     else:
         return JsonResponse({'serializado': False})
