@@ -33,17 +33,17 @@ def associar_funcionario_a_caixas_mensais_abertos(sender, instance, created, **k
                 )
 # ao excluir deve apgar as associações
 @receiver(post_delete, sender=GastoFixo)
-def desassociar_gasto_fixo_a_caixas_mensais_abertos(sender, instance, **kwargs):
+def desassociar_gasto_fixo_a_caixas_mensais(sender, instance, **kwargs):
     """Desassocia um Gasto Fixo dos caixas mensais abertos."""
-    caixas_mensais_abertos = CaixaMensal.objects.filter(data_fechamento=None)
-    for caixa_mensal in caixas_mensais_abertos:
+    caixas_mensais = CaixaMensal.objects.all()
+    for caixa_mensal in caixas_mensais:
         CaixaMensalGastoFixo.objects.filter(caixa_mensal=caixa_mensal, gasto_fixo=instance).delete()
 
 
 @receiver(post_delete, sender=Funcionario)
-def desassociar_funcionario_a_caixas_mensais_abertos(sender, instance, **kwargs):
+def desassociar_funcionario_a_caixas_mensais(sender, instance, **kwargs):
     """Desassocia um Funcionário dos caixas mensais abertos."""
-    caixas_mensais_abertos = CaixaMensal.objects.filter(data_fechamento=None)
-    for caixa_mensal in caixas_mensais_abertos:
+    caixas_mensais = CaixaMensal.objects.all()
+    for caixa_mensal in caixas_mensais:
         CaixaMensalFuncionario.objects.filter(caixa_mensal=caixa_mensal, funcionario=instance).delete()
 
