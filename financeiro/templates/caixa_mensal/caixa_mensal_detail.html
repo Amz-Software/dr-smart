@@ -3,189 +3,206 @@
 {% load static %}
 
 {% block title %}
-Criar Caixa Mensal - {{ caixa_mensal.loja }} - {{ caixa_mensal.mes|date:"F Y" }}
+Caixa Mensal - {{ caixa_mensal.loja }} - {{ caixa_mensal.mes|date:"F Y" }}
 {% endblock title %}
 
 {% block content %}
-<h1>Detalhes do Caixa Mensal</h1>
-<p>Caixa mensal: {{caixa_mensal}}</p>
-<p><strong>Loja:</strong> {{ caixa_mensal.loja }}</p>
-<p><strong>Mês:</strong> {{ caixa_mensal.mes }}</p>
-<p><strong>Valor Inicial:</strong> R$ {{ caixa_mensal.valor }}</p>
-<p><strong>Data de Abertura:</strong> {{ caixa_mensal.data_abertura }}</p>
-<p><strong>Data de Fechamento:</strong> {% if caixa_mensal.data_fechamento %} {{ caixa_mensal.data_fechamento }} {% else %} Não fechado {% endif %}</p>
+<div class="container mt-4">
+    <h1 class="mb-4">Detalhes do Caixa Mensal</h1>
+    <div class="card mb-4">
+        <div class="card-body">
+            <p><strong>Caixa mensal:</strong> {{ caixa_mensal }}</p>
+            <p><strong>Loja:</strong> {{ caixa_mensal.loja }}</p>
+            <p><strong>Mês:</strong> {{ caixa_mensal.mes }}</p>
+            <p><strong>Valor Inicial:</strong> R$ {{ caixa_mensal.valor }}</p>
+            <p><strong>Data de Abertura:</strong> {{ caixa_mensal.data_abertura }}</p>
+            <p><strong>Data de Fechamento:</strong>
+                {% if caixa_mensal.data_fechamento %}
+                {{ caixa_mensal.data_fechamento }}
+                {% else %}
+                Não fechado
+                {% endif %}
+            </p>
+        </div>
+    </div>
 
-<form method="POST">
-    {% csrf_token %}
-    
-    <h2>Gastos Fixos</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Gasto Fixo</th>
-                <th>Valor</th>
-                <th>Observação</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for form in formset_gastos_fixos %}
-                <tr>
-                    <td>{{ form.gasto_fixo }}</td>
-                    <td>{{ form.valor }}</td>
-                    <td>{{ form.observacao }}</td>
-                </tr>
-            {% empty %}
-                <tr>
-                    <td colspan="3">Nenhum gasto fixo encontrado.</td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    
-    <h2>Funcionários</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Funcionário</th>
-                <th>Salário</th>
-                <th>Comissão</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for form in formset_funcionarios %}
-                <tr>
-                    <td>{{ form.funcionario }}</td>
-                    <td>{{ form.salario }}</td>
-                    <td>{{ form.comissao }}</td>
-                </tr>
-            {% empty %}
-                <tr>
-                    <td colspan="3">Nenhum funcionário encontrado.</td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <!-- Formulário -->
+    <form method="POST" class="mb-4">
+        {% csrf_token %}
 
-    <h2>Gastos Variáveis</h2>
-    <table>
-        <thead>
-            <tr>
+        <!-- GASTOS FIXOS -->
+        <h2 class="mb-3">Gastos Fixos</h2>
+        <div class="table-responsive mb-4">
+            <table class="table table-bordered">
+                <thead class="thead-light">
+                    <tr>
+                        <th>Gasto Fixo</th>
+                        <th>Valor</th>
+                        <th>Observação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{ formset_gastos_fixos.management_form }} <!-- Management form obrigatório -->
+                    {% for form in formset_gastos_fixos %}
+                    <tr>
+                        <td>{{ form.gasto_fixo }}</td>
+                        <td>{{ form.valor }}</td>
+                        <td>{{ form.observacao }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3">Nenhum gasto fixo encontrado.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- FUNCIONÁRIOS -->
+        <h2 class="mb-3">Funcionários</h2>
+        <div class="table-responsive mb-4">
+            <table class="table table-bordered">
+                <thead class="thead-light">
+                    <tr>
+                        <th>Funcionário</th>
+                        <th>Salário</th>
+                        <th>Comissão</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{ formset_funcionarios.management_form }} <!-- Management form obrigatório -->
+                    {% for form in formset_funcionarios %}
+                    <tr>
+                        {{ form.id }}
+                        <td>{{ form.funcionario }}</td>
+                        <td>{{ form.salario }}</td>
+                        <td>{{ form.comissao }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3">Nenhum funcionário encontrado.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- GASTOS VARIÁVEIS -->
+        <h2 class="mb-3">Gastos Variáveis</h2>
+        <div class="table-responsive mb-4">
+            <table class="table table-bordered">
+            <thead class="thead-light">
+                <tr>
                 <th>Descrição</th>
                 <th>Valor</th>
                 <th>Observação</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for form in formset_gastos_aleatorios %}
-                <tr>
-                    <td>{{ form.descricao }}</td>
-                    <td>{{ form.valor }}</td>
-                    <td>{{ form.observacao }}</td>
+                <th>Ações</th>
                 </tr>
-            {% empty %}
-                <tr>
-                    <td colspan="3">Nenhum gasto variável encontrado.</td>
+            </thead>
+            <tbody id="gastos-aleatorios-body">
+                {{ formset_gastos_aleatorios.management_form }} <!-- Management form obrigatório -->
+                {% for form in formset_gastos_aleatorios %}
+                <tr class="gasto-form">
+                {{ form.id }}
+                <td>{{ form.descricao }}</td>
+                <td>{{ form.valor }}</td>
+                <td>{{ form.observacao }}</td>
+                <td style="display: none;">{{ form.DELETE }}</td>
+                <td>
+                    <button type="button" class="btn btn-danger" onclick="marcarComoExcluido(this)">Excluir</button>
+                </td>
                 </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+                {% empty %}
+                <tr>
+                <td colspan="4">Nenhum gasto variável encontrado.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            </table>
+        </div>
 
-    <button type="submit">Salvar</button>
-</form>
+        <!-- Formulário vazio para clonagem -->
+        <div id="gasto-empty-form" style="display: none;">
+            <table>
+            <tbody>
+                <tr>
+                {{ formset_gastos_aleatorios.empty_form.id }}
+                <td>{{ formset_gastos_aleatorios.empty_form.descricao }}</td>
+                <td>{{ formset_gastos_aleatorios.empty_form.valor }}</td>
+                <td>{{ formset_gastos_aleatorios.empty_form.observacao }}</td>
+                <td style="display: none;">{{ formset_gastos_aleatorios.empty_form.DELETE }}</td>
+                <td>
+                    <button type="button" class="btn btn-danger" onclick="marcarComoExcluido(this)">Excluir</button>
+                </td>
+                </tr>
+            </tbody>
+            </table>
+        </div>
+
+        <!-- Botões de ação -->
+         <!-- colocar botão para direita da tela -->
+        <div class="d-flex mb-4 justify-content-center align-items-center">
+            <button class="btn btn-primary w-50" type="button" onclick="adicionarGasto()">Adicionar gasto</button>
+        </div>
 
 
+        <!-- Botão de Salvar -->
+        <div class="d-flex mb-4 justify-content-center align-items-center">
+            <button type="submit" class="btn btn-success w-50">Salvar</button>
+        </div>
+    </form>
+</div>
 {% endblock %}
 
-
 {% block extra_scripts %}
-<!-- <script>
-    document.getElementById('add-row').addEventListener('click', function () {
-        var formset = document.getElementById('formset');
-        var totalFormsInput = document.getElementById('id_gastos_aleatorios-TOTAL_FORMS');
+<script>
+    function adicionarGasto() {
+        const emptyFormHtml = document.querySelector("#gasto-empty-form tbody").innerHTML;
+        const gastosBody = document.getElementById("gastos-aleatorios-body");
+        const totalFormsInput = document.getElementById("id_gastos_aleatorios-TOTAL_FORMS");
 
-        if (!totalFormsInput) {
-            console.error('Elemento id_gastos_aleatorios-TOTAL_FORMS não encontrado.');
-            return;
+        // Obter o número atual de formulários
+        const currentFormCount = parseInt(totalFormsInput.value, 10);
+
+        // Substituir o prefixo pelo índice correto
+        const newFormHtml = emptyFormHtml.replace(/__prefix__/g, currentFormCount);
+
+        // Incrementar o contador de formulários
+        totalFormsInput.value = currentFormCount + 1;
+
+        // Adicionar o novo formulário como uma nova linha na tabela
+        const newRow = document.createElement("tr");
+        newRow.classList.add("gasto-form");
+        newRow.innerHTML = newFormHtml;
+        gastosBody.appendChild(newRow);
+    }
+
+    function apagarGasto() {
+        const gastosBody = document.getElementById("gastos-aleatorios-body");
+        const gastoForms = gastosBody.querySelectorAll(".gasto-form");
+        const totalFormsInput = document.getElementById("id_gastos_aleatorios-TOTAL_FORMS");
+
+        if (gastoForms.length > 0) {
+            // Remover o último formulário adicionado
+            gastoForms[gastoForms.length - 1].remove();
+
+            // Atualizar o contador de formulários
+            totalFormsInput.value = gastoForms.length;
         }
+    }
 
-        var formCount = parseInt(totalFormsInput.value);
-        var lastForm = formset.querySelector('.form-row');
+    function marcarComoExcluido(button) {
+    // Localizar a linha do formulário correspondente
+    const row = button.closest("tr");
+    const deleteField = row.querySelector("input[type='checkbox'][name$='-DELETE']");
+    
+    if (deleteField) {
+        // Marcar o formulário como excluído
+        deleteField.checked = true;
 
-        var newForm;
-
-        if (lastForm) {
-            // Clonar a última linha se ela existir
-            newForm = lastForm.cloneNode(true);
-        } else {
-            // Criar uma nova linha se nenhuma existir
-            newForm = document.createElement('tr');
-            newForm.classList.add('form-row');
-            newForm.innerHTML = `
-                <td><input type="text" name="form-${formCount}-descricao" class="form-control" value=""></td>
-                <td><input type="number" name="form-${formCount}-valor" class="form-control" value=""></td>
-                <td><input type="text" name="form-${formCount}-observacao" class="form-control" value=""></td>
-                <td><button type="button" class="btn btn-danger remove-row">Remover</button></td>
-            `;
-        }
-
-        // Atualizar índices no formulário clonado
-        var regex = new RegExp(`form-(\\d+)`, 'g');
-        newForm.innerHTML = newForm.innerHTML.replace(regex, `form-${formCount}`);
-
-        // Limpando os valores dos campos
-        var inputs = newForm.querySelectorAll('input, select, textarea');
-        inputs.forEach(input => {
-            input.value = '';
-            var name = input.getAttribute('name');
-            if (name) {
-                input.setAttribute('name', name.replace(regex, `form-${formCount}`));
-            }
-            var id = input.getAttribute('id');
-            if (id) {
-                input.setAttribute('id', id.replace(regex, `form-${formCount}`));
-            }
-        });
-
-        // Adicionar a nova linha ao formset
-        formset.querySelector('tbody').appendChild(newForm);
-
-        // Atualizar o total de formulários
-        totalFormsInput.value = formCount + 1;
-    });
-
-    // Função para remover uma linha do formset
-    document.getElementById('formset').addEventListener('click', function (event) {
-        if (event.target.classList.contains('remove-row')) {
-            var row = event.target.closest('.form-row');
-            if (row) {
-                row.remove();
-
-                // Atualizar os índices de cada linha após remoção
-                var formset = document.getElementById('formset');
-                var rows = formset.querySelectorAll('.form-row');
-                var totalFormsInput = document.getElementById('id_gastos_aleatorios-TOTAL_FORMS');
-
-                rows.forEach(function (row, index) {
-                    var regex = new RegExp(`form-(\\d+)`, 'g');
-                    var inputs = row.querySelectorAll('input, select, textarea');
-                    inputs.forEach(input => {
-                        var name = input.getAttribute('name');
-                        if (name) {
-                            input.setAttribute('name', name.replace(regex, `form-${index}`));
-                        }
-                        var id = input.getAttribute('id');
-                        if (id) {
-                            input.setAttribute('id', id.replace(regex, `form-${index}`));
-                        }
-                    });
-                });
-
-                // Atualizar o total de formulários
-                totalFormsInput.value = rows.length;
-            }
-        }
-    });
+        // Ocultar a linha na interface do usuário
+        row.style.display = "none";
+    }
+}
 </script>
- -->
-
 {% endblock %}

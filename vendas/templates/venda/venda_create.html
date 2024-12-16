@@ -76,7 +76,7 @@ Criar Venda
                         {% for form in pagamento_formset %}
                           <div class="pagamento-form">
                             {{ form }}
-                            <button type="button" class="btn btn-danger btn-sm remove-pagamento" onclick="removerPagamento(this)">Remover</button>
+                            <button type="button" class="btn btn-danger btn-sm remove-pagamento mt-3" onclick="removerPagamento(this)">Remover</button>
                           </div>
                         {% endfor %}
                       </div>
@@ -242,7 +242,7 @@ Criar Venda
         // Adicionar botão de remover
         const removeButton = document.createElement('button');
         removeButton.type = "button";
-        removeButton.classList.add("btn", "btn-danger", "btn-sm", "remove-produto");
+        removeButton.classList.add("btn", "btn-danger", "btn-sm", "remove-produto", 'mt-3');
         removeButton.textContent = "Remover";
         removeButton.onclick = () => removerProduto(removeButton);
         newForm.appendChild(removeButton);
@@ -295,7 +295,7 @@ Criar Venda
     // Adicionar botão de remover
     const removeButton = document.createElement('button');
     removeButton.type = "button";
-    removeButton.classList.add("btn", "btn-danger", "btn-sm", "remove-pagamento");
+    removeButton.classList.add("btn", "btn-danger", "btn-sm", "remove-pagamento", 'mt-3');
     removeButton.textContent = "Remover";
     removeButton.onclick = () => removerPagamento(removeButton);
     newForm.appendChild(removeButton);

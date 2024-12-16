@@ -7,12 +7,18 @@ from django.shortcuts import redirect, render
 from django.forms import inlineformset_factory, modelformset_factory
 from django.shortcuts import get_object_or_404
 from accounts.views import logout_view
-
+from django.shortcuts import get_object_or_404
+from django.forms import modelformset_factory
+from django.http import HttpResponseRedirect
+from django.urls import reverse
+from django.views.generic import DetailView
+from .models import CaixaMensal, CaixaMensalGastoFixo, CaixaMensalFuncionario, GastosAleatorios
 from financeiro.forms import GastosAleatoriosForm
 from vendas.models import Loja
 from .models import CaixaMensal, CaixaMensalFuncionario, CaixaMensalGastoFixo, Funcionario, GastoFixo, GastosAleatorios
 from datetime import datetime
 from django.db import transaction
+from financeiro.forms import *
 
 
 class CaixaMensalListView(ListView):
@@ -183,96 +189,116 @@ def reabrir_caixa_mensal(request, pk):
 
 #         return HttpResponseRedirect(self.object.get_absolute_url())
 
-
-from django.shortcuts import get_object_or_404
-from django.forms import modelformset_factory
-from django.http import HttpResponseRedirect
-from django.urls import reverse
-from django.views.generic import DetailView
-from .models import CaixaMensal, CaixaMensalGastoFixo, CaixaMensalFuncionario, GastosAleatorios
-
 class CaixaMensalDetailView(DetailView):
     model = CaixaMensal
     template_name = 'caixa_mensal/caixa_mensal_detail.html'
     context_object_name = 'caixa_mensal'
 
-    def get_object(self, queryset=None):
-        """Recupera o objeto CaixaMensal"""
-        return get_object_or_404(CaixaMensal, pk=self.kwargs['pk'])
-
     def get_context_data(self, **kwargs):
-        """Adiciona formulários ao contexto da view"""
-        caixa_mensal = self.object  # Garantir que o objeto está disponível
+        context = super().get_context_data(**kwargs)
+        caixa_mensal = self.get_object()
 
-        context = super().get_context_data(**kwargs)  # Contexto básico
-        
-        context['caixa_mensal'] = caixa_mensal
-        
-        # Formulários para gasto fixo e funcionário
+        # Pré-configurar os Gastos Fixos associados ao Caixa Mensal
+        self._pre_configurar_gastos_fixos(caixa_mensal)
+
+        # Pré-configurar os Funcionários associados ao Caixa Mensal
+        self._pre_configurar_funcionarios(caixa_mensal)
+
+        # Formset para Gastos Fixos
         CaixaMensalGastoFixoFormSet = modelformset_factory(
-            CaixaMensalGastoFixo, fields=('gasto_fixo', 'valor', 'observacao'), extra=0
+            CaixaMensalGastoFixo, form=CaixaMensalGastoFixoForm, extra=0
         )
-        context['formset_gastos_fixos'] = CaixaMensalGastoFixoFormSet(
-            queryset=CaixaMensalGastoFixo.objects.filter(caixa_mensal=caixa_mensal)
-        )
+        gasto_fixos_queryset = CaixaMensalGastoFixo.objects.filter(caixa_mensal=caixa_mensal)
+        context['formset_gastos_fixos'] = CaixaMensalGastoFixoFormSet(queryset=gasto_fixos_queryset)
 
+        # Formset para Funcionários
         CaixaMensalFuncionarioFormSet = modelformset_factory(
-            CaixaMensalFuncionario, fields=('funcionario', 'salario', 'comissao'), extra=0
+            CaixaMensalFuncionario, form=CaixaMensalFuncionarioForm, extra=0
         )
-        context['formset_funcionarios'] = CaixaMensalFuncionarioFormSet(
-            queryset=CaixaMensalFuncionario.objects.filter(caixa_mensal=caixa_mensal)
-        )
+        funcionarios_queryset = CaixaMensalFuncionario.objects.filter(caixa_mensal=caixa_mensal)
+        context['formset_funcionarios'] = CaixaMensalFuncionarioFormSet(queryset=funcionarios_queryset)
 
-        GastosAleatoriosFormSet = modelformset_factory(
-            GastosAleatorios, fields=('descricao', 'valor', 'observacao'), extra=1
+        # Inline formset para Gastos Aleatórios
+        GastosAleatoriosFormSet = inlineformset_factory(
+            CaixaMensal, GastosAleatorios, form=GastosAleatoriosForm, extra=0, can_delete=True
         )
-        context['formset_gastos_aleatorios'] = GastosAleatoriosFormSet(
-            queryset=GastosAleatorios.objects.filter(caixa_mensal=caixa_mensal)
-        )
+        context['formset_gastos_aleatorios'] = GastosAleatoriosFormSet(instance=caixa_mensal)
 
         return context
 
+    def _pre_configurar_gastos_fixos(self, caixa_mensal):
+        """Cria associações de Gastos Fixos ao Caixa Mensal, caso não existam."""
+        gastos_fixos_existentes = CaixaMensalGastoFixo.objects.filter(caixa_mensal=caixa_mensal)
+        if not gastos_fixos_existentes.exists():
+            # Recuperar todos os gastos fixos gerais
+            gastos_fixos_disponiveis = GastoFixo.objects.all()
+            for gasto_fixo in gastos_fixos_disponiveis:
+                CaixaMensalGastoFixo.objects.create(
+                    caixa_mensal=caixa_mensal,
+                    gasto_fixo=gasto_fixo,
+                    valor=0.00,  # Valor padrão
+                    observacao=""
+                )
 
-    def get(self, request, *args, **kwargs):
-        """Sobrescreve o método get para definir self.object"""
-        self.object = self.get_object()
-        return super().get(request, *args, **kwargs)
+    def _pre_configurar_funcionarios(self, caixa_mensal):
+        """Cria associações de Funcionários ao Caixa Mensal, caso não existam."""
+        funcionarios_existentes = CaixaMensalFuncionario.objects.filter(caixa_mensal=caixa_mensal)
+        if not funcionarios_existentes.exists():
+            # Recuperar todos os funcionários gerais
+            funcionarios_disponiveis = Funcionario.objects.all()
+            for funcionario in funcionarios_disponiveis:
+                CaixaMensalFuncionario.objects.create(
+                    caixa_mensal=caixa_mensal,
+                    funcionario=funcionario,
+                    salario=0.00,  # Valor padrão
+                    comissao=0.00
+                )
 
     def post(self, request, *args, **kwargs):
-        """Lida com o envio dos formulários de gasto fixo, funcionário e gasto aleatório"""
         self.object = self.get_object()
         caixa_mensal = self.object
 
-        # Processar os formulários de gasto fixo
-        CaixaMensalGastoFixoFormSet = modelformset_factory(
-            CaixaMensalGastoFixo, fields=('gasto_fixo', 'valor', 'observacao'), extra=0
-        )
-        formset_gastos_fixos = CaixaMensalGastoFixoFormSet(request.POST)
-        
-        # Processar os formulários de funcionário
-        CaixaMensalFuncionarioFormSet = modelformset_factory(
-            CaixaMensalFuncionario, fields=('funcionario', 'salario', 'comissao'), extra=0
-        )
-        formset_funcionarios = CaixaMensalFuncionarioFormSet(request.POST)
-        
-        # Processar os formulários de gastos aleatórios
-        GastosAleatoriosFormSet = modelformset_factory(
-            GastosAleatorios, fields=('descricao', 'valor', 'observacao'), extra=1
-        )
-        formset_gastos_aleatorios = GastosAleatoriosFormSet(request.POST)
+        # Inicialização dos formsets
+        CaixaMensalGastoFixoFormSet = modelformset_factory(CaixaMensalGastoFixo, form=CaixaMensalGastoFixoForm, extra=0)
+        CaixaMensalFuncionarioFormSet = modelformset_factory(CaixaMensalFuncionario, form=CaixaMensalFuncionarioForm, extra=0)
+        GastosAleatoriosFormSet = inlineformset_factory(CaixaMensal, GastosAleatorios, form=GastosAleatoriosForm, extra=0)
 
-        # Verificar se todos os formulários são válidos
+        formset_gastos_fixos = CaixaMensalGastoFixoFormSet(
+            request.POST, queryset=CaixaMensalGastoFixo.objects.filter(caixa_mensal=caixa_mensal)
+        )
+        formset_funcionarios = CaixaMensalFuncionarioFormSet(
+            request.POST, queryset=CaixaMensalFuncionario.objects.filter(caixa_mensal=caixa_mensal)
+        )
+        formset_gastos_aleatorios = GastosAleatoriosFormSet(request.POST, instance=caixa_mensal)
+
+        # Verificar se os formsets são válidos
         if formset_gastos_fixos.is_valid() and formset_funcionarios.is_valid() and formset_gastos_aleatorios.is_valid():
-            formset_gastos_fixos.save()
-            formset_funcionarios.save()
+            # Salvar formset de Gastos Fixos
+            instances_gastos_fixos = formset_gastos_fixos.save(commit=False)
+            for instance in instances_gastos_fixos:
+                instance.caixa_mensal = caixa_mensal  # Atribui manualmente o Caixa Mensal
+                instance.save()
+
+            # Salvar formset de Funcionários
+            instances_funcionarios = formset_funcionarios.save(commit=False)
+            for instance in instances_funcionarios:
+                instance.caixa_mensal = caixa_mensal  # Atribui manualmente o Caixa Mensal
+                instance.save()
+
+            # Salvar formset de Gastos Aleatórios
             formset_gastos_aleatorios.save()
 
-            # Redireciona após sucesso
-            return HttpResponseRedirect(reverse('financeiro:caixa_mensal_detail', kwargs={'pk': caixa_mensal.pk}))
+            # Mensagem de sucesso e redirecionamento
+            messages.success(request, "Caixa Mensal atualizado com sucesso!")
+            return redirect('financeiro:caixa_mensal_update', pk=caixa_mensal.pk)
 
-        # Caso contrário, renderiza novamente com os formulários inválidos
-        context = self.get_context_data()
-        context['formset_gastos_fixos'] = formset_gastos_fixos
-        context['formset_funcionarios'] = formset_funcionarios
-        context['formset_gastos_aleatorios'] = formset_gastos_aleatorios
-        return self.render_to_response(context)
+  
+        messages.error(request, "Erro ao atualizar o Caixa Mensal.")
+        print(formset_gastos_fixos.errors)
+        print(formset_funcionarios.errors)
+        print(formset_gastos_aleatorios.errors)
+        return self.render_to_response(self.get_context_data(
+            formset_gastos_fixos=formset_gastos_fixos,
+            formset_funcionarios=formset_funcionarios,
+            formset_gastos_aleatorios=formset_gastos_aleatorios
+        ))
