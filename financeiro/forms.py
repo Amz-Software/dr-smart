@@ -36,10 +36,6 @@ class CaixaMensalGastoFixoForm(forms.ModelForm):
             'valor': forms.NumberInput(attrs={'step': '0.01', 'class': 'form-control'}),
         }
 
-        def __init__(self, *args, **kwargs):
-            super().__init__(*args, **kwargs)
-            # Certifique-se de que o queryset contém todos os Gastos Fixos
-            self.fields['gasto_fixo'].queryset = GastoFixo.objects.all()
 
 class CaixaMensalFuncionarioForm(forms.ModelForm):
     class Meta:
@@ -51,6 +47,23 @@ class CaixaMensalFuncionarioForm(forms.ModelForm):
             'salario': forms.NumberInput(attrs={'step': '0.01', 'class': 'form-control'}),
         }
 
-CaixaMensalFuncionarioFormSet = forms.modelformset_factory(CaixaMensalFuncionario, form=CaixaMensalFuncionarioForm, extra=0)
-CaixaMensalGastoFixoFormSet = forms.modelformset_factory(CaixaMensalGastoFixo, form=CaixaMensalGastoFixoForm, extra=0)
-GastosAleatoriosInlineForm = forms.inlineformset_factory(CaixaMensal, GastosAleatorios, form=GastosAleatoriosForm, extra=0)
+# Definições dos FormSets com Prefixo
+CaixaMensalGastoFixoFormSet = forms.modelformset_factory(
+    CaixaMensalGastoFixo,
+    form=CaixaMensalGastoFixoForm,
+    extra=0
+)
+
+CaixaMensalFuncionarioFormSet = forms.modelformset_factory(
+    CaixaMensalFuncionario,
+    form=CaixaMensalFuncionarioForm,
+    extra=0
+)
+
+GastosAleatoriosFormSet = forms.inlineformset_factory(
+    CaixaMensal,
+    GastosAleatorios,
+    form=GastosAleatoriosForm,
+    extra=0,
+    can_delete=True
+)

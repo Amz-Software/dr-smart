@@ -192,33 +192,25 @@ class CaixaMensalDetailView(DetailView):
         # Pré-configurar os Funcionários associados ao Caixa Mensal
         self._pre_configurar_funcionarios(caixa_mensal)
 
-        # Formset para Gastos Fixos
-        CaixaMensalGastoFixoFormSet = modelformset_factory(
-            CaixaMensalGastoFixo, form=CaixaMensalGastoFixoForm, extra=0
+        # Formsets com prefixos
+        context['formset_gastos_fixos'] = CaixaMensalGastoFixoFormSet(
+            queryset=CaixaMensalGastoFixo.objects.filter(caixa_mensal=caixa_mensal),
+            prefix='gastos_fixos'
         )
-        gasto_fixos_queryset = CaixaMensalGastoFixo.objects.filter(caixa_mensal=caixa_mensal)
-        context['formset_gastos_fixos'] = CaixaMensalGastoFixoFormSet(queryset=gasto_fixos_queryset)
-
-        # Formset para Funcionários
-        CaixaMensalFuncionarioFormSet = modelformset_factory(
-            CaixaMensalFuncionario, form=CaixaMensalFuncionarioForm, extra=0
+        context['formset_funcionarios'] = CaixaMensalFuncionarioFormSet(
+            queryset=CaixaMensalFuncionario.objects.filter(caixa_mensal=caixa_mensal),
+            prefix='funcionarios'
         )
-        funcionarios_queryset = CaixaMensalFuncionario.objects.filter(caixa_mensal=caixa_mensal)
-        context['formset_funcionarios'] = CaixaMensalFuncionarioFormSet(queryset=funcionarios_queryset)
-
-        # Inline formset para Gastos Aleatórios
-        GastosAleatoriosFormSet = inlineformset_factory(
-            CaixaMensal, GastosAleatorios, form=GastosAleatoriosForm, extra=0, can_delete=True
+        context['formset_gastos_aleatorios'] = GastosAleatoriosFormSet(
+            instance=caixa_mensal,
+            prefix='gastos_aleatorios'
         )
-        context['formset_gastos_aleatorios'] = GastosAleatoriosFormSet(instance=caixa_mensal)
 
         return context
 
     def _pre_configurar_gastos_fixos(self, caixa_mensal):
         """Cria associações de Gastos Fixos ao Caixa Mensal, caso não existam."""
-        gastos_fixos_existentes = CaixaMensalGastoFixo.objects.filter(caixa_mensal=caixa_mensal)
-        if not gastos_fixos_existentes.exists():
-            # Recuperar todos os gastos fixos gerais
+        if not CaixaMensalGastoFixo.objects.filter(caixa_mensal=caixa_mensal).exists():
             gastos_fixos_disponiveis = GastoFixo.objects.all()
             for gasto_fixo in gastos_fixos_disponiveis:
                 CaixaMensalGastoFixo.objects.create(
@@ -230,9 +222,7 @@ class CaixaMensalDetailView(DetailView):
 
     def _pre_configurar_funcionarios(self, caixa_mensal):
         """Cria associações de Funcionários ao Caixa Mensal, caso não existam."""
-        funcionarios_existentes = CaixaMensalFuncionario.objects.filter(caixa_mensal=caixa_mensal)
-        if not funcionarios_existentes.exists():
-            # Recuperar todos os funcionários gerais
+        if not CaixaMensalFuncionario.objects.filter(caixa_mensal=caixa_mensal).exists():
             funcionarios_disponiveis = Funcionario.objects.all()
             for funcionario in funcionarios_disponiveis:
                 CaixaMensalFuncionario.objects.create(
@@ -246,32 +236,38 @@ class CaixaMensalDetailView(DetailView):
         self.object = self.get_object()
         caixa_mensal = self.object
 
-        # Inicialização dos formsets
-        CaixaMensalGastoFixoFormSet = modelformset_factory(CaixaMensalGastoFixo, form=CaixaMensalGastoFixoForm, extra=0)
-        CaixaMensalFuncionarioFormSet = modelformset_factory(CaixaMensalFuncionario, form=CaixaMensalFuncionarioForm, extra=0)
-        GastosAleatoriosFormSet = inlineformset_factory(CaixaMensal, GastosAleatorios, form=GastosAleatoriosForm, extra=0)
-
+        # Inicialização dos formsets com prefixos
         formset_gastos_fixos = CaixaMensalGastoFixoFormSet(
-            request.POST, queryset=CaixaMensalGastoFixo.objects.filter(caixa_mensal=caixa_mensal)
+            request.POST,
+            queryset=CaixaMensalGastoFixo.objects.filter(caixa_mensal=caixa_mensal),
+            prefix='gastos_fixos'
         )
         formset_funcionarios = CaixaMensalFuncionarioFormSet(
-            request.POST, queryset=CaixaMensalFuncionario.objects.filter(caixa_mensal=caixa_mensal)
+            request.POST,
+            queryset=CaixaMensalFuncionario.objects.filter(caixa_mensal=caixa_mensal),
+            prefix='funcionarios'
         )
-        formset_gastos_aleatorios = GastosAleatoriosFormSet(request.POST, instance=caixa_mensal)
+        formset_gastos_aleatorios = GastosAleatoriosFormSet(
+            request.POST,
+            instance=caixa_mensal,
+            prefix='gastos_aleatorios'
+        )
+
+        print(request.POST)
 
         # Verificar se os formsets são válidos
         if formset_gastos_fixos.is_valid() and formset_funcionarios.is_valid() and formset_gastos_aleatorios.is_valid():
             # Salvar formset de Gastos Fixos
             instances_gastos_fixos = formset_gastos_fixos.save(commit=False)
             for instance in instances_gastos_fixos:
-                instance.caixa_mensal = caixa_mensal  # Atribui manualmente o Caixa Mensal
+                instance.caixa_mensal = caixa_mensal
                 instance.save()
             formset_gastos_fixos.save_m2m()
 
             # Salvar formset de Funcionários
             instances_funcionarios = formset_funcionarios.save(commit=False)
             for instance in instances_funcionarios:
-                instance.caixa_mensal = caixa_mensal  # Atribui manualmente o Caixa Mensal
+                instance.caixa_mensal = caixa_mensal
                 instance.save()
             formset_funcionarios.save_m2m()
 
@@ -282,7 +278,7 @@ class CaixaMensalDetailView(DetailView):
             messages.success(request, "Caixa Mensal atualizado com sucesso!")
             return redirect('financeiro:caixa_mensal_update', pk=caixa_mensal.pk)
 
-  
+        # Caso haja erros, exibir mensagem de erro e retornar o contexto com os formsets
         messages.error(request, "Erro ao atualizar o Caixa Mensal.")
         print(formset_gastos_fixos.errors)
         print(formset_funcionarios.errors)
@@ -292,3 +288,7 @@ class CaixaMensalDetailView(DetailView):
             formset_funcionarios=formset_funcionarios,
             formset_gastos_aleatorios=formset_gastos_aleatorios
         ))
+
+
+
+
