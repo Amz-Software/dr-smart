@@ -77,22 +77,9 @@ def caixa_mensal_create(request):
             observacao="",
         )
     
-    # Formulário para gastos variáveis (inline)
-    GastosAleatoriosFormSet = modelformset_factory(
-        GastosAleatorios, fields=('descricao', 'valor', 'observacao'), extra=1
-    )
-    if request.method == "POST":
-        formset = GastosAleatoriosFormSet(request.POST)
-        if formset.is_valid():
-            formset.save()
-            return redirect('financeiro:caixa_mensal_list')
-    else:
-        formset = GastosAleatoriosFormSet(queryset=GastosAleatorios.objects.none())
-
-    return render(request, 'caixa_mensal/caixa_mensal_form.html', {
-        'caixa_mensal': caixa_mensal,
-        'formset': formset,
-    })
+    # Redirecionar para a página de detalhes do caixa mensal recém-criado
+    messages.success(request, "Caixa mensal criado com sucesso.")
+    return redirect('financeiro:caixa_mensal_detail', pk=caixa_mensal.pk)
 
 
 def fechar_caixa_mensal(request, pk):
@@ -104,6 +91,7 @@ def reabrir_caixa_mensal(request, pk):
     caixa_mensal = get_object_or_404(CaixaMensal, pk=pk)
     caixa_mensal.reabrir()
     return redirect('financeiro:caixa_mensal_list')
+
 
 
 # class CaixaMensalCreateView(CreateView):

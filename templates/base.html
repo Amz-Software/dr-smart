@@ -18,10 +18,10 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
     <title>
-    {% block title%}Dr Smart {% endblock %}
+    {% block title%}MobiService{% endblock %}
     </title>
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="{% static '/imagens/foto.png' %}" />
+    <link rel="icon" type="image/x-icon" href="{% static '/images/logo.png' %}" />
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -79,16 +79,15 @@
         <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
           <div class="app-brand demo">
             <a href="{% url 'vendas:index' %}" class="app-brand-link">
-                <span>
-                    <img src="{% static 'imagens/foto.png'%}" style="width: 60px; position: relative;  right: 15px;">
-                  </span>
-                  <span class="app-brand-text demo menu-text fw-medium ms-2 text-capitalize">Dr Smart</span>
-      
+              <span>
+                <img src="{% static 'images/logo.png' %}" style="width: 60px; position: relative; right: 15px;">
+              </span>
+              <span class="app-brand-text demo menu-text fw-medium ms-2 text-capitalize">MobiService</span>
             </a>
             <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto">
-                <i class="bx bx-chevron-left bx-sm align-middle"></i>
+              <i class="bx bx-chevron-left bx-sm align-middle"></i>
             </a>
-        </div>
+          </div>
 
 
           <div class="menu-inner-shadow"></div>
