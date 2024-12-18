@@ -266,12 +266,14 @@ class CaixaMensalDetailView(DetailView):
             for instance in instances_gastos_fixos:
                 instance.caixa_mensal = caixa_mensal  # Atribui manualmente o Caixa Mensal
                 instance.save()
+            formset_gastos_fixos.save_m2m()
 
             # Salvar formset de Funcionários
             instances_funcionarios = formset_funcionarios.save(commit=False)
             for instance in instances_funcionarios:
                 instance.caixa_mensal = caixa_mensal  # Atribui manualmente o Caixa Mensal
                 instance.save()
+            formset_funcionarios.save_m2m()
 
             # Salvar formset de Gastos Aleatórios
             formset_gastos_aleatorios.save()

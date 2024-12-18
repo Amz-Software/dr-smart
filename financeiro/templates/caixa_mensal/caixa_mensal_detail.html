@@ -72,6 +72,7 @@ Caixa Mensal - {{ caixa_mensal.loja }} - {{ caixa_mensal.mes|date:"F Y" }}
                             {{ formset_gastos_fixos.management_form }}
                             {% for form in formset_gastos_fixos %}
                             <tr>
+                                {{ form.id }}
                                 <td>{{ form.gasto_fixo }}</td>
                                 <td>{{ form.valor }}</td>
                                 <td>{{ form.observacao }}</td>
