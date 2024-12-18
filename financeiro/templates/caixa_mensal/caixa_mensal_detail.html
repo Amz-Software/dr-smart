@@ -7,151 +7,184 @@ Caixa Mensal - {{ caixa_mensal.loja }} - {{ caixa_mensal.mes|date:"F Y" }}
 {% endblock title %}
 
 {% block content %}
+
 <div class="container mt-4">
-    <h1 class="mb-4">Detalhes do Caixa Mensal</h1>
-    <div class="card mb-4">
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header border-0 bg-white">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h4 class="fw-bold mb-0 text-dark">Caixa Mensal - Detalhes</h4>
+                </div>
+                <div class="col-md-6 text-md-end text-muted">
+                    <small>{{ caixa_mensal.loja }} | {{ caixa_mensal.mes|date:"F Y" }}</small>
+                </div>
+            </div>
+        </div>
         <div class="card-body">
-            <p><strong>Caixa mensal:</strong> {{ caixa_mensal }}</p>
-            <p><strong>Loja:</strong> {{ caixa_mensal.loja }}</p>
-            <p><strong>Mês:</strong> {{ caixa_mensal.mes }}</p>
-            <p><strong>Valor Inicial:</strong> R$ {{ caixa_mensal.valor }}</p>
-            <p><strong>Data de Abertura:</strong> {{ caixa_mensal.data_abertura }}</p>
-            <p><strong>Data de Fechamento:</strong>
-                {% if caixa_mensal.data_fechamento %}
-                {{ caixa_mensal.data_fechamento }}
-                {% else %}
-                Não fechado
-                {% endif %}
-            </p>
+            <div class="row mb-4 gy-3">
+                <div class="col-md-4">
+                    <p class="mb-1"><strong>Caixa mensal:</strong></p>
+                    <p class="text-muted">{{ caixa_mensal }}</p>
+                </div>
+                <div class="col-md-4">
+                    <p class="mb-1"><strong>Loja:</strong></p>
+                    <p class="text-muted">{{ caixa_mensal.loja }}</p>
+                </div>
+                <div class="col-md-4">
+                    <p class="mb-1"><strong>Mês:</strong></p>
+                    <p class="text-muted">{{ caixa_mensal.mes }}</p>
+                </div>
+                <div class="col-md-4">
+                    <p class="mb-1"><strong>Valor Inicial:</strong></p>
+                    <p class="text-muted">R$ {{ caixa_mensal.valor }}</p>
+                </div>
+                <div class="col-md-4">
+                    <p class="mb-1"><strong>Data de Abertura:</strong></p>
+                    <p class="text-muted">{{ caixa_mensal.data_abertura }}</p>
+                </div>
+                <div class="col-md-4">
+                    <p class="mb-1"><strong>Data de Fechamento:</strong></p>
+                    <p class="text-muted">
+                        {% if caixa_mensal.data_fechamento %}
+                            {{ caixa_mensal.data_fechamento }}
+                        {% else %}
+                            Não fechado
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+
+            <form method="POST" class="mb-4">
+                {% csrf_token %}
+        
+                <!-- GASTOS FIXOS -->
+                <h5 class="mb-3 text-secondary fw-bold">Gastos Fixos</h5>
+                <div class="table-responsive mb-4">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Gasto Fixo</th>
+                                <th>Valor</th>
+                                <th>Observação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{ formset_gastos_fixos.management_form }}
+                            {% for form in formset_gastos_fixos %}
+                            <tr>
+                                <td>{{ form.gasto_fixo }}</td>
+                                <td>{{ form.valor }}</td>
+                                <td>{{ form.observacao }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center text-muted">Nenhum gasto fixo encontrado.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+        
+                <!-- FUNCIONÁRIOS -->
+                <h5 class="mb-3 text-secondary fw-bold">Funcionários</h5>
+                <div class="table-responsive mb-4">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Funcionário</th>
+                                <th>Salário</th>
+                                <th>Comissão</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{ formset_funcionarios.management_form }}
+                            {% for form in formset_funcionarios %}
+                            <tr>
+                                {{ form.id }}
+                                <td>{{ form.funcionario }}</td>
+                                <td>{{ form.salario }}</td>
+                                <td>{{ form.comissao }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center text-muted">Nenhum funcionário encontrado.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+        
+                <!-- GASTOS VARIÁVEIS -->
+                <h5 class="mb-3 text-secondary fw-bold">Gastos Variáveis</h5>
+                <div class="table-responsive mb-4">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Descrição</th>
+                                <th>Valor</th>
+                                <th>Observação</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                    <tbody id="gastos-aleatorios-body">
+                        {{ formset_gastos_aleatorios.management_form }} <!-- Management form obrigatório -->
+                        {% for form in formset_gastos_aleatorios %}
+                        <tr class="gasto-form">
+                        {{ form.id }}
+                        <td>{{ form.descricao }}</td>
+                        <td>{{ form.valor }}</td>
+                        <td>{{ form.observacao }}</td>
+                        <td style="display: none;">{{ form.DELETE }}</td>
+                        <td>
+                            <button type="button" class="btn btn-danger" onclick="marcarComoExcluido(this)">Excluir</button>
+                        </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                        <td colspan="4">Nenhum gasto variável encontrado.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    </table>
+                </div>
+        
+                <!-- Formulário vazio para clonagem -->
+                <div id="gasto-empty-form" style="display: none;">
+                    <table>
+                    <tbody>
+                        <tr>
+                        {{ formset_gastos_aleatorios.empty_form.id }}
+                        <td>{{ formset_gastos_aleatorios.empty_form.descricao }}</td>
+                        <td>{{ formset_gastos_aleatorios.empty_form.valor }}</td>
+                        <td>{{ formset_gastos_aleatorios.empty_form.observacao }}</td>
+                        <td style="display: none;">{{ formset_gastos_aleatorios.empty_form.DELETE }}</td>
+                        <td>
+                            <button type="button" class="btn btn-danger" onclick="marcarComoExcluido(this)">Excluir</button>
+                        </td>
+                        </tr>
+                    </tbody>
+                    </table>
+                </div>
+        
+                <!-- Botões de ação -->
+                 <!-- colocar botão para direita da tela -->
+                <div class="d-flex mb-4 justify-content-center align-items-center">
+                    <button class="btn btn-primary w-50" type="button" onclick="adicionarGasto()">Adicionar gasto</button>
+                </div>
+        
+        
+                <!-- Botão de Salvar -->
+                <div class="d-flex mb-4 justify-content-center align-items-center">
+                    <button type="submit" class="btn btn-success w-50">Salvar</button>
+                </div>
+            </form>
+
         </div>
     </div>
 
-    <!-- Formulário -->
-    <form method="POST" class="mb-4">
-        {% csrf_token %}
-
-        <!-- GASTOS FIXOS -->
-        <h2 class="mb-3">Gastos Fixos</h2>
-        <div class="table-responsive mb-4">
-            <table class="table table-bordered">
-                <thead class="thead-light">
-                    <tr>
-                        <th>Gasto Fixo</th>
-                        <th>Valor</th>
-                        <th>Observação</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {{ formset_gastos_fixos.management_form }} <!-- Management form obrigatório -->
-                    {% for form in formset_gastos_fixos %}
-                    <tr>
-                        <td>{{ form.gasto_fixo }}</td>
-                        <td>{{ form.valor }}</td>
-                        <td>{{ form.observacao }}</td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="3">Nenhum gasto fixo encontrado.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
-        <!-- FUNCIONÁRIOS -->
-        <h2 class="mb-3">Funcionários</h2>
-        <div class="table-responsive mb-4">
-            <table class="table table-bordered">
-                <thead class="thead-light">
-                    <tr>
-                        <th>Funcionário</th>
-                        <th>Salário</th>
-                        <th>Comissão</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {{ formset_funcionarios.management_form }} <!-- Management form obrigatório -->
-                    {% for form in formset_funcionarios %}
-                    <tr>
-                        {{ form.id }}
-                        <td>{{ form.funcionario }}</td>
-                        <td>{{ form.salario }}</td>
-                        <td>{{ form.comissao }}</td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="3">Nenhum funcionário encontrado.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
-        <!-- GASTOS VARIÁVEIS -->
-        <h2 class="mb-3">Gastos Variáveis</h2>
-        <div class="table-responsive mb-4">
-            <table class="table table-bordered">
-            <thead class="thead-light">
-                <tr>
-                <th>Descrição</th>
-                <th>Valor</th>
-                <th>Observação</th>
-                <th>Ações</th>
-                </tr>
-            </thead>
-            <tbody id="gastos-aleatorios-body">
-                {{ formset_gastos_aleatorios.management_form }} <!-- Management form obrigatório -->
-                {% for form in formset_gastos_aleatorios %}
-                <tr class="gasto-form">
-                {{ form.id }}
-                <td>{{ form.descricao }}</td>
-                <td>{{ form.valor }}</td>
-                <td>{{ form.observacao }}</td>
-                <td style="display: none;">{{ form.DELETE }}</td>
-                <td>
-                    <button type="button" class="btn btn-danger" onclick="marcarComoExcluido(this)">Excluir</button>
-                </td>
-                </tr>
-                {% empty %}
-                <tr>
-                <td colspan="4">Nenhum gasto variável encontrado.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-            </table>
-        </div>
-
-        <!-- Formulário vazio para clonagem -->
-        <div id="gasto-empty-form" style="display: none;">
-            <table>
-            <tbody>
-                <tr>
-                {{ formset_gastos_aleatorios.empty_form.id }}
-                <td>{{ formset_gastos_aleatorios.empty_form.descricao }}</td>
-                <td>{{ formset_gastos_aleatorios.empty_form.valor }}</td>
-                <td>{{ formset_gastos_aleatorios.empty_form.observacao }}</td>
-                <td style="display: none;">{{ formset_gastos_aleatorios.empty_form.DELETE }}</td>
-                <td>
-                    <button type="button" class="btn btn-danger" onclick="marcarComoExcluido(this)">Excluir</button>
-                </td>
-                </tr>
-            </tbody>
-            </table>
-        </div>
-
-        <!-- Botões de ação -->
-         <!-- colocar botão para direita da tela -->
-        <div class="d-flex mb-4 justify-content-center align-items-center">
-            <button class="btn btn-primary w-50" type="button" onclick="adicionarGasto()">Adicionar gasto</button>
-        </div>
-
-
-        <!-- Botão de Salvar -->
-        <div class="d-flex mb-4 justify-content-center align-items-center">
-            <button type="submit" class="btn btn-success w-50">Salvar</button>
-        </div>
-    </form>
 </div>
+
 {% endblock %}
 
 {% block extra_scripts %}
