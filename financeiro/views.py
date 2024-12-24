@@ -19,6 +19,7 @@ from .models import CaixaMensal, CaixaMensalFuncionario, CaixaMensalGastoFixo, F
 from datetime import datetime
 from django.db import transaction
 from financeiro.forms import *
+from vendas.models import Pagamento, Parcela
 
 
 class CaixaMensalListView(ListView):
@@ -289,6 +290,22 @@ class CaixaMensalDetailView(DetailView):
             formset_gastos_aleatorios=formset_gastos_aleatorios
         ))
 
+class ContasAReceberListView(ListView):
+    model = Pagamento
+    template_name = 'contas_a_receber/contas_a_receber_list.html'
+    context_object_name = 'contas_a_receber'
+    paginate_by = 10
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        queryset = self.get_queryset()
+        for pagamento in queryset:
+            pagamento.atrasado = self.verificar_atraso_parcela(pagamento)
+        context['contas_a_receber'] = queryset
+        return context
+
+    def verificar_atraso_parcela(self, pagamento):
+       return pagamento.parcelas_pagamento.all().filter(data_vencimento__lt=timezone.now().date(), pago=False).exists()
+    
 
 

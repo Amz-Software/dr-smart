@@ -144,7 +144,7 @@ def menu_items(request):
                 },
                 {
                     "label": "Contas a Receber",
-                    "url_name": "vendas:caixa_list",
+                    "url_name": "financeiro:contas_a_receber_list",
                     "permission": "auth.view_group"
                 },
                 {
