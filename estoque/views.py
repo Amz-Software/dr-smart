@@ -6,14 +6,16 @@ from django.views.generic import ListView, CreateView, DetailView, UpdateView
 from estoque.models import EntradaEstoque, Estoque, EstoqueImei, ProdutoEntrada
 from django.contrib import messages
 from django.db.models import Q
-
+from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.contrib.auth.decorators import login_required
 from produtos.models import Produto
 from .forms import EntradaEstoqueForm, EstoqueImeiForm, ProdutoEntradaForm, ProdutoEntradaFormSet
 
-class EstoqueListView(ListView):
+class EstoqueListView(PermissionRequiredMixin, ListView):
     model = Estoque
     template_name = 'estoque/estoque_list.html'
     context_object_name = 'produtos'
+    permission_required = 'estoque.view_estoque'
     
     def get_queryset(self):
         query = super().get_queryset()
@@ -24,10 +26,11 @@ class EstoqueListView(ListView):
             
         return query
 
-class EntradaListView(ListView):
+class EntradaListView(PermissionRequiredMixin, ListView):
     model = EntradaEstoque
     template_name = 'estoque/estoque_entrada_list.html'
     context_object_name = 'entradas'
+    permission_required = 'estoque.view_entradaestoque'
     
     def get_queryset(self):
         query = super().get_queryset()
@@ -38,10 +41,11 @@ class EntradaListView(ListView):
             
         return query
     
-class EntradaDetailView(DetailView):
+class EntradaDetailView(PermissionRequiredMixin, DetailView):
     model = EntradaEstoque
     template_name = 'estoque/estoque_entrada_detail.html'
     context_object_name = 'entrada'
+    permission_required = 'estoque.view_entradaestoque'
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -49,11 +53,12 @@ class EntradaDetailView(DetailView):
         return context
     
     
-class AdicionarEntradaEstoqueView(CreateView):
+class AdicionarEntradaEstoqueView(PermissionRequiredMixin, CreateView):
     model = EntradaEstoque
-    form_class = EntradaEstoqueForm
+    form_class = PermissionRequiredMixin, EntradaEstoqueForm
     template_name = 'estoque/estoque_form.html'
     success_url = reverse_lazy('estoque:estoque_list')
+    permission_required = 'estoque.add_entradaestoque'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -89,10 +94,11 @@ class AdicionarEntradaEstoqueView(CreateView):
             return self.form_invalid(form)
         
 
-class EstoqueImeiListView(ListView):
+class EstoqueImeiListView(PermissionRequiredMixin, ListView):
     model = EstoqueImei
     template_name = 'estoque/estoque_imei_list.html'
     context_object_name = 'produtos'
+    permission_required = 'estoque.view_estoqueimei'
     
     def get_queryset(self):
         query = super().get_queryset()
@@ -104,11 +110,12 @@ class EstoqueImeiListView(ListView):
         return query
     
 
-class EstoqueImeiUpdateView(UpdateView):
+class EstoqueImeiUpdateView(PermissionRequiredMixin, UpdateView):
     model = EstoqueImei
     form_class = EstoqueImeiForm
     template_name = 'estoque/estoque_imei_form.html'
     success_url = reverse_lazy('estoque:estoque_imei_list')
+    permission_required = 'estoque.change_estoqueimei'
 
     def get_context_data(self, **kwargs):
         data = super().get_context_data(**kwargs)
@@ -130,7 +137,7 @@ class EstoqueImeiUpdateView(UpdateView):
             messages.error(self.request, 'Erro ao atualizar Estoque IMEI ou Produto Entrada')
             return self.form_invalid(form)
 
-        
+@login_required
 def check_produtos(request, produto_id):
     produto = get_object_or_404(Produto, pk=produto_id)
     if produto.tipo.numero_serial:
