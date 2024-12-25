@@ -33,9 +33,11 @@ Contas a Receber
                             </thead>
                             <tbody>
                                 {% for conta in contas_a_receber %}
-                                {% if conta.atrasado == True %}
+                                {% if conta.atrasado == 'Atrasado' %}
                                 <tr class="table-danger">
-                                    {% else %}
+                                {% elif conta.atrasado == 'Pago parcialmente' %}
+                                <tr class="table-warning">
+                                {% else %}
                                 <tr class="table-success">
                                     {% endif %}
                                     <td>{{ conta.venda }}</td>
@@ -44,7 +46,8 @@ Contas a Receber
                                     <td>{{ conta.parcelas }}</td>
                                     <td>{{ conta.data_primeira_parcela }}</td>
                                     <td>
-                                        <a href="#" class="btn btn-sm btn-primary">Editar</a>
+                                        <a href="{% url 'financeiro:contas_a_receber_update' conta.id %}"
+                                            class="btn btn-sm btn-primary">Visualizar</a>
                                     </td>
                                     {% empty %}
                                     <td colspan="4">Nenhum registro encontrado</td>

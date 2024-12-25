@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title %}
+Contas a Receber
+{% endblock title %}
+
+{% block content %}
+
+<div class="container-xxl mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="card-title">Contas a Receber</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <h5>Venda: {{ conta_a_receber.venda.id }}</h5>
+                        </div>
+                        <div class="col-md-4">
+                            <h5>Cliente: {{ conta_a_receber.venda.cliente }}</h5>
+                        </div>
+                        <div class="col-md-4">
+                            <h5>Valor: {{ conta_a_receber.valor }}</h5>
+                        </div>
+                        <div class="col-md-4">
+                            <h5>Forma de Pagamento: {{ conta_a_receber.tipo_pagamento }}</h5>
+                        </div>
+                        <div class="col-md-4">
+                            <h5>Parcelas: {{ conta_a_receber.parcelas }}</h5>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <form action="" method="post">
+                        {{ parcela_form.management_form }}
+                        {% csrf_token %}
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Número da Parcela</th>
+                                    <th scope="col">Valor</th>
+                                    <th scope="col">Valor Pago</th>
+                                    <th scope="col">Valor Restante</th>
+                                    <th scope="col">Tipo de Pagamento</th>
+                                    <th scope="col">Data de Vencimento</th>
+                                    <th scope="col">Pago?</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for parcela in parcela_form %}
+                                {% if parcela.instance.pago %}
+                                <tr class="table-success">
+                                {% else %}
+                                <tr>
+                                {% endif %}
+                                    {{ parcela.id }}
+                                    <td>{{ parcela.numero_parcela }}</td>
+                                    <td>{{ parcela.valor }}</td>
+                                    <td>{{ parcela.valor_pago }}</td>
+                                    <td><input type="text" class="form-control valor-restante" disabled></td>
+                                    <td>{{ parcela.tipo_pagamento }}</td>
+                                    <td>{{ parcela.data_vencimento }}</td>
+                                    <td>{{ parcela.pago }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            
+                        </table> 
+                        <div class="row mt-3 mb-3">
+                            <div class="col-md-12 d-flex justify-content-center align-items-center">
+                                <a href="{% url 'financeiro:contas_a_receber_list' %}" class="btn btn-secondary w-50 me-3">Voltar</a>
+                                <button type="submit" class="btn btn-primary w-50">Salvar</button>
+                            </div>
+                        </div>
+                    </form>
+                        {% include "snippets/pagination.html" %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    function calcularValorRestante(row) {
+        // Seleciona os campos de valor e valor pago
+        const valorInput = row.querySelector('[name$="-valor"]');
+        const valorPagoInput = row.querySelector('[name$="-valor_pago"]');
+        const valorRestanteInput = row.querySelector('.valor-restante');
+
+        if (valorInput && valorPagoInput && valorRestanteInput) {
+            // Converte os valores para números, tratando entradas vazias como 0
+            const valor = parseFloat(valorInput.value) || 0;
+            const valorPago = parseFloat(valorPagoInput.value) || 0;
+
+            // Calcula o valor restante e preenche o campo
+            valorRestanteInput.value = (valor - valorPago).toFixed(2);
+        }
+    }
+
+    // Itera sobre todas as linhas da tabela e adiciona eventos de input
+    document.querySelectorAll('tbody tr').forEach(row => {
+        const valorInput = row.querySelector('[name$="-valor"]');
+        const valorPagoInput = row.querySelector('[name$="-valor_pago"]');
+
+        if (valorInput && valorPagoInput) {
+            // Adiciona eventos para recalcular o valor restante em tempo real
+            valorInput.addEventListener('input', () => calcularValorRestante(row));
+            valorPagoInput.addEventListener('input', () => calcularValorRestante(row));
+        }
+
+        // Calcula o valor restante inicialmente ao carregar a página
+        calcularValorRestante(row);
+    });
+});
+
+</script>
+{% endblock %}
