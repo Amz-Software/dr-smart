@@ -39,6 +39,7 @@ Contas a Receber
                                 <tr>
                                     <th scope="col">Número da Parcela</th>
                                     <th scope="col">Valor</th>
+                                    <th scope="col">Desconto</th>
                                     <th scope="col">Valor Pago</th>
                                     <th scope="col">Valor Restante</th>
                                     <th scope="col">Tipo de Pagamento</th>
@@ -56,6 +57,7 @@ Contas a Receber
                                     {{ parcela.id }}
                                     <td>{{ parcela.numero_parcela }}</td>
                                     <td>{{ parcela.valor }}</td>
+                                    <td>{{ parcela.desconto }}</td>
                                     <td>{{ parcela.valor_pago }}</td>
                                     <td><input type="text" class="form-control valor-restante" disabled></td>
                                     <td>{{ parcela.tipo_pagamento }}</td>
@@ -90,15 +92,18 @@ document.addEventListener('DOMContentLoaded', () => {
         // Seleciona os campos de valor e valor pago
         const valorInput = row.querySelector('[name$="-valor"]');
         const valorPagoInput = row.querySelector('[name$="-valor_pago"]');
+        const valorDescontoInput = row.querySelector('[name$="-desconto"]');
         const valorRestanteInput = row.querySelector('.valor-restante');
 
         if (valorInput && valorPagoInput && valorRestanteInput) {
             // Converte os valores para números, tratando entradas vazias como 0
             const valor = parseFloat(valorInput.value) || 0;
             const valorPago = parseFloat(valorPagoInput.value) || 0;
+            const valorDesconto = parseFloat(valorDescontoInput.value) || 0;
 
             // Calcula o valor restante e preenche o campo
-            valorRestanteInput.value = (valor - valorPago).toFixed(2);
+            const valorRestante = (valor - valorDesconto) - valorPago;
+            valorRestanteInput.value = valorRestante.toFixed(2);
         }
     }
 
@@ -106,11 +111,13 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('tbody tr').forEach(row => {
         const valorInput = row.querySelector('[name$="-valor"]');
         const valorPagoInput = row.querySelector('[name$="-valor_pago"]');
+        const valorDescontoInput = row.querySelector('[name$="-desconto"]');
 
         if (valorInput && valorPagoInput) {
             // Adiciona eventos para recalcular o valor restante em tempo real
             valorInput.addEventListener('input', () => calcularValorRestante(row));
             valorPagoInput.addEventListener('input', () => calcularValorRestante(row));
+            valorDescontoInput.addEventListener('input', () => calcularValorRestante(row));
         }
 
         // Calcula o valor restante inicialmente ao carregar a página

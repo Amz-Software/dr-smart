@@ -194,13 +194,15 @@ class Parcela(Base):
     valor = models.DecimalField(max_digits=10, decimal_places=2)
     valor_pago = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, default=0)
     tipo_pagamento = models.ForeignKey('vendas.TipoPagamento', on_delete=models.PROTECT, related_name='parcelas_tipo_pagamento', null=True, blank=True)
+    desconto = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, default=0)
     data_vencimento = models.DateField()
     pago = models.BooleanField(default=False)
 
     @property
     def valor_restante(self):
         valor_pago = self.valor_pago or 0
-        return self.valor - valor_pago
+        desconto = self.desconto or 0
+        return (self.valor - desconto) - valor_pago
 
     def __str__(self):
         return f"Parcela {self.numero_parcela} de {self.pagamento}"

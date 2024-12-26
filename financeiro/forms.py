@@ -20,6 +20,7 @@ class ParcelaForm(forms.ModelForm):
             'tipo_pagamento': forms.Select(attrs={'class': 'form-select'}),
             'pago': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'numero_parcela': forms.NumberInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),
+            'desconto': forms.NumberInput(attrs={'step': '0.01', 'class': 'form-control'}),
         }
 
 class GastosAleatoriosForm(forms.ModelForm):
