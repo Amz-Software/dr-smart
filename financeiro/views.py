@@ -19,74 +19,82 @@ from datetime import datetime
 from django.db import transaction
 from financeiro.forms import *
 from vendas.models import Pagamento, Parcela
+from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.contrib.auth.decorators import permission_required
 
 
-class CaixaMensalListView(ListView):
+class CaixaMensalListView(PermissionRequiredMixin, ListView):
     model = CaixaMensal
     template_name = 'caixa_mensal/caixa_mensal_list.html'
     context_object_name = 'caixas_mensais'
-
+    paginate_by = 10
+    permission_required = 'financeiro.view_caixamensal'
     # def get_queryset(self):
     #     return CaixaMensal.objects.filter(loja__user=self.request.user)
 
 
-@transaction.atomic
 @login_required
+@permission_required('financeiro.add_caixamensal', raise_exception=True)
 def caixa_mensal_create(request):
-    loja_id = request.session.get('loja_id')
-    
-    if not loja_id:
-        messages.error(request, "Loja não selecionada. Selecione uma loja e faça login novamente.")
-        return logout_view(request)
+    with transaction.atomic():
+        
+        loja_id = request.session.get('loja_id')
+        
+        if not loja_id:
+            messages.error(request, "Loja não selecionada. Selecione uma loja e faça login novamente.")
+            return logout_view(request)
 
-    try:
-        loja = Loja.objects.get(id=loja_id)
-    except Loja.DoesNotExist:
-        messages.error(request, "Loja não encontrada. Selecione uma loja e faça login novamente.")
-        return logout_view(request)
+        try:
+            loja = Loja.objects.get(id=loja_id)
+        except Loja.DoesNotExist:
+            messages.error(request, "Loja não encontrada. Selecione uma loja e faça login novamente.")
+            return logout_view(request)
 
-    mes_atual = timezone.now().date().replace(day=1)
+        mes_atual = timezone.now().date().replace(day=1)
 
-    if CaixaMensal.objects.filter(loja=loja, mes=mes_atual).exists():
-        messages.error(request, "Caixa mensal já criado para este mês.")
-        return redirect('financeiro:caixa_mensal_list')
+        if CaixaMensal.objects.filter(loja=loja, mes=mes_atual).exists():
+            messages.error(request, "Caixa mensal já criado para este mês.")
+            return redirect('financeiro:caixa_mensal_list')
 
-    # Cria o caixa mensal
-    caixa_mensal = CaixaMensal.objects.create(
-        loja=loja,
-        mes=mes_atual,
-        valor=0.00,
-    )
-
-    # Associar todos os funcionários e gastos fixos
-    funcionarios = Funcionario.objects.filter(user__lojas=loja)
-    for funcionario in funcionarios:
-        CaixaMensalFuncionario.objects.create(
-            caixa_mensal=caixa_mensal,
-            funcionario=funcionario,
-            salario=0.00,  # Inicializa com valores zero para edição posterior
-            comissao=0.00,
+        # Cria o caixa mensal
+        caixa_mensal = CaixaMensal.objects.create(
+            loja=loja,
+            mes=mes_atual,
+            valor=0.00,
         )
-    
-    gastos_fixos = GastoFixo.objects.all()
-    for gasto in gastos_fixos:
-        CaixaMensalGastoFixo.objects.create(
-            caixa_mensal=caixa_mensal,
-            gasto_fixo=gasto,
-            valor=0.00,  # Inicializa com valores zero para edição posterior
-            observacao="",
-        )
-    
-    # Redirecionar para a página de detalhes do caixa mensal recém-criado
-    messages.success(request, "Caixa mensal criado com sucesso.")
-    return redirect('financeiro:caixa_mensal_detail', pk=caixa_mensal.pk)
 
+        # Associar todos os funcionários e gastos fixos
+        funcionarios = Funcionario.objects.filter(user__lojas=loja)
+        for funcionario in funcionarios:
+            CaixaMensalFuncionario.objects.create(
+                caixa_mensal=caixa_mensal,
+                funcionario=funcionario,
+                salario=0.00,  # Inicializa com valores zero para edição posterior
+                comissao=0.00,
+            )
+        
+        gastos_fixos = GastoFixo.objects.all()
+        for gasto in gastos_fixos:
+            CaixaMensalGastoFixo.objects.create(
+                caixa_mensal=caixa_mensal,
+                gasto_fixo=gasto,
+                valor=0.00,  # Inicializa com valores zero para edição posterior
+                observacao="",
+            )
+        
+        # Redirecionar para a página de detalhes do caixa mensal recém-criado
+        messages.success(request, "Caixa mensal criado com sucesso.")
+        return redirect('financeiro:caixa_mensal_detail', pk=caixa_mensal.pk)
 
+@login_required
+@permission_required('financeiro.change_caixamensal', raise_exception=True)
 def fechar_caixa_mensal(request, pk):
     caixa_mensal = get_object_or_404(CaixaMensal, pk=pk)
     caixa_mensal.fechar()
     return redirect('financeiro:caixa_mensal_list')
 
+@login_required
+@permission_required('financeiro.change_caixamensal', raise_exception=True)
 def reabrir_caixa_mensal(request, pk):
     caixa_mensal = get_object_or_404(CaixaMensal, pk=pk)
     caixa_mensal.reabrir()
