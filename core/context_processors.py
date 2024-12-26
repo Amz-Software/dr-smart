@@ -144,7 +144,7 @@ def menu_items(request):
                 },
                 {
                     "label": "Contas a Receber",
-                    "url_name": "vendas:caixa_list",
+                    "url_name": "financeiro:contas_a_receber_list",
                     "permission": "auth.view_group"
                 },
                 {
@@ -163,25 +163,25 @@ def menu_items(request):
                 {
                     "label": "Usuários",
                     "url_name": "vendas:caixa_list",
-                    "permission": "auth.view_user"
+                    "permission": "accounts.view_user"
                 },
                 {
                     "label": "Grupos",
-                    "url_name": "vendas:caixa_list",
+                    "url_name": "accounts:group_list",
                     "permission": "auth.view_group"
                 },
                 {
                     "label": "Permissões",
-                    "url_name": "vendas:caixa_list",
-                    "permission": "auth.view_group"
+                    "url_name": "accounts:permissions_list",
+                    "permission": "auth.view_permission"
                 },
             ]
         },
         {
-            "label": "Configurações",
+            "label": "Meu Perfil",
             "url_name": "vendas:caixa_list",
-            "icon": "bx bx-cog",
-            "permission": "auth.view_user",
+            "icon": "bx bx-user",
+            "permission": "auth.view_group",
             "section": "Configurações",
         },
 

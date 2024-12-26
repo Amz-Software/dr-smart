@@ -11,7 +11,6 @@ from django.shortcuts import get_object_or_404
 from django.forms import modelformset_factory
 from django.http import HttpResponseRedirect
 from django.urls import reverse
-from django.views.generic import DetailView
 from .models import CaixaMensal, CaixaMensalGastoFixo, CaixaMensalFuncionario, GastosAleatorios
 from financeiro.forms import GastosAleatoriosForm
 from vendas.models import Loja
@@ -19,74 +18,83 @@ from .models import CaixaMensal, CaixaMensalFuncionario, CaixaMensalGastoFixo, F
 from datetime import datetime
 from django.db import transaction
 from financeiro.forms import *
+from vendas.models import Pagamento, Parcela
+from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.contrib.auth.decorators import permission_required
 
 
-class CaixaMensalListView(ListView):
+class CaixaMensalListView(PermissionRequiredMixin, ListView):
     model = CaixaMensal
     template_name = 'caixa_mensal/caixa_mensal_list.html'
     context_object_name = 'caixas_mensais'
-
+    paginate_by = 10
+    permission_required = 'financeiro.view_caixamensal'
     # def get_queryset(self):
     #     return CaixaMensal.objects.filter(loja__user=self.request.user)
 
 
-@transaction.atomic
 @login_required
+@permission_required('financeiro.add_caixamensal', raise_exception=True)
 def caixa_mensal_create(request):
-    loja_id = request.session.get('loja_id')
-    
-    if not loja_id:
-        messages.error(request, "Loja não selecionada. Selecione uma loja e faça login novamente.")
-        return logout_view(request)
+    with transaction.atomic():
+        
+        loja_id = request.session.get('loja_id')
+        
+        if not loja_id:
+            messages.error(request, "Loja não selecionada. Selecione uma loja e faça login novamente.")
+            return logout_view(request)
 
-    try:
-        loja = Loja.objects.get(id=loja_id)
-    except Loja.DoesNotExist:
-        messages.error(request, "Loja não encontrada. Selecione uma loja e faça login novamente.")
-        return logout_view(request)
+        try:
+            loja = Loja.objects.get(id=loja_id)
+        except Loja.DoesNotExist:
+            messages.error(request, "Loja não encontrada. Selecione uma loja e faça login novamente.")
+            return logout_view(request)
 
-    mes_atual = timezone.now().date().replace(day=1)
+        mes_atual = timezone.now().date().replace(day=1)
 
-    if CaixaMensal.objects.filter(loja=loja, mes=mes_atual).exists():
-        messages.error(request, "Caixa mensal já criado para este mês.")
-        return redirect('financeiro:caixa_mensal_list')
+        if CaixaMensal.objects.filter(loja=loja, mes=mes_atual).exists():
+            messages.error(request, "Caixa mensal já criado para este mês.")
+            return redirect('financeiro:caixa_mensal_list')
 
-    # Cria o caixa mensal
-    caixa_mensal = CaixaMensal.objects.create(
-        loja=loja,
-        mes=mes_atual,
-        valor=0.00,
-    )
-
-    # Associar todos os funcionários e gastos fixos
-    funcionarios = Funcionario.objects.filter(user__lojas=loja)
-    for funcionario in funcionarios:
-        CaixaMensalFuncionario.objects.create(
-            caixa_mensal=caixa_mensal,
-            funcionario=funcionario,
-            salario=0.00,  # Inicializa com valores zero para edição posterior
-            comissao=0.00,
+        # Cria o caixa mensal
+        caixa_mensal = CaixaMensal.objects.create(
+            loja=loja,
+            mes=mes_atual,
+            valor=0.00,
         )
-    
-    gastos_fixos = GastoFixo.objects.all()
-    for gasto in gastos_fixos:
-        CaixaMensalGastoFixo.objects.create(
-            caixa_mensal=caixa_mensal,
-            gasto_fixo=gasto,
-            valor=0.00,  # Inicializa com valores zero para edição posterior
-            observacao="",
-        )
-    
-    # Redirecionar para a página de detalhes do caixa mensal recém-criado
-    messages.success(request, "Caixa mensal criado com sucesso.")
-    return redirect('financeiro:caixa_mensal_detail', pk=caixa_mensal.pk)
 
+        # Associar todos os funcionários e gastos fixos
+        funcionarios = Funcionario.objects.filter(user__lojas=loja)
+        for funcionario in funcionarios:
+            CaixaMensalFuncionario.objects.create(
+                caixa_mensal=caixa_mensal,
+                funcionario=funcionario,
+                salario=0.00,  # Inicializa com valores zero para edição posterior
+                comissao=0.00,
+            )
+        
+        gastos_fixos = GastoFixo.objects.all()
+        for gasto in gastos_fixos:
+            CaixaMensalGastoFixo.objects.create(
+                caixa_mensal=caixa_mensal,
+                gasto_fixo=gasto,
+                valor=0.00,  # Inicializa com valores zero para edição posterior
+                observacao="",
+            )
+        
+        # Redirecionar para a página de detalhes do caixa mensal recém-criado
+        messages.success(request, "Caixa mensal criado com sucesso.")
+        return redirect('financeiro:caixa_mensal_detail', pk=caixa_mensal.pk)
 
+@login_required
+@permission_required('financeiro.change_caixamensal', raise_exception=True)
 def fechar_caixa_mensal(request, pk):
     caixa_mensal = get_object_or_404(CaixaMensal, pk=pk)
     caixa_mensal.fechar()
     return redirect('financeiro:caixa_mensal_list')
 
+@login_required
+@permission_required('financeiro.change_caixamensal', raise_exception=True)
 def reabrir_caixa_mensal(request, pk):
     caixa_mensal = get_object_or_404(CaixaMensal, pk=pk)
     caixa_mensal.reabrir()
@@ -289,6 +297,59 @@ class CaixaMensalDetailView(DetailView):
             formset_gastos_aleatorios=formset_gastos_aleatorios
         ))
 
+class ContasAReceberListView(ListView):
+    model = Pagamento
+    template_name = 'contas_a_receber/contas_a_receber_list.html'
+    context_object_name = 'contas_a_receber'
+    paginate_by = 10
 
+    def get_queryset(self):
+        return Pagamento.objects.order_by('-criado_em')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        queryset = self.get_queryset()
+        for pagamento in queryset:
+            status = self.verificar_atraso_parcela(pagamento)
+            pagamento.atrasado = status
+        context['contas_a_receber'] = queryset
+        return context
+
+    def verificar_atraso_parcela(self, pagamento):
+        data_atual = timezone.now().date()
+        parcela = pagamento.parcelas_pagamento.filter(pago=False).order_by('data_vencimento').first()
+        if parcela and parcela.data_vencimento < data_atual:
+            if parcela.valor_restante < parcela.valor:
+                return "Pago parcialmente"
+            return "Atrasado"
+        return "Em dia"
+    
+
+class ContasAReceberDetailView(DetailView):
+    model = Pagamento
+    template_name = 'contas_a_receber/contas_a_receber_detail.html'
+    context_object_name = 'conta_a_receber'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        conta_a_receber = self.get_object()
+        context['parcela_form'] = ParcelaInlineFormSet(instance=conta_a_receber)
+        return context
+    
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        conta_a_receber = self.object
+        parcela_form = ParcelaInlineFormSet(request.POST, instance=conta_a_receber)
+
+        if parcela_form.is_valid():
+            parcela_form.save()
+            messages.success(request, "Parcelas atualizadas com sucesso!")
+            return redirect('financeiro:contas_a_receber_update', pk=conta_a_receber.pk)
+
+        print(parcela_form.errors)
+
+        messages.error(request, "Erro ao atualizar as parcelas.")
+        return self.render_to_response(self.get_context_data(parcela_form=parcela_form))
+    
 
 

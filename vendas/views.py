@@ -10,7 +10,7 @@ from estoque.models import Estoque, EstoqueImei
 from produtos.models import Produto
 from vendas.forms import ClienteForm, ComprovantesClienteForm, ContatoAdicionalForm, VendaForm, ProdutoVendaFormSet, FormaPagamentoFormSet
 from .models import Caixa, Cliente, Loja, Pagamento, ProdutoVenda, Venda
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.utils import timezone
 from django.db import transaction
 
@@ -19,13 +19,11 @@ class IndexView(LoginRequiredMixin, TemplateView):
     template_name = 'index.html'
     
 
-class CaixaListView(UserPassesTestMixin, ListView):
+class CaixaListView(PermissionRequiredMixin, ListView):
     model = Caixa
     template_name = 'caixa/caixa_list.html'
     context_object_name = 'caixas'
-    
-    def test_func(self):
-        return self.request.user.has_perm('vendas.view_caixa')
+    permission_required = 'vendas.view_caixa'
     
     def get_queryset(self):
         query = super().get_queryset()
@@ -70,22 +68,18 @@ class CaixaListView(UserPassesTestMixin, ListView):
         return self.get(request, *args, **kwargs)
 
 
-class CaixaDetailView(UserPassesTestMixin, DetailView):
+class CaixaDetailView(PermissionRequiredMixin, DetailView):
     model = Caixa
     template_name = 'caixa/caixa_detail.html'
-    
-    def test_func(self):
-        return self.request.user.has_perm('vendas.view_caixa')
+    permission_required = 'vendas.view_caixa'
     
 
-class ClienteListView(UserPassesTestMixin, ListView):
+class ClienteListView(PermissionRequiredMixin, ListView):
     model = Cliente
     template_name = 'cliente/cliente_list.html'
     context_object_name = 'items'
     paginate_by = 10
-    
-    def test_func(self):
-        return self.request.user.has_perm('vendas.view_cliente')
+    permission_required = 'vendas.view_cliente'
     
     def get_queryset(self):
         query = super().get_queryset()
@@ -158,14 +152,12 @@ def cliente_editar_view(request):
         'cliente_id': cliente_id,
     })
 
-class VendaListView(UserPassesTestMixin, ListView):
+class VendaListView(PermissionRequiredMixin, ListView):
     model = Venda
     template_name = 'venda/venda_list.html'
     context_object_name = 'vendas'
     paginate_by = 10
-    
-    def test_func(self):
-        return self.request.user.has_perm('vendas.view_venda')
+    permission_required = 'vendas.view_venda'
     
     def get_queryset(self):
         query = super().get_queryset()
@@ -175,14 +167,12 @@ class VendaListView(UserPassesTestMixin, ListView):
         
         return query.order_by('-criado_em')
 
-class VendaCreateView(UserPassesTestMixin, CreateView):
+class VendaCreateView(PermissionRequiredMixin, CreateView):
     model = Venda
     form_class = VendaForm
     template_name = 'venda/venda_create.html'
     success_url = reverse_lazy('vendas:venda_list')
-
-    def test_func(self):
-        return self.request.user.has_perm('vendas.add_venda')
+    permission_required = 'vendas.add_venda'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -271,11 +261,9 @@ class VendaCreateView(UserPassesTestMixin, CreateView):
         except Estoque.DoesNotExist:
             raise ValueError(f'Estoque não encontrado para o produto {produto.nome} na loja {loja.nome}')
     
-class CaixaTotalView(UserPassesTestMixin, TemplateView):
+class CaixaTotalView(PermissionRequiredMixin, TemplateView):
     template_name = 'caixa/caixa_total.html'
-    
-    def test_func(self):
-        return self.request.user.has_perm('vendas.view_caixa')
+    permission_required = 'vendas.view_caixa'
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

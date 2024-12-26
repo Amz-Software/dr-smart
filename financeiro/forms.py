@@ -1,7 +1,27 @@
 # forms.py
 
 from django import forms
-from .models import GastoFixo, GastosAleatorios, Funcionario, CaixaMensal, CaixaMensalGastoFixo, CaixaMensalFuncionario
+from .models import *
+from vendas.models import *
+
+class PagamentoForm(forms.ModelForm):
+    class Meta:
+        model = Pagamento
+        fields = '__all__'
+
+class ParcelaForm(forms.ModelForm):
+    class Meta:
+        model = Parcela
+        fields = '__all__'
+        widgets = {
+            'data_vencimento': forms.DateInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),
+            'valor': forms.NumberInput(attrs={'step': '0.01', 'class': 'form-control', 'readonly': 'readonly'}),
+            'valor_pago': forms.NumberInput(attrs={'step': '0.01', 'class': 'form-control'}),
+            'tipo_pagamento': forms.Select(attrs={'class': 'form-select'}),
+            'pago': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'numero_parcela': forms.NumberInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),
+            'desconto': forms.NumberInput(attrs={'step': '0.01', 'class': 'form-control'}),
+        }
 
 class GastosAleatoriosForm(forms.ModelForm):
     class Meta:
@@ -64,6 +84,14 @@ GastosAleatoriosFormSet = forms.inlineformset_factory(
     CaixaMensal,
     GastosAleatorios,
     form=GastosAleatoriosForm,
+    extra=0,
+    can_delete=True
+)
+
+ParcelaInlineFormSet = forms.inlineformset_factory(
+    Pagamento,
+    Parcela,
+    form=ParcelaForm,
     extra=0,
     can_delete=True
 )
