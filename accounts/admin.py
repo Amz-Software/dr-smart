@@ -1,6 +1,8 @@
 from django.contrib import admin
-from django.contrib.auth.models import Group, Permission
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from .models import User
+from django.contrib.auth.models import Permission
 
 # Register your models here.
 
@@ -11,7 +13,11 @@ class PermissionAdmin(admin.ModelAdmin):
     
 
 @admin.register(User)
-class UserAdmin(admin.ModelAdmin):
+class UserAdmin(BaseUserAdmin):
+    add_form = UserCreationForm
+    form = UserChangeForm
+    model = User
+
     list_display = ('username', 'email', 'is_active', 'is_staff', 'is_superuser')
     search_fields = ('username', 'email')
     list_filter = ('is_active', 'is_staff', 'is_superuser')
