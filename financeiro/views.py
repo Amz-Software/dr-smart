@@ -84,7 +84,7 @@ def caixa_mensal_create(request):
         
         # Redirecionar para a página de detalhes do caixa mensal recém-criado
         messages.success(request, "Caixa mensal criado com sucesso.")
-        return redirect('financeiro:caixa_mensal_detail', pk=caixa_mensal.pk)
+        return redirect('financeiro:caixa_mensal_update', pk=caixa_mensal.pk)
 
 @login_required
 @permission_required('financeiro.change_caixamensal', raise_exception=True)
