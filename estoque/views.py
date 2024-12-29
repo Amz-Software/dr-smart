@@ -55,7 +55,7 @@ class EntradaDetailView(PermissionRequiredMixin, DetailView):
     
 class AdicionarEntradaEstoqueView(PermissionRequiredMixin, CreateView):
     model = EntradaEstoque
-    form_class = PermissionRequiredMixin, EntradaEstoqueForm
+    form_class = EntradaEstoqueForm
     template_name = 'estoque/estoque_form.html'
     success_url = reverse_lazy('estoque:estoque_list')
     permission_required = 'estoque.add_entradaestoque'
