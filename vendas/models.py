@@ -127,6 +127,7 @@ class Venda(Base):
     tipo_entrega = models.ForeignKey('vendas.TipoEntrega', on_delete=models.PROTECT, related_name='vendas_tipo_entrega')
     produtos = models.ManyToManyField('produtos.Produto', through='ProdutoVenda', related_name='vendas')
     caixa = models.ForeignKey('vendas.Caixa', on_delete=models.PROTECT, related_name='vendas')
+    observacao = models.TextField(null=True, blank=True)
     
     def calcular_valor_total(self):
         return sum(item.valor_unitario * item.quantidade for item in self.itens_venda.all())

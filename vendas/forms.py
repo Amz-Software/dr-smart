@@ -69,6 +69,11 @@ class TipoPagamentoForm(forms.ModelForm):
             'parcelas': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'financeira': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
+        help_texts = {
+            'caixa': 'Esse pagamento será realizado no caixa nas formas de recebimento pelo logista.',
+            'parcelas': 'Marque se o pagamento pode ser parcelado.',
+            'financeira': 'Marque se o pagamento é feito por financeira.',
+        }
 
     def __init__(self, *args, disabled=False, **kwargs):
         self.user = kwargs.pop('user', None)  # Pega o usuário que será passado pela view
@@ -148,6 +153,15 @@ class VendaForm(forms.ModelForm):
             'vendedor': forms.Select(attrs={'class': 'form-control'}),
             'tipo_venda': forms.Select(attrs={'class': 'form-control'}),
             'tipo_entrega': forms.Select(attrs={'class': 'form-control'}),
+            'observacao': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }
+        
+        labels = {
+            'cliente': 'Cliente',
+            'vendedor': 'Vendedor',
+            'tipo_venda': 'Tipo de Venda',
+            'tipo_entrega': 'Tipo de Entrega',
+            'observacao': 'Observação',
         }
 
 class ProdutoVendaForm(forms.ModelForm):
