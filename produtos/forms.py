@@ -18,7 +18,7 @@ class ProdutoForms(forms.ModelForm):
             'estado': 'Estado',
         }
         widgets = {
-            'codigo': forms.TextInput(attrs={'class': 'form-control'}),
+            'codigo': forms.TextInput(attrs={'class': 'form-control', 'disabled': 'disabled'}),
             'nome': forms.TextInput(attrs={'class': 'form-control'}),
             'tipo': forms.Select(attrs={'class': 'form-control'}),
             'fabricante': forms.Select(attrs={'class': 'form-control'}),

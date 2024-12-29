@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags static %}
+
+{% block title %}
+Editar Grupo
+{% endblock title %}
+
+{% block content %}
+<div class="container-xxl mt-4">
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h4 class="card-title">Editar Grupo</h4>
+        </div>
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+            {{ form|crispy }}
+            <button type="submit" class="btn btn-primary">Salvar</button>
+            <a href="{% url 'accounts:group_list' %}" class="btn btn-secondary">Cancelar</a>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+{% block extra_scripts %}
+<script>
+  $(document).ready(function() {
+      $('.selectmultiple').select2({
+          placeholder: "Selecione uma opção",
+          allowClear: true
+      });
+  });
+</script>
+{% endblock %}
+
+{% endblock %}
+
