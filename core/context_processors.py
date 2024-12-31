@@ -85,6 +85,11 @@ def menu_items(request):
                     "url_name": "estoque:estoque_entrada",
                     "permission": "estoque.add_entradaestoque"
                 },
+                {
+                    "label": "Fornecedores",
+                    "url_name": "estoque:fornecedores",
+                    "permission": "estoque.view_fornecedor"
+                }
             ],
             "section": "Portal do Vendedor"
         },   
