@@ -4,7 +4,7 @@ from .models import *
 
 
 class AdminBase(admin.ModelAdmin):
-    list_display = ('criado_em', 'modificado_em', 'criado_por', 'modificado_por')
+    list_display = ('loja', 'criado_em', 'modificado_em', 'criado_por', 'modificado_por')
     readonly_fields = ('criado_em', 'modificado_em', 'criado_por', 'modificado_por')
     
     def save_model(self, request, obj, form, change):

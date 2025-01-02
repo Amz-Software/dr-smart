@@ -8,9 +8,9 @@ class Base(models.Model):
     criado_por = models.ForeignKey('accounts.User', on_delete=models.PROTECT, related_name='%(class)s_criadas',editable=False, null=True, blank=True)
     modificado_por = models.ForeignKey('accounts.User', on_delete=models.PROTECT, related_name='%(class)s_modificadas',editable=False, null=True, blank=True)
     
-    def save(self, *args, user=None, loja=None, **kwargs):
+    def save(self, *args, user=None, **kwargs):
         if user:
-            if not self.id: 
+            if not self.pk: 
                 self.criado_por = user
             self.modificado_por = user
         super().save(*args, **kwargs)
