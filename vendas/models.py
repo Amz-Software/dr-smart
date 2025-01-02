@@ -25,7 +25,7 @@ class Caixa(Base):
     
     @property
     def saldo_total(self):
-        return sum(venda.calcular_valor_total() for venda in self.vendas.all())
+        return sum(venda.calcular_valor_total() for venda in self.vendas.filter(is_deleted=False))
     
     @property
     def quantidade_vendas(self):
@@ -128,6 +128,7 @@ class Venda(Base):
     produtos = models.ManyToManyField('produtos.Produto', through='ProdutoVenda', related_name='vendas')
     caixa = models.ForeignKey('vendas.Caixa', on_delete=models.PROTECT, related_name='vendas')
     observacao = models.TextField(null=True, blank=True)
+    is_deleted = models.BooleanField(default=False)
     
     def calcular_valor_total(self):
         return sum(item.valor_unitario * item.quantidade for item in self.itens_venda.all())

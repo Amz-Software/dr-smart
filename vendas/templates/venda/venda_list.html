@@ -33,6 +33,7 @@ Vendas
           <th scope="col">Vendedor</th>
           <th scope="col">Cliente</th>
           <th scope="col">Data</th>
+          <th scope="col">Cancelada</th>
           <th scope="col">Ações</th>
           </tr>
         </thead>
@@ -42,13 +43,20 @@ Vendas
           <td>{{ item.vendedor|title }}</td>
           <td>{{ item.cliente|title }}</td>
           <td>{{ item.data_venda|date:"d/m/Y h:s" }}</td>
+            <td>
+            {% if item.is_deleted %}
+              <i class="bx bx-check text-success"></i>
+            {% else %}
+              <i class="bx bx-x text-danger"></i>
+            {% endif %}
+            </td>
           <td>
             <div class="dropdown">
               <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
                 <i class="bx bx-dots-vertical-rounded"></i>
               </button>
               <div class="dropdown-menu">
-                <a class="dropdown-item" href="">
+                <a class="dropdown-item" href="{% url 'vendas:venda_detail' item.pk %}">
                 <i class="bx bx-show me-1"></i> Detalhes
                 </a>
               </div>
