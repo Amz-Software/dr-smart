@@ -63,7 +63,7 @@ Estoque
                   <th scope="col" class="text-center">Quantidade</th>
                   <th scope="col" class="text-center">Qtd. Vendas</th>
                   <th scope="col" class="text-center">Preço (R$)</th>
-                  <th scope="col" class="text-center">Ações</th>
+                  <!-- <th scope="col" class="text-center">Ações</th> -->
                 </tr>
               </thead>
               <tbody>
@@ -73,8 +73,8 @@ Estoque
                         <td>{{ produto.produto|title }}</td>
                         <td class="text-center">{{ produto.quantidade_disponivel }}</td>
                         <td class="text-center">{{ produto.produto.total_vendas }}</td>
-                        <td class="text-center">{{ produto.preco_medio }}</td>
-                        <td class="text-center">
+                        <td class="text-center">{{ produto.preco_medio|floatformat:2 }}</td>
+                        <!-- <td class="text-center">
                             <div class="dropdown">
                                 <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
                                   <i class="bx bx-dots-vertical-rounded"></i>
@@ -89,7 +89,7 @@ Estoque
                                     </a>
                                 </div>
                             </div>
-                        </td>
+                        </td> -->
                     </tr>
                   {% endfor %}
                 {% else %}

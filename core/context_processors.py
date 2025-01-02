@@ -167,7 +167,7 @@ def menu_items(request):
             "sub_items": [
                 {
                     "label": "Usuários",
-                    "url_name": "vendas:caixa_list",
+                    "url_name": "accounts:user_list",
                     "permission": "accounts.view_user"
                 },
                 {

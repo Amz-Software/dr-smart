@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}
+Usuários
+{% endblock title %}
+
+{% block content %}
+
+<div class="container-xxl mt-4">
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h4 class="card-title">Usuários</h4>
+          <div>
+            <form action="" method="get" class="d-inline-block me-2" id="searchForm">
+              <div class="input-group">
+                <input type="text" name="search" class="form-control" placeholder="Pesquisar usuários" value="{{ request.GET.search }}" onchange="this.form.submit()">
+                <a href="{% url 'accounts:user_list' %}" class="btn btn-outline-secondary">
+                  <i class="bx bx-x"></i>
+                </a>
+              </div>
+            </form>
+            <!-- Button trigger modal -->
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createUserModal">
+              <i class="bx bx-plus me-1"></i>
+              Criar Usuário
+            </button>
+            <!-- Modal -->
+            <div class="modal fade" id="createUserModal" tabindex="-1" aria-labelledby="createUserModalLabel" aria-hidden="true">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="createUserModalLabel">Criar Novo Usuário</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                    <form method="post" action="">
+                      {% csrf_token %}
+                      <div class="mb-3">
+                        <label for="username" class="form-label">Nome de Usuário</label>
+                        <input type="text" class="form-control" id="username" name="username" required>
+                      </div>
+                      <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                      </div>
+                      <div class="mb-3">
+                        <label for="password" class="form-label">Senha</label>
+                        <input type="password" class="form-control" id="password" name="password" required>
+                      </div>
+                      <button type="submit" class="btn btn-primary">Criar</button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th scope="col">Nome de Usuário</th>
+                  <th scope="col">Email</th>
+                  <th scope="col">Data de Criação</th>
+                  <th scope="col">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for user in users %}
+                <tr>
+                  <td>{{ user.username|capfirst }}</td>
+                  <td>{{ user.email }}</td>
+                  <td>{{ user.date_joined|date:"d/m/Y" }}</td>
+                  <td>
+                    <div class="dropdown">
+                      <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+                        <i class="bx bx-dots-vertical-rounded"></i>
+                      </button>
+                      <div class="dropdown-menu">
+                        <a class="dropdown-item" href="">
+                          <i class="bx bx-show me-1"></i> Detalhes
+                        </a>
+                        <a class="dropdown-item" href="">
+                          <i class="bx bx-edit me-1"></i> Editar
+                        </a>
+                        <form method="post" action="" class="d-inline-block">
+                          {% csrf_token %}
+                          <button type="submit" class="dropdown-item text-danger">
+                            <i class="bx bx-trash me-1"></i> Excluir
+                          </button>
+                        </form>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="4">Nenhum usuário encontrado</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            {% include "snippets/pagination.html" %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
