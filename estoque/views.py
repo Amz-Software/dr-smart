@@ -9,6 +9,7 @@ from django.db.models import Q
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.auth.decorators import login_required
 from produtos.models import Produto
+from vendas.models import Loja
 from .forms import EntradaEstoqueForm, EstoqueImeiForm, ProdutoEntradaForm, ProdutoEntradaFormSet
 
 class EstoqueListView(PermissionRequiredMixin, ListView):
@@ -71,13 +72,15 @@ class AdicionarEntradaEstoqueView(PermissionRequiredMixin, CreateView):
     def form_valid(self, form):
         context = self.get_context_data()
         formset = context['formset']
+        loja_id = self.request.session.get('loja_id')
+        loja = get_object_or_404(Loja, pk=loja_id)
         if form.is_valid() and formset.is_valid():
             entrada_estoque = form.save()
             produtos = formset.save(commit=False)
 
             for produto in produtos:
                 produto.entrada = entrada_estoque
-                produto.save()
+                produto.save(loja=loja, user=self.request.user)
                 
                 # Se o produto for serializado, salve os IMEIs na tabela EstoqueImei
                 if produto.imei:  # Presumindo que o IMEI é obrigatório
@@ -86,7 +89,7 @@ class AdicionarEntradaEstoqueView(PermissionRequiredMixin, CreateView):
                         imei=produto.imei,
                         produto_entrada=produto  # Associa o ProdutoEntrada
                     )
-                    estoque_imei.save()
+                    estoque_imei.save(loja=loja, user=self.request.user)
             
             messages.success(self.request, 'Entrada de estoque criada com sucesso!')
             return redirect(self.success_url)
