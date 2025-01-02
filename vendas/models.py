@@ -91,9 +91,9 @@ class Cliente(Base):
         verbose_name_plural = 'Clientes'
 
 class ContatoAdicional(Base):
-    nome_adicional = models.CharField(max_length=100)
-    contato = models.CharField(max_length=20)
-    endereco = models.CharField(max_length=200)
+    nome_adicional = models.CharField(max_length=100, null=True, blank=True)
+    contato = models.CharField(max_length=20, null=True, blank=True)
+    endereco = models.CharField(max_length=200, null=True, blank=True)
 
 class Endereco(Base):
     cep = models.CharField(max_length=8)

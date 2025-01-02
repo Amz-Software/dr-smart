@@ -93,7 +93,8 @@ class AdicionarEntradaEstoqueView(PermissionRequiredMixin, CreateView):
                     estoque_imei = EstoqueImei.objects.create(
                         produto=produto.produto,
                         imei=produto.imei,
-                        produto_entrada=produto
+                        produto_entrada=produto,
+                        loja=loja
                     )
                     estoque_imei.save(user=self.request.user)
             
