@@ -9,7 +9,7 @@ class ClienteForm(forms.ModelForm):
     class Meta:
         model = Cliente
         fields = '__all__'
-        exclude = ['comprovantes', 'contato_adicional']
+        exclude = ['comprovantes', 'contato_adicional', 'loja']
         widgets = {
             'nome': forms.TextInput(attrs={'class': 'form-control'}),
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
@@ -27,7 +27,7 @@ class ContatoAdicionalForm(forms.ModelForm):
     class Meta:
         model = ContatoAdicional
         fields = '__all__'
-        exclude = ['cliente']
+        exclude = ['cliente', 'loja']
         widgets = {
             'nome_adicional': forms.TextInput(attrs={'class': 'form-control'}),
             'contato': forms.TextInput(attrs={'class': 'form-control'}),
@@ -38,6 +38,7 @@ class EnderecoForm(forms.ModelForm):
     class Meta:
         model = Endereco
         fields = '__all__'
+        exclude = ['loja']
         widgets = {
             'cep': forms.TextInput(attrs={'class': 'form-control'}),
             'bairro': forms.TextInput(attrs={'class': 'form-control'}),
@@ -51,7 +52,7 @@ class ComprovantesClienteForm(forms.ModelForm):
     class Meta:
         model = ComprovantesCliente
         fields = '__all__'
-        exclude = ['cliente']
+        exclude = ['cliente', 'loja']
         widgets = {
             'documento_identificacao_frente': forms.FileInput(attrs={'class': 'form-control'}),
             'documento_identificacao_verso': forms.FileInput(attrs={'class': 'form-control'}),
@@ -63,6 +64,7 @@ class TipoPagamentoForm(forms.ModelForm):
     class Meta:
         model = TipoPagamento
         fields = '__all__'
+        exclude= ['loja']
         widgets = {
             'nome': forms.TextInput(attrs={'class': 'form-control'}),
             'caixa': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
@@ -96,6 +98,7 @@ class TipoEntregaForm(forms.ModelForm):
     class Meta:
         model = TipoEntrega
         fields = '__all__'
+        exclude= ['loja']
         widgets = {
             'nome': forms.TextInput(attrs={'class': 'form-control'}),
         }
@@ -121,6 +124,7 @@ class TipoVendaForm(forms.ModelForm):
     class Meta:
         model = TipoVenda
         fields = '__all__'
+        exclude= ['loja']
         widgets = {
             'nome': forms.TextInput(attrs={'class': 'form-control'}),
         }
@@ -146,7 +150,7 @@ class VendaForm(forms.ModelForm):
     class Meta:
         model = Venda
         fields = '__all__'
-        exclude = ['criado_por', 'modificado_por', 'caixa', 'produtos']
+        exclude = ['loja','criado_por', 'modificado_por', 'caixa', 'produtos', 'loja']
 
         widgets = {
             'cliente': forms.Select(attrs={'class': 'form-control'}),
@@ -169,7 +173,7 @@ class ProdutoVendaForm(forms.ModelForm):
     class Meta:
         model = ProdutoVenda
         fields = '__all__'
-        exclude = ['venda']
+        exclude = ['loja', 'venda']
         widgets = {
             'produto': forms.Select(attrs={'class': 'form-control'}),
             'valor_unitario': forms.NumberInput(attrs={'class': 'form-control'}),
@@ -200,7 +204,7 @@ class PagamentoForm(forms.ModelForm):
     class Meta:
         model = Pagamento
         fields = '__all__'
-        exclude = ['venda']
+        exclude = ['venda', 'loja']
         widgets = {
             'tipo_pagamento': forms.Select(attrs={'class': 'form-control'}),
             'valor': forms.NumberInput(attrs={'class': 'form-control'}),

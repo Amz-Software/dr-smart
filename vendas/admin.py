@@ -2,7 +2,7 @@ from django.contrib import admin
 from .models import *
 
 class AdminBase(admin.ModelAdmin):
-    list_display = ('criado_em', 'modificado_em')
+    list_display = ('loja', 'criado_em', 'modificado_em')
     readonly_fields = ('criado_em', 'modificado_em')
     
     def save_model(self, request, obj, form, change):
