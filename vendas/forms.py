@@ -180,7 +180,7 @@ class ProdutoVendaForm(forms.ModelForm):
         queryset=EstoqueImei.objects.filter(vendido=False),
         label='imei',
         required=False,
-        empty_label='Selecione um IMEI',
+        empty_label='Digite o IMEI ou o nome do produto',
         to_field_name='imei',
         widget=EstoqueImeiSelectWidget(attrs={'class': 'form-control'})
     )
