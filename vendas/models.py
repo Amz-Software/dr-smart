@@ -2,7 +2,7 @@ from django.db import models
 from django.utils import timezone
 
 class Base(models.Model):
-    loja = models.ForeignKey('vendas.Loja', on_delete=models.PROTECT, related_name='%(class)s_loja', editable=False, null=True, blank=True)
+    loja = models.ForeignKey('vendas.Loja', on_delete=models.PROTECT, related_name='%(class)s_loja', null=True, blank=True)
     criado_em = models.DateTimeField(auto_now_add=True,editable=False)
     modificado_em = models.DateTimeField(auto_now=True,editable=False)
     criado_por = models.ForeignKey('accounts.User', on_delete=models.PROTECT, related_name='%(class)s_criadas',editable=False, null=True, blank=True)

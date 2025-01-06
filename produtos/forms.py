@@ -8,6 +8,7 @@ class ProdutoForms(forms.ModelForm):
     class Meta:
         model = Produto
         fields = '__all__'
+        exclude = ['loja', 'criado_por', 'modificado_por']
         labels = {
             'codigo': 'Código',
             'nome': 'Nome',
@@ -48,6 +49,7 @@ class CorProdutoForms(forms.ModelForm):
     class Meta:
         model = CorProduto
         fields = '__all__'
+        exclude = ['loja', 'criado_por', 'modificado_por']
         labels = {
             'nome': 'Nome',
         }
@@ -76,6 +78,7 @@ class TipoForms(forms.ModelForm):
     class Meta:
         model = TipoProduto
         fields = '__all__'
+        exclude = ['loja', 'criado_por', 'modificado_por']
         labels = {
             'nome': 'Nome',
         }
@@ -104,6 +107,7 @@ class FabricanteForms(forms.ModelForm):
     class Meta:
         model = Fabricante
         fields = '__all__'
+        exclude = ['loja', 'criado_por', 'modificado_por']
         labels = {
             'nome': 'Nome',
         }
@@ -132,6 +136,7 @@ class MemoriaForms(forms.ModelForm):
     class Meta:
         model = MemoriaProduto
         fields = '__all__'
+        exclude = ['loja', 'criado_por', 'modificado_por']
         labels = {
             'nome': 'Nome',
         }
@@ -160,6 +165,7 @@ class EstadoProdutoForms(forms.ModelForm):
     class Meta:
         model = EstadoProduto
         fields = '__all__'
+        exclude = ['loja', 'criado_por', 'modificado_por']
         labels = {
             'nome': 'Nome',
         }

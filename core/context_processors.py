@@ -183,6 +183,13 @@ def menu_items(request):
             ]
         },
         {
+            "label": "Lojas",
+            "url_name": "vendas:caixa_list",
+            "icon": "bx bx-store",
+            "permission": "vendas.view_loja",
+            "section": "Configurações",
+        },
+        {
             "label": "Meu Perfil",
             "url_name": "vendas:caixa_list",
             "icon": "bx bx-user",
