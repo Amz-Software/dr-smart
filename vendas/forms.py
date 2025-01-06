@@ -1,8 +1,10 @@
 from django import forms
 from django.db.models import Subquery, OuterRef, Exists
-from estoque.models import Estoque
+from estoque.models import Estoque, EstoqueImei
 from produtos.models import Produto
 from .models import Cliente, ContatoAdicional, Endereco, ComprovantesCliente, Pagamento, TipoPagamento, TipoEntrega, TipoVenda, Venda, ProdutoVenda
+from django_select2.forms import Select2Widget, ModelSelect2Widget
+from django_select2 import forms as s2forms
 
 
 class ClienteForm(forms.ModelForm):
@@ -164,8 +166,23 @@ class VendaForm(forms.ModelForm):
             'observacao': 'Observação',
         }
 
+class EstoqueImeiSelectWidget(ModelSelect2Widget):
+    search_fields = ['imei__icontains']
+
+    def label_from_instance(self, obj):
+        # Personalize o texto exibido no widget
+        return f"{obj.imei} - {obj.produto.nome}"
+
+
 class ProdutoVendaForm(forms.ModelForm):
     valor_total = forms.DecimalField(label='Valor Total', disabled=True, required=False, widget=forms.NumberInput(attrs={'class': 'form-control', 'readonly': 'readonly'}))
+    imei = forms.ModelChoiceField(
+        queryset=EstoqueImei.objects.all(),
+        label='imei',
+        required=False,
+        to_field_name='imei',
+        widget=EstoqueImeiSelectWidget(attrs={'class': 'form-control'})
+    )
     class Meta:
         model = ProdutoVenda
         fields = '__all__'
@@ -175,7 +192,6 @@ class ProdutoVendaForm(forms.ModelForm):
             'valor_unitario': forms.NumberInput(attrs={'class': 'form-control'}),
             'quantidade': forms.NumberInput(attrs={'class': 'form-control'}),
             'valor_desconto': forms.NumberInput(attrs={'class': 'form-control'}),
-            'imei': forms.TextInput(attrs={'class': 'form-control'}),
         }
         labels = {
             'valor_unitario': 'Valor',
@@ -185,7 +201,7 @@ class ProdutoVendaForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Filtra apenas os produtos que estão em estoque (quantidade >  0)
-        self.fields['produto'].queryset = produtos = Produto.objects.filter(
+        self.fields['produto'].queryset = Produto.objects.filter(
             Exists(
                 Estoque.objects.filter(
                     produto=OuterRef('pk'),

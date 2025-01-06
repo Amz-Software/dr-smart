@@ -2,7 +2,9 @@
 {% block title %}
 Criar Venda
 {% endblock title %}
-
+{% block extra_head %}
+{{ produto_venda_formset.media.css }}
+{% endblock extra_head %}
 {% block content %}
 
 <div class="container-xxl mt-4">
@@ -105,12 +107,14 @@ Criar Venda
 {% endblock %}
 
 {% block extra_scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+{{ produto_venda_formset.media.js }}
 <script>
 
   document.addEventListener('DOMContentLoaded', function () {
     function configurarProdutoForm(form) {
         const produtoSelect = form.querySelector('select[name$="-produto"]');
-        const imeiField = form.querySelector('input[name$="-imei"]');
+        const imeiField = form.querySelector('select[name$="-imei"]');
         const valorField = form.querySelector('input[name$="-valor_unitario"]');
         const quantidadeField = form.querySelector('input[name$="-quantidade"]');
         const valorTotalField = form.querySelector('input[name$="-valor_total"]');
