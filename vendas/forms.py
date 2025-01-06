@@ -167,7 +167,7 @@ class VendaForm(forms.ModelForm):
         }
 
 class EstoqueImeiSelectWidget(ModelSelect2Widget):
-    search_fields = ['imei__icontains']
+    search_fields = ['imei__icontains', 'produto__nome__icontains']
 
     def label_from_instance(self, obj):
         # Personalize o texto exibido no widget
@@ -177,9 +177,10 @@ class EstoqueImeiSelectWidget(ModelSelect2Widget):
 class ProdutoVendaForm(forms.ModelForm):
     valor_total = forms.DecimalField(label='Valor Total', disabled=True, required=False, widget=forms.NumberInput(attrs={'class': 'form-control', 'readonly': 'readonly'}))
     imei = forms.ModelChoiceField(
-        queryset=EstoqueImei.objects.all(),
+        queryset=EstoqueImei.objects.filter(vendido=False),
         label='imei',
         required=False,
+        empty_label='Selecione um IMEI',
         to_field_name='imei',
         widget=EstoqueImeiSelectWidget(attrs={'class': 'form-control'})
     )
