@@ -8,9 +8,9 @@ class Base(models.Model):
     criado_por = models.ForeignKey('accounts.User', on_delete=models.PROTECT, related_name='%(class)s_criadas',editable=False, null=True, blank=True)
     modificado_por = models.ForeignKey('accounts.User', on_delete=models.PROTECT, related_name='%(class)s_modificadas',editable=False, null=True, blank=True)
     
-    def save(self, *args, user=None, loja=None, **kwargs):
+    def save(self, *args, user=None, **kwargs):
         if user:
-            if not self.id: 
+            if not self.pk: 
                 self.criado_por = user
             self.modificado_por = user
         super().save(*args, **kwargs)
@@ -25,7 +25,7 @@ class Caixa(Base):
     
     @property
     def saldo_total(self):
-        return sum(venda.calcular_valor_total() for venda in self.vendas.all())
+        return sum(venda.calcular_valor_total() for venda in self.vendas.filter(is_deleted=False))
     
     @property
     def quantidade_vendas(self):
@@ -91,9 +91,9 @@ class Cliente(Base):
         verbose_name_plural = 'Clientes'
 
 class ContatoAdicional(Base):
-    nome_adicional = models.CharField(max_length=100)
-    contato = models.CharField(max_length=20)
-    endereco = models.CharField(max_length=200)
+    nome_adicional = models.CharField(max_length=100, null=True, blank=True)
+    contato = models.CharField(max_length=20, null=True, blank=True)
+    endereco = models.CharField(max_length=200, null=True, blank=True)
 
 class Endereco(Base):
     cep = models.CharField(max_length=8)
@@ -128,6 +128,7 @@ class Venda(Base):
     produtos = models.ManyToManyField('produtos.Produto', through='ProdutoVenda', related_name='vendas')
     caixa = models.ForeignKey('vendas.Caixa', on_delete=models.PROTECT, related_name='vendas')
     observacao = models.TextField(null=True, blank=True)
+    is_deleted = models.BooleanField(default=False)
     
     def calcular_valor_total(self):
         return sum(item.valor_unitario * item.quantidade for item in self.itens_venda.all())

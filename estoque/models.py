@@ -81,17 +81,12 @@ class Estoque(Base):
     def preco_medio(self):
         print(f"Calculando preço médio para {self.produto.nome}")
         qtd_entradas = self.produto.entradas_estoque.count()
-        print(f"Quantidade de entradas: {qtd_entradas}")
         total = 0
         for entrada in self.produto.entradas_estoque.all():
-            print(f"Custo total da entrada {entrada.id}: {entrada.custo_total}")
-            print(f"Venda total da entrada {entrada.id}: {entrada.venda_total}")
             total += entrada.venda_unitaria
         
-        print(f"Total acumulado de venda: {total}")
         if qtd_entradas > 0:
             preco_medio = total / qtd_entradas
-            print(f"Preço médio: {preco_medio}")
             return preco_medio
         print("Nenhuma entrada encontrada, preço médio é 0")
         return 0

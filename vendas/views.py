@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
-from django.views.generic import TemplateView, ListView, DetailView, CreateView
+from django.views.generic import TemplateView, ListView, DetailView, CreateView, DeleteView
 from django.utils.timezone import localtime, now
 from estoque.models import Estoque, EstoqueImei
 from produtos.models import Produto
@@ -72,6 +72,11 @@ class CaixaDetailView(PermissionRequiredMixin, DetailView):
     model = Caixa
     template_name = 'caixa/caixa_detail.html'
     permission_required = 'vendas.view_caixa'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['vendas'] = self.object.vendas.filter(is_deleted=False)
+        return context
     
 
 class ClienteListView(PermissionRequiredMixin, ListView):
@@ -260,6 +265,28 @@ class VendaCreateView(PermissionRequiredMixin, CreateView):
             estoque.save()
         except Estoque.DoesNotExist:
             raise ValueError(f'Estoque não encontrado para o produto {produto.nome} na loja {loja.nome}')
+
+
+class VendaDetailView(PermissionRequiredMixin, DetailView):
+    model = Venda
+    template_name = 'venda/venda_detail.html'
+    permission_required = 'vendas.view_venda'
+    
+
+def cancelar_venda(request, id):
+    venda = get_object_or_404(Venda, id=id)
+    if venda.is_deleted:
+        messages.warning(request, 'Venda já cancelada')
+        return redirect('vendas:venda_list')
+    
+    if not Caixa.caixa_aberto(localtime(now()).date()):
+        messages.warning(request, 'Não é possível cancelar vendas com o caixa fechado')
+        return redirect('vendas:venda_list')
+    
+    venda.is_deleted = True
+    venda.save()
+    messages.success(request, 'Venda cancelada com sucesso')
+    return redirect('vendas:venda_list')
     
 class CaixaTotalView(PermissionRequiredMixin, TemplateView):
     template_name = 'caixa/caixa_total.html'

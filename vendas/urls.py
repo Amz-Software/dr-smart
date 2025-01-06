@@ -44,8 +44,10 @@ urlpatterns = [
     #venda
     path('vendas/', VendaListView.as_view(), name='venda_list'),
     path('vendas/nova/', VendaCreateView.as_view(), name='venda_create'),
+    path('vendas/detail/<int:pk>/', VendaDetailView.as_view(), name='venda_detail'),
+    path('vendas/cancelar/<int:id>/', cancelar_venda , name='venda_cancel'),
     
     
     path('info-products/', product_information, name='info_produto'),
-    path('info-payment/', get_payment_method , name='payment_data')
+    path('info-payment/', get_payment_method , name='payment_data'),
 ]

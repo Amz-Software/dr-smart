@@ -17,10 +17,10 @@ def salvar_quantidade_antiga(instance, **kwargs):
 @receiver(post_save, sender=ProdutoEntrada)
 def atualizar_estoque_entrada(instance, created, **kwargs):
     if created:
-        estoque, _ = Estoque.objects.get_or_create(produto=instance.produto)
+        estoque, _ = Estoque.objects.get_or_create(produto=instance.produto, loja=instance.loja)
         estoque.adicionar_estoque(instance.quantidade)
     else:
-        estoque = Estoque.objects.get(produto=instance.produto)
+        estoque = Estoque.objects.get(produto=instance.produto, loja=instance.loja)
         quantidade_antiga = instance._quantidade_antiga
         quantidade_nova = instance.quantidade
         

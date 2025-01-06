@@ -63,6 +63,8 @@ class AdicionarEntradaEstoqueView(PermissionRequiredMixin, CreateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        loja_id = self.request.session.get('loja_id')
+        print('LOJA ID:', loja_id)
         if self.request.POST:
             context['formset'] = ProdutoEntradaFormSet(self.request.POST)
         else:
@@ -74,22 +76,27 @@ class AdicionarEntradaEstoqueView(PermissionRequiredMixin, CreateView):
         formset = context['formset']
         loja_id = self.request.session.get('loja_id')
         loja = get_object_or_404(Loja, pk=loja_id)
+        print(loja)
         if form.is_valid() and formset.is_valid():
-            entrada_estoque = form.save()
+            entrada_estoque = form.save(commit=False)
+            entrada_estoque.loja = loja
+            entrada_estoque.save()
             produtos = formset.save(commit=False)
 
             for produto in produtos:
                 produto.entrada = entrada_estoque
-                produto.save(loja=loja, user=self.request.user)
+                produto.loja = loja
+                produto.save(user=self.request.user)
                 
                 # Se o produto for serializado, salve os IMEIs na tabela EstoqueImei
                 if produto.imei:  # Presumindo que o IMEI é obrigatório
                     estoque_imei = EstoqueImei.objects.create(
                         produto=produto.produto,
                         imei=produto.imei,
-                        produto_entrada=produto  # Associa o ProdutoEntrada
+                        produto_entrada=produto,
+                        loja=loja
                     )
-                    estoque_imei.save(loja=loja, user=self.request.user)
+                    estoque_imei.save(user=self.request.user)
             
             messages.success(self.request, 'Entrada de estoque criada com sucesso!')
             return redirect(self.success_url)
