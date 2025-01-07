@@ -14,10 +14,14 @@ def salvar_quantidade_antiga(instance, **kwargs):
     else:
         instance._quantidade_antiga = 0
 
+
 @receiver(post_save, sender=ProdutoEntrada)
 def atualizar_estoque_entrada(instance, created, **kwargs):
     if created:
-        estoque, _ = Estoque.objects.get_or_create(produto=instance.produto, loja=instance.loja)
+        # Verifica se o estoque já existe para o produto e loja
+        estoque = Estoque.objects.filter(produto=instance.produto, loja=instance.loja).first()
+        if not estoque:
+            estoque = Estoque.objects.create(produto=instance.produto, loja=instance.loja)
         estoque.adicionar_estoque(instance.quantidade)
     else:
         estoque = Estoque.objects.get(produto=instance.produto, loja=instance.loja)
@@ -28,6 +32,7 @@ def atualizar_estoque_entrada(instance, created, **kwargs):
             estoque.adicionar_estoque(quantidade_nova - quantidade_antiga)
         elif quantidade_nova < quantidade_antiga:
             estoque.remover_estoque(quantidade_antiga - quantidade_nova)
+
 
 
 # @receiver(post_delete, sender=EntradaEstoque)

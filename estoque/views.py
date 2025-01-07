@@ -11,12 +11,19 @@ from django.contrib.auth.decorators import login_required
 from produtos.models import Produto
 from vendas.models import Loja
 from .forms import EntradaEstoqueForm, EstoqueImeiForm, ProdutoEntradaForm, ProdutoEntradaFormSet
+from vendas.views import BaseView
 
-class EstoqueListView(PermissionRequiredMixin, ListView):
+class EstoqueListView(BaseView, PermissionRequiredMixin, ListView):
     model = Estoque
     template_name = 'estoque/estoque_list.html'
     context_object_name = 'produtos'
     permission_required = 'estoque.view_estoque'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        loja_id = self.request.session.get('loja_id')
+        context['loja_id'] = loja_id
+        return context
     
     def get_queryset(self):
         query = super().get_queryset()
@@ -27,7 +34,7 @@ class EstoqueListView(PermissionRequiredMixin, ListView):
             
         return query
 
-class EntradaListView(PermissionRequiredMixin, ListView):
+class EntradaListView(BaseView, PermissionRequiredMixin, ListView):
     model = EntradaEstoque
     template_name = 'estoque/estoque_entrada_list.html'
     context_object_name = 'entradas'
@@ -76,7 +83,6 @@ class AdicionarEntradaEstoqueView(PermissionRequiredMixin, CreateView):
         formset = context['formset']
         loja_id = self.request.session.get('loja_id')
         loja = get_object_or_404(Loja, pk=loja_id)
-        print(loja)
         if form.is_valid() and formset.is_valid():
             entrada_estoque = form.save(commit=False)
             entrada_estoque.loja = loja
@@ -104,7 +110,7 @@ class AdicionarEntradaEstoqueView(PermissionRequiredMixin, CreateView):
             return self.form_invalid(form)
         
 
-class EstoqueImeiListView(PermissionRequiredMixin, ListView):
+class EstoqueImeiListView(BaseView, PermissionRequiredMixin, ListView):
     model = EstoqueImei
     template_name = 'estoque/estoque_imei_list.html'
     context_object_name = 'produtos'

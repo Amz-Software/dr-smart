@@ -68,13 +68,13 @@ class EstoqueImei(Base):
         return self.imei
     
     class Meta:
+        unique_together = ['imei', 'produto', 'loja']
         verbose_name = 'Estoque IMEI'
         verbose_name_plural = 'Estoques IMEI'
 
 
 class Estoque(Base):
-    loja = models.ForeignKey('vendas.Loja', on_delete=models.CASCADE, related_name='estoques')
-    produto = models.OneToOneField('produtos.Produto', on_delete=models.CASCADE, related_name='estoque_atual')
+    produto = models.ForeignKey('produtos.Produto', on_delete=models.CASCADE, related_name='estoque_atual')
     quantidade_disponivel = models.PositiveIntegerField(default=0)
     
     
@@ -101,15 +101,14 @@ class Estoque(Base):
             self.save()
         else:
             raise ValueError("Estoque insuficiente.")
-
-    
+ 
     def __str__(self):
         return f"Estoque de {self.produto.nome}: {self.quantidade_disponivel}"
     
     class Meta:
+        unique_together = ['loja', 'produto']
         verbose_name_plural = 'Estoques'
         ordering = ['quantidade_disponivel']
-        unique_together = ['loja', 'produto']
 
 
 class Fornecedor(Base):
