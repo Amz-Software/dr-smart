@@ -4,7 +4,9 @@ from accounts.models import User
 from vendas.models import Loja
 
 class LoginForm(AuthenticationForm):
-    loja = forms.ModelChoiceField(queryset=Loja.objects.all(), required=True, label='Loja')
+    class Meta:
+        model = User
+        fields = ['username', 'password']
     
     
 class UserForm(forms.ModelForm):

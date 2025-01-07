@@ -71,6 +71,7 @@ Caixa {{ caixa.data_abertura|date:"d/m/Y" }}
                 <th>Motivo</th>
                 <th>Tipo lançamento</th>
                 <th>valor</th>
+                <th>Ações</th>
               </tr>
             </thead>
             <tbody>
@@ -79,6 +80,11 @@ Caixa {{ caixa.data_abertura|date:"d/m/Y" }}
                 <td>{{ lançamento.motivo }}</td>
                 <td>{{ lançamento.get_tipo_lancamento_display }}</td>
                 <td>{{ lançamento.valor }}</td>
+                <td>
+                  <a href='{% url "vendas:lancamento_delete" lançamento.id %}' class="btn btn-danger">
+                    <i class="bx bx-trash"></i>
+                  </a>
+                </td>
               </tr>
               {% endfor %}
             </tbody>

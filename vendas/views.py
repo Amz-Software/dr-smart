@@ -107,6 +107,14 @@ class CaixaDetailView(PermissionRequiredMixin, DetailView):
         return self.get(request, *args, **kwargs)
     
 
+def lancamento_delete_view(request, pk):
+    lancamento = get_object_or_404(LancamentoCaixa, id=pk)
+    caixa_id = lancamento.caixa.id
+    lancamento.delete()
+    messages.success(request, 'Lançamento excluído com sucesso')
+    return redirect('vendas:caixa_detail', pk=caixa_id)
+    
+
 class ClienteListView(PermissionRequiredMixin, ListView):
     model = Cliente
     template_name = 'cliente/cliente_list.html'
