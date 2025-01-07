@@ -161,12 +161,11 @@ class VendaForm(forms.ModelForm):
             'tipo_entrega': forms.Select(attrs={'class': 'form-control'}),
             'observacao': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
-        
         labels = {
-            'cliente': 'Cliente',
-            'vendedor': 'Vendedor',
-            'tipo_venda': 'Tipo de Venda',
-            'tipo_entrega': 'Tipo de Entrega',
+            'cliente': 'Cliente*',
+            'vendedor': 'Vendedor*',
+            'tipo_venda': 'Tipo de Venda*',
+            'tipo_entrega': 'Tipo de Entrega*',
             'observacao': 'Observação',
         }
 
@@ -195,8 +194,10 @@ class ProdutoVendaForm(forms.ModelForm):
             'valor_desconto': forms.NumberInput(attrs={'class': 'form-control'}),
         }
         labels = {
-            'valor_unitario': 'Valor',
-            'valor_desconto': 'Desconto',
+            'valor_unitario': 'Valor*',
+            'valor_desconto': 'Desconto*',
+            'quantidade': 'Quantidade*', 
+            'produto': 'Produto*',
         }
 
     def __init__(self, *args, **kwargs):
@@ -223,6 +224,12 @@ class PagamentoForm(forms.ModelForm):
             'valor': forms.NumberInput(attrs={'class': 'form-control'}),
             'parcelas': forms.NumberInput(attrs={'class': 'form-control'}),
             'data_primeira_parcela': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'date'}),
+        }
+        labels = {
+            'tipo_pagamento': 'Tipo de Pagamento*',
+            'valor': 'Valor*',
+            'parcelas': 'Parcelas*',
+            'data_primeira_parcela': 'Data Primeira Parcela*',
         }
 
 FormaPagamentoFormSet = forms.inlineformset_factory(Venda, Pagamento, form=PagamentoForm, extra=1, can_delete=False)
