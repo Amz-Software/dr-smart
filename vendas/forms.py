@@ -5,6 +5,7 @@ from estoque.models import Estoque, EstoqueImei
 from produtos.models import Produto
 from .models import Cliente, ContatoAdicional, Endereco, ComprovantesCliente, Loja, Pagamento, TipoPagamento, TipoEntrega, TipoVenda, Venda, ProdutoVenda
 from django_select2.forms import Select2Widget, ModelSelect2Widget
+from django_select2.forms import ModelSelect2MultipleWidget
 from django_select2 import forms as s2forms
 
 
@@ -173,7 +174,6 @@ class VendaForm(forms.ModelForm):
 
 class EstoqueImeiSelectWidget(ModelSelect2Widget):
     search_fields = ['imei__icontains', 'produto__nome__icontains']
-    
 
 
 class ProdutoVendaForm(forms.ModelForm):
@@ -230,19 +230,20 @@ FormaPagamentoFormSet = forms.inlineformset_factory(Venda, Pagamento, form=Pagam
 ProdutoVendaFormSet = forms.inlineformset_factory(Venda, ProdutoVenda, form=ProdutoVendaForm, extra=1, can_delete=False)
 
 
-from django_select2.forms import Select2MultipleWidget
-
+class UsuarioSelectWidget(ModelSelect2MultipleWidget):
+    search_fields = [
+        'username__icontains', 
+        'first_name__icontains', 
+        'last_name__icontains'
+    ]
 
 class LojaForm(forms.ModelForm):
     class Meta:
         model = Loja
         fields = '__all__'
-        widgets = {
-            'usuarios': Select2MultipleWidget(attrs={'class': 'form-control'}),
-        }
 
     usuarios = forms.ModelMultipleChoiceField(
         queryset=User.objects.all(),
-        widget=Select2MultipleWidget(attrs={'class': 'form-control'}),
+        widget=UsuarioSelectWidget(attrs={'class': 'form-control'}),
         required=False
     )

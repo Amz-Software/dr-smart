@@ -1,10 +1,10 @@
 from datetime import datetime
 from typing import Any
 from django.contrib import messages
-from django.http import JsonResponse
+from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
-from django.views.generic import TemplateView, ListView, DetailView, CreateView, DeleteView, UpdateView
+from django.views.generic import TemplateView, ListView, DetailView, CreateView, DeleteView, UpdateView, View
 from django.utils.timezone import localtime, now
 from estoque.models import Estoque, EstoqueImei
 from produtos.models import Produto
@@ -15,11 +15,29 @@ from django.utils import timezone
 from django.db import transaction
 
 
+class BaseView(View):
+    def get_loja(self):
+        loja_id = self.request.session.get('loja_id')
+        if loja_id:
+            return get_object_or_404(Loja, id=loja_id)
+        return None
+
+    def get_queryset(self):
+        loja = self.get_loja()
+        if loja:
+            return super().get_queryset().filter(loja=loja)
+        
+        if not loja:
+            raise Http404("Loja não encontrada para o usuário.")
+
+        return super().get_queryset()
+
+
 class IndexView(LoginRequiredMixin, TemplateView):
     template_name = 'index.html'
     
 
-class CaixaListView(PermissionRequiredMixin, ListView):
+class CaixaListView(BaseView, PermissionRequiredMixin, ListView):
     model = Caixa
     template_name = 'caixa/caixa_list.html'
     context_object_name = 'caixas'
@@ -44,6 +62,7 @@ class CaixaListView(PermissionRequiredMixin, ListView):
                     data_abertura=today,
                     criado_por=request.user,
                     modificado_por=request.user,
+                    loja=Loja.objects.get(id=request.session.get('loja_id'))
                     )
                 messages.success(request, 'Caixa aberto com sucesso')
                 return redirect('vendas:caixa_list')
@@ -56,7 +75,7 @@ class CaixaListView(PermissionRequiredMixin, ListView):
         if fechar_caixa:
             today = timezone.localtime(timezone.now()).date()
             try:
-                caixa = Caixa.objects.get(id=fechar_caixa)
+                caixa = Caixa.objects.get(id=fechar_caixa, loja=request.session.get('loja_id'))
                 caixa.data_fechamento = today
                 caixa.save(user=request.user)
                 messages.success(request, 'Caixa fechado com sucesso')
@@ -79,7 +98,7 @@ class CaixaDetailView(PermissionRequiredMixin, DetailView):
         return context
     
 
-class ClienteListView(PermissionRequiredMixin, ListView):
+class ClienteListView(BaseView, PermissionRequiredMixin, ListView):
     model = Cliente
     template_name = 'cliente/cliente_list.html'
     context_object_name = 'items'
@@ -157,7 +176,7 @@ def cliente_editar_view(request):
         'cliente_id': cliente_id,
     })
 
-class VendaListView(PermissionRequiredMixin, ListView):
+class VendaListView(BaseView, PermissionRequiredMixin, ListView):
     model = Venda
     template_name = 'venda/venda_list.html'
     context_object_name = 'vendas'
@@ -299,7 +318,7 @@ class CaixaTotalView(PermissionRequiredMixin, TemplateView):
         return context
     
 
-class LojaListView(PermissionRequiredMixin, ListView):
+class LojaListView(BaseView, PermissionRequiredMixin, ListView):
     model = Loja
     template_name = 'loja/loja_list.html'
     context_object_name = 'lojas'

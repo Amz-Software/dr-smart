@@ -1,5 +1,9 @@
+from django.shortcuts import get_object_or_404
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.urls import reverse_lazy
 from django.views.generic import ListView, CreateView, DetailView, UpdateView, DeleteView
+from vendas.models import Loja
+from vendas.views import BaseView
 
 def generate_views(modelo, form=None, paginacao=10, template_dir=''):
     """
@@ -12,55 +16,64 @@ def generate_views(modelo, form=None, paginacao=10, template_dir=''):
     :return: Dicionário contendo as views geradas.
     """
 
-    class GeneratedListView(ListView):
+    class GeneratedListView(PermissionRequiredMixin, ListView):
         model = modelo
         template_name = f'{template_dir}/{modelo._meta.model_name}_list.html'
         paginate_by = paginacao
         context_object_name = 'items'
+        permission_required = f'{modelo._meta.app_label}.view_{modelo._meta.model_name}'
 
         def get_queryset(self):
+            loja_id = self.request.session.get('loja_id')
+            loja = get_object_or_404(Loja, pk=loja_id)
             search = self.request.GET.get('search')
             if search:
                 return modelo.objects.filter(nome__icontains=search)
-            return modelo.objects.all()
+            return modelo.objects.filter(loja=loja)
 
-    class GeneratedCreateView(CreateView):
+    class GeneratedCreateView(PermissionRequiredMixin, CreateView):
         model = modelo
         form_class = form
         template_name = f'{template_dir}/{modelo._meta.model_name}_create.html'
         success_url = f'/{modelo._meta.model_name}'
-
-
+        permission_required = f'{modelo._meta.app_label}.add_{modelo._meta.model_name}'
+        
+        def form_valid(self, form):
+            form.instance.loja = Loja.objects.get(pk=self.request.session.get('loja_id'))
+            return super().form_valid(form)
 
         def get_form_kwargs(self):
             kwargs = super().get_form_kwargs()
             kwargs['user'] = self.request.user
             return kwargs
 
-    class GeneratedDetailView(DetailView):
+    class GeneratedDetailView(PermissionRequiredMixin, DetailView):
         model = modelo
         template_name = f'{template_dir}/{modelo._meta.model_name}_detail.html'
         context_object_name = modelo._meta.model_name
+        permission_required = f'{modelo._meta.app_label}.view_{modelo._meta.model_name}'
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
             context['form'] = form(instance=self.object, disabled=True) if form else None
             return context
 
-    class GeneratedUpdateView(UpdateView):
+    class GeneratedUpdateView(PermissionRequiredMixin ,UpdateView):
         model = modelo
         form_class = form
         template_name = f'{template_dir}/{modelo._meta.model_name}_edit.html'
         success_url = f'/{modelo._meta.model_name}'
+        PermissionRequiredMixin = f'{modelo._meta.app_label}.change_{modelo._meta.model_name}'
 
         def get_form_kwargs(self):
             kwargs = super().get_form_kwargs()
             kwargs['user'] = self.request.user
             return kwargs
 
-    class GeneratedDeleteView(DeleteView):
+    class GeneratedDeleteView(PermissionRequiredMixin, DeleteView):
         model = modelo
         success_url = reverse_lazy(f'{modelo._meta.model_name}s:{modelo._meta.model_name}s')
+        permission_required = f'{modelo._meta.app_label}.delete_{modelo._meta.model_name}'
 
     return {
         'list_view': GeneratedListView,

@@ -22,9 +22,11 @@ class Produto(Base):
             self.gerar_codigo()
         super(Produto, self).save(*args, **kwargs)
     
-    @property
-    def total_vendas(self):
-        return self.produto_vendas.count()
+    def total_vendas(self, loja_id=None):
+        print('no models:', loja_id)
+        if loja_id:
+            return self.produto_vendas.filter(venda__loja_id=loja_id).count()
+        return None
     
     def __str__(self):
         return f"{self.nome} ({self.codigo})"
