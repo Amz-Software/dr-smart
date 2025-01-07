@@ -172,10 +172,7 @@ class VendaForm(forms.ModelForm):
 
 class EstoqueImeiSelectWidget(ModelSelect2Widget):
     search_fields = ['imei__icontains', 'produto__nome__icontains']
-
-    def label_from_instance(self, obj):
-        # Personalize o texto exibido no widget
-        return f"{obj.imei} - {obj.produto.nome}"
+    
 
 
 class ProdutoVendaForm(forms.ModelForm):
@@ -185,7 +182,6 @@ class ProdutoVendaForm(forms.ModelForm):
         label='imei',
         required=False,
         empty_label='Digite o IMEI ou o nome do produto',
-        to_field_name='imei',
         widget=EstoqueImeiSelectWidget(attrs={'class': 'form-control'})
     )
     class Meta:
