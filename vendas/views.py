@@ -92,7 +92,7 @@ class CaixaDetailView(PermissionRequiredMixin, DetailView):
             return redirect('vendas:caixa_list')  # Ajuste conforme sua necessidade
 
         # Instancie o formulário com os dados do POST
-        form = LancamentoForm(request.POST)
+        form = LancamentoForm(request.POST, user=request.user)
 
         if form.is_valid():
             # Salve o formulário e associe ao caixa

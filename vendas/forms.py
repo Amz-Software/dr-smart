@@ -237,7 +237,7 @@ class LancamentoForm(forms.ModelForm):
     class Meta:
         model = LancamentoCaixa
         fields = '__all__'
-        exclude = ['loja', 'caixa', 'criado_por', 'modificado_por']
+        exclude = ['loja', 'caixa']
         widgets = {
             'motivo': forms.TextInput(attrs={'class': 'form-control'}),
             'tipo_lancamento': forms.Select(attrs={'class': 'form-control'}),
@@ -248,6 +248,24 @@ class LancamentoForm(forms.ModelForm):
             'tipo_lancamento': 'Tipo de Lançamento*',
             'valor': 'Valor*',
         }
+    
+    def __init__(self, *args, disabled=False, **kwargs):
+        self.user = kwargs.pop('user', None)  # Pega o usuário que será passado pela view
+        super().__init__(*args, **kwargs)
+        if disabled:
+            for field in self.fields.values():
+                field.widget.attrs['disabled'] = True
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if self.user:  
+            if not instance.pk: 
+                instance.criado_por = self.user
+            instance.modificado_por = self.user 
+        if commit:
+            instance.save()
+        return instance
+        
 
 FormaPagamentoFormSet = forms.inlineformset_factory(Venda, Pagamento, form=PagamentoForm, extra=1, can_delete=False)
 ProdutoVendaFormSet = forms.inlineformset_factory(Venda, ProdutoVenda, form=ProdutoVendaForm, extra=1, can_delete=False)
