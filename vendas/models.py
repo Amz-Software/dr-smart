@@ -48,6 +48,22 @@ class Caixa(Base):
     class Meta:
         verbose_name_plural = 'Caixas'
 
+class LancamentoCaixa(Base):
+    tipo_lancamento_opcoes = (
+        ('1', 'Crédito'),
+        ('2', 'Débito'),
+    )
+    
+    caixa = models.ForeignKey('vendas.Caixa', on_delete=models.PROTECT, related_name='lancamentos_caixa')
+    motivo = models.CharField(max_length=100)
+    tipo_lancamento = models.CharField(max_length=1, choices=tipo_lancamento_opcoes)
+    valor = models.DecimalField(max_digits=10, decimal_places=2)
+    
+    def __str__(self):
+        return f"{self.tipo_lancamento} - R$ {self.valor}"
+    
+    class Meta:
+        verbose_name_plural = 'Lancamentos Caixa'
 
 class Loja(Base):
     nome = models.CharField(max_length=100)

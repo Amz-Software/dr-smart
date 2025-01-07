@@ -34,6 +34,59 @@ Caixa {{ caixa.data_abertura|date:"d/m/Y" }}
     </div>
   </div>
 
+  <div class="row mb-3">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h4 class="card-title">Lançamentos</h4>
+        </div>
+        <form method="post">
+          {% csrf_token %}
+          <div class="card-body">
+            <div class="row">
+              {% for field in form_lancamento %}
+              <div class="col-md-4">
+                <div class="form-group {% if field.errors %}has-error{% endif %}">
+                  {{ field.label_tag }}
+                  {{ field }}
+                  {% if field.errors %}
+                  <span class="help-block text-danger">{{ field.errors.0 }}</span>
+                  {% endif %}
+                </div>
+              </div>
+              {% endfor %}
+              <div class="col-md-4">
+                <div class="form-group mt-4">
+                  <button type="submit" class="btn btn-primary">Adicionar</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
+
+        <div class="card-body">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Motivo</th>
+                <th>Tipo lançamento</th>
+                <th>valor</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for lançamento in lancamentos %}
+              <tr>
+                <td>{{ lançamento.motivo }}</td>
+                <td>{{ lançamento.get_tipo_lancamento_display }}</td>
+                <td>{{ lançamento.valor }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
   <!-- Card with List of Vendas -->
   <div class="row">
     <div class="col-12">

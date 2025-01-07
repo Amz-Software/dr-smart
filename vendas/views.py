@@ -8,8 +8,8 @@ from django.views.generic import TemplateView, ListView, DetailView, CreateView,
 from django.utils.timezone import localtime, now
 from estoque.models import Estoque, EstoqueImei
 from produtos.models import Produto
-from vendas.forms import ClienteForm, ComprovantesClienteForm, ContatoAdicionalForm, LojaForm, VendaForm, ProdutoVendaFormSet, FormaPagamentoFormSet
-from .models import Caixa, Cliente, Loja, Pagamento, ProdutoVenda, Venda
+from vendas.forms import ClienteForm, ComprovantesClienteForm, ContatoAdicionalForm, LojaForm, VendaForm, ProdutoVendaFormSet, FormaPagamentoFormSet, LancamentoForm
+from .models import Caixa, Cliente, Loja, Pagamento, ProdutoVenda, Venda, LancamentoCaixa
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.utils import timezone
 from django.db import transaction
@@ -76,7 +76,35 @@ class CaixaDetailView(PermissionRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['vendas'] = self.object.vendas.filter(is_deleted=False)
+        context['form_lancamento'] = LancamentoForm()
+        context['lancamentos'] = LancamentoCaixa.objects.filter(caixa=self.object)
         return context
+
+    def post(self, request, *args, **kwargs):
+        # Pegue o ID do caixa diretamente de kwargs
+        caixa_id = kwargs.get('pk')  # O parâmetro é chamado 'pk' na URL
+
+        try:
+            # Busque o objeto Caixa
+            caixa = Caixa.objects.get(id=caixa_id)
+        except Caixa.DoesNotExist:
+            messages.error(request, 'Erro: Caixa não existe.')
+            return redirect('vendas:caixa_list')  # Ajuste conforme sua necessidade
+
+        # Instancie o formulário com os dados do POST
+        form = LancamentoForm(request.POST)
+
+        if form.is_valid():
+            # Salve o formulário e associe ao caixa
+            lancamento = form.save(commit=False)
+            lancamento.caixa = caixa
+            lancamento.save()
+            messages.success(request, 'Lançamento realizado com sucesso')
+            return redirect('vendas:caixa_detail', pk=caixa_id)
+
+        # Caso o formulário seja inválido
+        messages.error(request, 'Erro ao realizar lançamento')
+        return self.get(request, *args, **kwargs)
     
 
 class ClienteListView(PermissionRequiredMixin, ListView):

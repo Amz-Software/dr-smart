@@ -81,3 +81,8 @@ class LojaAdmin(AdminBase):
 @admin.register(Parcela)
 class ParcelaAdmin(AdminBase):
     list_display = ('pagamento', 'valor', 'data_vencimento', 'pago')
+
+
+@admin.register(LancamentoCaixa)
+class LancamentoCaixaAdmin(AdminBase):
+    list_display = ('caixa', 'tipo_lancamento', 'valor')

@@ -3,7 +3,7 @@ from django.db.models import Subquery, OuterRef, Exists
 from accounts.models import User
 from estoque.models import Estoque, EstoqueImei
 from produtos.models import Produto
-from .models import Cliente, ContatoAdicional, Endereco, ComprovantesCliente, Loja, Pagamento, TipoPagamento, TipoEntrega, TipoVenda, Venda, ProdutoVenda
+from .models import *
 from django_select2.forms import Select2Widget, ModelSelect2Widget
 from django_select2 import forms as s2forms
 
@@ -231,6 +231,22 @@ class PagamentoForm(forms.ModelForm):
             'valor': 'Valor*',
             'parcelas': 'Parcelas*',
             'data_primeira_parcela': 'Data Primeira Parcela*',
+        }
+
+class LancamentoForm(forms.ModelForm):
+    class Meta:
+        model = LancamentoCaixa
+        fields = '__all__'
+        exclude = ['loja', 'caixa', 'criado_por', 'modificado_por']
+        widgets = {
+            'motivo': forms.TextInput(attrs={'class': 'form-control'}),
+            'tipo_lancamento': forms.Select(attrs={'class': 'form-control'}),
+            'valor': forms.NumberInput(attrs={'class': 'form-control'}),
+        }
+        labels = {
+            'motivo': 'Motivo*',
+            'tipo_lancamento': 'Tipo de Lançamento*',
+            'valor': 'Valor*',
         }
 
 FormaPagamentoFormSet = forms.inlineformset_factory(Venda, Pagamento, form=PagamentoForm, extra=1, can_delete=False)
