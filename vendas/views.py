@@ -4,11 +4,11 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
-from django.views.generic import TemplateView, ListView, DetailView, CreateView, DeleteView
+from django.views.generic import TemplateView, ListView, DetailView, CreateView, DeleteView, UpdateView
 from django.utils.timezone import localtime, now
 from estoque.models import Estoque, EstoqueImei
 from produtos.models import Produto
-from vendas.forms import ClienteForm, ComprovantesClienteForm, ContatoAdicionalForm, VendaForm, ProdutoVendaFormSet, FormaPagamentoFormSet
+from vendas.forms import ClienteForm, ComprovantesClienteForm, ContatoAdicionalForm, LojaForm, VendaForm, ProdutoVendaFormSet, FormaPagamentoFormSet
 from .models import Caixa, Cliente, Loja, Pagamento, ProdutoVenda, Venda
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.utils import timezone
@@ -299,6 +299,54 @@ class CaixaTotalView(PermissionRequiredMixin, TemplateView):
         return context
     
 
+class LojaListView(PermissionRequiredMixin, ListView):
+    model = Loja
+    template_name = 'loja/loja_list.html'
+    context_object_name = 'lojas'
+    permission_required = 'vendas.view_loja'
+    
+    def get_queryset(self):
+        query = super().get_queryset()
+        search = self.request.GET.get('search')
+        if search:
+            return query.filter(nome__icontains=search)
+        
+        return query.order_by('nome')
+
+class LojaCreateView(PermissionRequiredMixin, CreateView):
+    model = Loja
+    form_class = LojaForm
+    template_name = 'loja/loja_form.html'
+    permission_required = 'vendas.add_loja'
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Loja cadastrada com sucesso')
+        return super().form_valid(form)
+    
+    def get_success_url(self):
+        return reverse_lazy('vendas:loja_detail', kwargs={'pk': self.object.id})
+    
+
+class LojaUpdateView(PermissionRequiredMixin, UpdateView):
+    model = Loja
+    form_class = LojaForm
+    template_name = 'loja/loja_form.html'
+    permission_required = 'vendas.change_loja'
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Loja atualizada com sucesso')
+        return super().form_valid(form)
+    
+    def get_success_url(self):
+        return reverse_lazy('vendas:loja_detail', kwargs={'pk': self.object.id})
+
+    
+class LojaDetailView(PermissionRequiredMixin, DetailView):
+    model = Loja
+    template_name = 'loja/loja_detail.html'
+    permission_required = 'vendas.view_loja'
+    
+
 def product_information(request):
     product_id = request.GET.get('product_id')
     imei = request.GET.get('imei')
@@ -327,3 +375,6 @@ def get_payment_method(request):
             'financeira': payment.tipo_pagamento.financeira,
             'caixa': payment.tipo_pagamento.caixa
         })
+
+
+

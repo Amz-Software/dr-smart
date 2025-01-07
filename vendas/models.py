@@ -52,8 +52,8 @@ class Caixa(Base):
 class Loja(Base):
     nome = models.CharField(max_length=100)
     cnpj = models.CharField(max_length=14, null=True, blank=True)
-    endereco = models.CharField(max_length=200, null=True, blank=True)
     inscricao_estadual = models.CharField(max_length=20, null=True, blank=True)
+    endereco = models.CharField(max_length=200, null=True, blank=True)
     telefone = models.CharField(max_length=20, null=True, blank=True)
     meta_vendas_diaria = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     meta_vendas_mensal = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)

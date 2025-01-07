@@ -47,6 +47,12 @@ urlpatterns = [
     path('vendas/detail/<int:pk>/', VendaDetailView.as_view(), name='venda_detail'),
     path('vendas/cancelar/<int:id>/', cancelar_venda , name='venda_cancel'),
     
+    #Loja
+    path('lojas/', LojaListView.as_view(), name='loja_list'),
+    path('lojas/nova/', LojaCreateView.as_view(), name='loja_create'),
+    path('lojas/editar/<int:pk>/', LojaUpdateView.as_view(), name='loja_update'),
+    path('lojas/detalhe/<int:pk>/', LojaDetailView.as_view(), name='loja_detail'),
+    
     
     path('info-products/', product_information, name='info_produto'),
     path('info-payment/', get_payment_method , name='payment_data'),

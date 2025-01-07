@@ -1,8 +1,9 @@
 from django import forms
 from django.db.models import Subquery, OuterRef, Exists
+from accounts.models import User
 from estoque.models import Estoque, EstoqueImei
 from produtos.models import Produto
-from .models import Cliente, ContatoAdicional, Endereco, ComprovantesCliente, Pagamento, TipoPagamento, TipoEntrega, TipoVenda, Venda, ProdutoVenda
+from .models import Cliente, ContatoAdicional, Endereco, ComprovantesCliente, Loja, Pagamento, TipoPagamento, TipoEntrega, TipoVenda, Venda, ProdutoVenda
 from django_select2.forms import Select2Widget, ModelSelect2Widget
 from django_select2 import forms as s2forms
 
@@ -231,3 +232,21 @@ class PagamentoForm(forms.ModelForm):
 
 FormaPagamentoFormSet = forms.inlineformset_factory(Venda, Pagamento, form=PagamentoForm, extra=1, can_delete=False)
 ProdutoVendaFormSet = forms.inlineformset_factory(Venda, ProdutoVenda, form=ProdutoVendaForm, extra=1, can_delete=False)
+
+
+from django_select2.forms import Select2MultipleWidget
+
+
+class LojaForm(forms.ModelForm):
+    class Meta:
+        model = Loja
+        fields = '__all__'
+        widgets = {
+            'usuarios': Select2MultipleWidget(attrs={'class': 'form-control'}),
+        }
+
+    usuarios = forms.ModelMultipleChoiceField(
+        queryset=User.objects.all(),
+        widget=Select2MultipleWidget(attrs={'class': 'form-control'}),
+        required=False
+    )

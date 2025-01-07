@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}
+{% if loja.pk %}Editar Loja{% else %}Criar Loja{% endif %}
+{% endblock title %}
+
+{% block content %}
+
+<div class="container-xxl mt-4">
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h4 class="card-title">{% if loja.pk %}Editar Loja{% else %}Criar Loja{% endif %}</h4>
+        </div>
+        <div class="card-body">
+          <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="id_nome" class="form-label">Nome</label>
+                <input type="text" class="form-control" id="id_nome" name="nome" value="{{ form.nome.value|default_if_none:'' }}">
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="id_cnpj" class="form-label">CNPJ</label>
+                <input type="text" class="form-control" id="id_cnpj" name="cnpj" value="{{ form.cnpj.value|default_if_none:'' }}">
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="id_telefone" class="form-label">Telefone</label>
+                <input type="text" class="form-control" id="id_telefone" name="telefone" value="{{ form.telefone.value|default_if_none:'' }}">
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="id_endereco" class="form-label">Endereço</label>
+                <input type="text" class="form-control" id="id_endereco" name="endereco" value="{{ form.endereco.value|default_if_none:'' }}">
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="id_meta_vendas_diaria" class="form-label">Meta de Vendas Diária</label>
+                <input type="number" class="form-control" id="id_meta_vendas_diaria" name="meta_vendas_diaria" value="{{ form.meta_vendas_diaria.value|default_if_none:'' }}">
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="id_meta_vendas_mensal" class="form-label">Meta de Vendas Mensal</label>
+                <input type="number" class="form-control" id="id_meta_vendas_mensal" name="meta_vendas_mensal" value="{{ form.meta_vendas_mensal.value|default_if_none:'' }}">
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="id_entrada_caixa_diaria" class="form-label">Entrada de Caixa Diária</label>
+                <input type="number" class="form-control" id="id_entrada_caixa_diaria" name="entrada_caixa_diaria" value="{{ form.entrada_caixa_diaria.value|default_if_none:'' }}">
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="id_logo_loja" class="form-label">Logo da Loja</label>
+                <input type="file" class="form-control" id="id_logo_loja" name="logo_loja">
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-12 mb-3">
+                <label for="id_mensagem_garantia" class="form-label">Mensagem de Garantia</label>
+                <textarea class="form-control" id="id_mensagem_garantia" name="mensagem_garantia" rows="6">{{ form.mensagem_garantia.value|default_if_none:'' }}</textarea>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-12 mb-3">
+                <label for="id_contrato" class="form-label">Contrato</label>
+                <textarea class="form-control" id="id_contrato" name="contrato" rows="6">{{ form.contrato.value|default_if_none:'' }}</textarea>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-12 mb-3">
+                <label for="id_usuarios" class="form-label">Usuários</label>
+                {{ form.usuarios }}
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary">{% if loja.pk %}Salvar{% else %}Criar{% endif %}</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extrajs %}
+
+
+{% endblock extrajs %}
