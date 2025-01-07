@@ -184,7 +184,7 @@ def menu_items(request):
         },
         {
             "label": "Lojas",
-            "url_name": "vendas:caixa_list",
+            "url_name": "vendas:loja_list",
             "icon": "bx bx-store",
             "permission": "vendas.view_loja",
             "section": "Configurações",
