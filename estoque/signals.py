@@ -24,7 +24,7 @@ def atualizar_estoque_entrada(instance, created, **kwargs):
             estoque = Estoque.objects.create(produto=instance.produto, loja=instance.loja)
         estoque.adicionar_estoque(instance.quantidade)
     else:
-        estoque = Estoque.objects.get(produto=instance.produto, loja=instance.loja)
+        estoque = Estoque.objects.filter(produto=instance.produto, loja=instance.loja).first()
         quantidade_antiga = instance._quantidade_antiga
         quantidade_nova = instance.quantidade
         

@@ -112,6 +112,7 @@ Criar Venda
 <script>
 
   document.addEventListener('DOMContentLoaded', function () {
+    // Função para configurar o formulário de produtos
     function configurarProdutoForm(form) {
         const produtoSelect = form.querySelector('select[name$="-produto"]');
         const imeiField = form.querySelector('select[name$="-imei"]');
@@ -119,6 +120,8 @@ Criar Venda
         const quantidadeField = form.querySelector('input[name$="-quantidade"]');
         const valorTotalField = form.querySelector('input[name$="-valor_total"]');
         const valorDescontoField = form.querySelector('input[name$="-valor_desconto"]');
+
+        // Inicializa valores
         valorDescontoField.value = "0.00";
         valorField.value = "";
         quantidadeField.value = "";
@@ -128,6 +131,8 @@ Criar Venda
         imeiField.required = false;
         quantidadeField.disabled = true;
 
+        console.log('Form configurado:', form);
+
         // Função para atualizar o valor total
         function atualizarValorTotal() {
             const valorUnitario = parseFloat(valorField.value) || 0;
@@ -135,80 +140,103 @@ Criar Venda
             const valorDesconto = parseFloat(valorDescontoField.value) || 0;
 
             const valorTotal = (valorUnitario * quantidade) - valorDesconto;
-            valorTotalField.value = valorTotal // Exibe com 2 casas decimais
+            valorTotalField.value = valorTotal.toFixed(2); // Exibe com 2 casas decimais
+            console.log('Valor Total Atualizado:', valorTotalField.value);
         }
-
-        // Inicializa o valor total
-        valorTotalField.value = "0.00";
 
         if (!produtoSelect || !imeiField || !valorField) return;
 
-        produtoSelect.addEventListener('change', function () {
-            const produtoId = this.value;
-            const formPrefix = this.name.match(/(.+?)-produto/)[1];
-            
+        // Configura o campo Select2 para o produto
+        $(produtoSelect).select2({
+            placeholder: "Selecione um produto",
+            allowClear: true,
+        });
+
+        // Evento de mudança no campo produto
+        $(produtoSelect).on('select2:select', function (e) {
+            const produtoId = e.params.data.id;
+            console.log('Produto selecionado:', produtoId);
+
+            // Limpa os campos relevantes
+            valorField.value = "";
+            quantidadeField.value = "";
+            valorTotalField.value = "";
+            imeiField.value = "";
+            imeiField.disabled = true;
+            imeiField.required = false;
+            quantidadeField.disabled = true;
+
             if (!produtoId) {
-                valorField.value = "";
-                quantidadeField.value = "";
-                valorTotalField.value = "";
-                imeiField.value = "";
-                imeiField.disabled = true;
-                imeiField.required = false;
-                quantidadeField.disabled = true;
                 return;
             }
 
+            // Fetch para buscar detalhes do produto
             fetch(`/produto/details/${produtoId}/`)
                 .then(response => response.json())
                 .then(data => {
+                    console.log('Produto details API response:', data);
+
                     if (data.serializado) {
-                        // Produto serializado: Habilitar o campo IMEI
                         imeiField.disabled = false;
-                        imeiField.value = "";
                         imeiField.required = true;
-                        quantidadeField.value = 1;  // Fixar quantidade para 1
-                        quantidadeField.disabled = false;  // Permitir interação com quantidade
-                        
-                        
-                        valorField.value = "";
-                        
-                        imeiField.addEventListener('blur', function () {
-                          if (imeiField.value) {
-                            fetch(`/info-products/?product_id=${produtoId}&imei=${imeiField.value}`)
-                            .then(response => response.json())
-                            .then(info => {
-                              if (info.status === "success") {
-                                    // Verificar tentativas de alteração da quantidade
-                                    quantidadeField.addEventListener('input', function () {
-                                        if (quantidadeField.value !== "1") {
-                                            alert("Produto serializado, a quantidade deve ser 1.");
-                                            quantidadeField.value = 1; // Resetar para 1
-                                        }
-                                    });
-                                    valorField.value = info.price;
-                                    atualizarValorTotal(); // Atualiza o valor total quando o preço é alterado
+                        quantidadeField.value = 1;
+                        quantidadeField.disabled = true;
+
+                        // Configurando Select2 para o campo IMEI
+                        $(imeiField).select2({
+                            ajax: {
+                                url: `/info-products/imei/${produtoId}/`,
+                                dataType: 'json',
+                                delay: 250,
+                                processResults: function (data) {
+                                    return {
+                                        results: data.map(item => ({
+                                            id: item.id,
+                                            text: item.text,
+                                        })),
+                                    };
+                                },
+                            },
+                            placeholder: "Selecione o IMEI",
+                            allowClear: true,
+                        });
+
+                        // Evento de seleção no campo IMEI
+                        $(imeiField).on('select2:select', function (e) {
+                            const imeiValue = e.params.data.id;
+                            console.log('IMEI selecionado:', imeiValue);
+
+                            if (imeiValue) {
+                                fetch(`/info-products/?product_id=${produtoId}&imei=${imeiValue}`)
+                                    .then(response => response.json())
+                                    .then(info => {
+                                        console.log('Info products API response:', info);
+
+                                        if (info.status === "success") {
+                                            valorField.value = info.price;
+                                            atualizarValorTotal();
                                         } else {
                                             alert(info.message);
                                             valorField.value = "";
-                                            imeiField.value = "";
+                                            $(imeiField).val(null).trigger('change'); // Reseta o campo IMEI no Select2
                                         }
                                     });
                             }
                         });
                     } else {
-                        // Produto não serializado: Desabilitar o campo IMEI
                         imeiField.disabled = true;
                         imeiField.value = "";
                         imeiField.required = false;
                         quantidadeField.disabled = false;
 
-                        // Buscar preço diretamente
                         fetch(`/info-products/?product_id=${produtoId}`)
                             .then(response => response.json())
                             .then(info => {
+                                console.log('Info products API response for non-serialized:', info);
+
                                 if (info.status === "success") {
                                     valorField.value = info.price;
-                                    atualizarValorTotal(); // Atualiza o valor total quando o preço é alterado
+                                    atualizarValorTotal();
                                 } else {
                                     alert(info.message);
                                     valorField.value = "";
@@ -218,7 +246,6 @@ Criar Venda
                 });
         });
 
-        // Adicionar event listeners para atualizar o valor total
         valorField.addEventListener('input', atualizarValorTotal);
         quantidadeField.addEventListener('input', atualizarValorTotal);
         valorDescontoField.addEventListener('input', atualizarValorTotal);
@@ -227,58 +254,59 @@ Criar Venda
     // Configurar formulários existentes ao carregar a página
     document.querySelectorAll('.produto-form').forEach(configurarProdutoForm);
 
+    // Função para adicionar um novo formulário de produto
     function adicionarProduto() {
         const emptyForm = document.querySelector("#produto-empty-form .produto-form-template");
         let newForm = emptyForm.cloneNode(true);
-    
+
         newForm.classList.remove('produto-form-template');
         newForm.classList.add('produto-form');
-    
+
         const produtoForms = document.querySelectorAll(".produto-form");
         let totalForms = document.getElementById("id_itens_venda-TOTAL_FORMS");
         let formIndex = produtoForms.length;
-    
+
         newForm.innerHTML = newForm.innerHTML.replace(/__prefix__/g, formIndex);
-    
-        // Limpar os valores dos campos clonados
+
         let formInputs = newForm.querySelectorAll('input, select, textarea');
         formInputs.forEach(input => {
             input.value = '';
         });
-    
+
         totalForms.value = formIndex + 1;
-    
-        // Adicionar botão de remover
+
         const removeButton = document.createElement('button');
         removeButton.type = "button";
         removeButton.classList.add("btn", "btn-danger", "btn-sm", "remove-produto", 'mt-3');
         removeButton.textContent = "Remover";
         removeButton.onclick = () => removerProduto(removeButton);
         newForm.appendChild(removeButton);
-    
+
         const produtosContainer = document.getElementById("produtos");
         produtosContainer.appendChild(newForm);
-        newForm.style.display = ''; // Certifique-se de que o formulário está visível
-    
-        // Configurar o novo formulário
+        newForm.style.display = '';
+
         configurarProdutoForm(newForm);
+        console.log('Produto adicionado:', newForm);
     }
 
+    // Função para remover um formulário de produto
     function removerProduto(button) {
         const produtoForm = button.closest('.produto-form');
         produtoForm.remove();
 
-        // Atualizar TOTAL_FORMS
         const totalForms = document.getElementById("id_itens_venda-TOTAL_FORMS");
         totalForms.value = document.querySelectorAll(".produto-form").length;
+
+        console.log('Produto removido:', produtoForm);
     }
 
-    // Substituir o botão para adicionar produtos
+    // Configura o botão para adicionar produtos
     document.getElementById('add-produto').onclick = adicionarProduto;
 });
 
-
 </script>
+
 <script>
   function adicionarPagamento() {
     const emptyForm = document.querySelector("#pagamento-empty-form .pagamento-form-template");

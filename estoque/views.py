@@ -1,6 +1,7 @@
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
+from django.views import View
 from django.views.generic import ListView, CreateView, DetailView, UpdateView
 # from estoque.forms import EntradaForm
 from estoque.models import EntradaEstoque, Estoque, EstoqueImei, ProdutoEntrada
@@ -161,3 +162,17 @@ def check_produtos(request, produto_id):
     else:
         return JsonResponse({'serializado': False})
     
+
+class EstoqueImeiSearchView(View):
+    def get(self, request, *args, **kwargs):
+        term = request.GET.get('term', '')  # Valor digitado no campo de busca
+        loja_id = request.session.get('loja_id')
+        loja = get_object_or_404(Loja, pk=loja_id)
+        queryset = EstoqueImei.objects.filter(vendido=False, loja=loja).filter(
+            Q(imei__icontains=term) | Q(produto__nome__icontains=term)
+        )
+        results = [
+            {'id': obj.imei, 'text': f'{obj.imei} - {obj.produto.nome}'} for obj in queryset
+        ]
+        print(results)
+        return JsonResponse({'results': results})

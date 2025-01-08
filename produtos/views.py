@@ -63,7 +63,7 @@ def generate_views(modelo, form=None, paginacao=10, template_dir=''):
         form_class = form
         template_name = f'{template_dir}/{modelo._meta.model_name}_edit.html'
         success_url = f'/{modelo._meta.model_name}'
-        PermissionRequiredMixin = f'{modelo._meta.app_label}.change_{modelo._meta.model_name}'
+        permission_required = f'{modelo._meta.app_label}.change_{modelo._meta.model_name}'
 
         def get_form_kwargs(self):
             kwargs = super().get_form_kwargs()

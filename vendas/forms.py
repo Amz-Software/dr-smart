@@ -5,7 +5,7 @@ from estoque.models import Estoque, EstoqueImei
 from produtos.models import Produto
 from .models import *
 from django_select2.forms import Select2Widget, ModelSelect2Widget
-from django_select2.forms import ModelSelect2MultipleWidget
+from django_select2.forms import ModelSelect2MultipleWidget, HeavySelect2Widget
 from django_select2 import forms as s2forms
 
 
@@ -171,25 +171,47 @@ class VendaForm(forms.ModelForm):
             'observacao': 'Observação',
         }
 
-class EstoqueImeiSelectWidget(ModelSelect2Widget):
-    search_fields = ['imei__icontains', 'produto__nome__icontains']
+class EstoqueImeiSelectWidget(HeavySelect2Widget):
+    data_view = 'estoque:estoque-imei-search'
+
+class ProdutoSelectWidget(HeavySelect2Widget):
+    data_view = 'vendas:produtos_ajax'
 
 
 class ProdutoVendaForm(forms.ModelForm):
+            
+            
     valor_total = forms.DecimalField(label='Valor Total', disabled=True, required=False, widget=forms.NumberInput(attrs={'class': 'form-control', 'readonly': 'readonly'}))
     imei = forms.ModelChoiceField(
         queryset=EstoqueImei.objects.filter(vendido=False),
         label='imei',
         required=False,
         empty_label='Digite o IMEI ou o nome do produto',
-        widget=EstoqueImeiSelectWidget(attrs={'class': 'form-control'})
+        widget=EstoqueImeiSelectWidget(
+            max_results=10,
+            attrs={
+            'data-minimum-input-length': '0',
+            'class': 'form-control'
+            })
     )
+    produto = forms.ModelChoiceField(
+        queryset=Produto.objects.all(),
+        label="Produto",
+        widget=ProdutoSelectWidget(
+            max_results=10,
+            attrs={
+                'class': 'form-control',
+                'data-minimum-input-length': '0',
+                },
+        )
+        
+    )       
+            
     class Meta:
         model = ProdutoVenda
         fields = '__all__'
         exclude = ['loja', 'venda']
         widgets = {
-            'produto': forms.Select(attrs={'class': 'form-control'}),
             'valor_unitario': forms.NumberInput(attrs={'class': 'form-control'}),
             'quantidade': forms.NumberInput(attrs={'class': 'form-control'}),
             'valor_desconto': forms.NumberInput(attrs={'class': 'form-control'}),
@@ -212,7 +234,6 @@ class ProdutoVendaForm(forms.ModelForm):
                 )
             )
         )
-
 
 class PagamentoForm(forms.ModelForm):
     valor_parcela = forms.DecimalField(label='Valor Parcela', disabled=True, required=False, widget=forms.NumberInput(attrs={'class': 'form-control', 'readonly': 'readonly'}))

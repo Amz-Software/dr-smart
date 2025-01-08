@@ -57,4 +57,7 @@ urlpatterns = [
     
     path('info-products/', product_information, name='info_produto'),
     path('info-payment/', get_payment_method , name='payment_data'),
+    
+    path('select2/fields/auto.json', ProdutoAutoComplete.as_view(), name='produto-autocomplete'),
+    path('produtos/ajax/', get_produtos, name='produtos_ajax'),
 ]

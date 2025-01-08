@@ -273,10 +273,15 @@ class VendaCreateView(PermissionRequiredMixin, CreateView):
                         quantidade = produto_venda.cleaned_data.get('quantidade')
                         imei = produto_venda.cleaned_data.get('imei')
 
-                        loja = self.request.session.get('loja_id')
-                        produto = Produto.objects.select_related('estoque_atual').get(id=produto.id)
+                        loja_id = self.request.session.get('loja_id')
+                        loja = Loja.objects.get(id=loja_id)
+                        
+                        produto = Produto.objects.get(id=produto.id)
+                        
+                        estoque = Estoque.objects.filter(produto=produto, loja=loja).first()
+                        print('estoque', estoque)
 
-                        if quantidade > produto.estoque_atual.quantidade_disponivel:
+                        if quantidade > estoque.quantidade_disponivel:
                             messages.warning(self.request, f'Quantidade de {produto} indisponível')
                             raise ValueError(f'Quantidade indisponível para {produto}')  # Forçar rollback
                         
@@ -293,7 +298,7 @@ class VendaCreateView(PermissionRequiredMixin, CreateView):
                                 raise ValueError(f'IMEI {imei} não encontrado')  # Forçar rollback
 
                         # Atualizar o estoque
-                        self.atualizar_estoque(produto, quantidade, loja)
+                        self.atualizar_estoque(produto, quantidade, loja.id)
                     
                     produto_venda_formset.save()
 
@@ -313,7 +318,8 @@ class VendaCreateView(PermissionRequiredMixin, CreateView):
     def atualizar_estoque(self, produto, quantidade, loja_id):
         try:
             loja = get_object_or_404(Loja, id=loja_id)
-            estoque = Estoque.objects.get(produto=produto, loja=loja)
+            estoque = Estoque.objects.filter(produto=produto, loja=loja).first()
+            print('estoque', estoque)
             if quantidade > estoque.quantidade_disponivel:
                 raise ValueError(f'Estoque insuficiente para o produto {produto.nome}')
             estoque.remover_estoque(quantidade)
@@ -406,17 +412,21 @@ def product_information(request):
     product_id = request.GET.get('product_id')
     imei = request.GET.get('imei')
     product = get_object_or_404(Produto, id=product_id)
+    loja = get_object_or_404(Loja, id=request.session.get('loja_id'))
     if imei:    
         try:
             product_imei = EstoqueImei.objects.get(imei=imei, produto=product)
             if product_imei.vendido:
                 return JsonResponse({'status': 'error', 'message': 'IMEI já vendido'}, status=400)
             else:
-                return JsonResponse({'status': 'success', 'product': product.nome, 'price': product.estoque_atual.preco_medio()})
+                return JsonResponse({'status': 'success', 'product': product.nome, 'price': product_imei.produto_entrada.venda_unitaria})
         except EstoqueImei.DoesNotExist:
             return JsonResponse({'status': 'error', 'message': 'IMEI não encontrado'}, status=404)
     else:
-        return JsonResponse({'status': 'success', 'product': product.nome, 'price': product.estoque_atual.preco_medio()})
+        estoque = Estoque.objects.get(produto=product, loja=loja)
+        if not estoque:
+            return JsonResponse({'status': 'error', 'message': 'Estoque não encontrado'}, status=404)
+        return JsonResponse({'status': 'success', 'product': product.nome, 'price': estoque.preco_medio()})
     
 
 def get_payment_method(request):
@@ -433,3 +443,16 @@ def get_payment_method(request):
 
 
 
+from django_select2.views import AutoResponseView
+
+class ProdutoAutoComplete(AutoResponseView):
+    def get_queryset(self):
+        return Produto.objects.all()
+    
+    
+def get_produtos(request):
+    loja_id = request.session.get('loja_id')
+    loja = get_object_or_404(Loja, id=loja_id)
+    produtos = Produto.objects.filter(estoque_atual__loja_id=loja_id, estoque_atual__quantidade_disponivel__gt=0, loja=loja).distinct()
+    produtos_data = [{'id': produto.id, 'text': produto.nome} for produto in produtos]
+    return JsonResponse({'results': produtos_data})
