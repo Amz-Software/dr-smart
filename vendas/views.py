@@ -1,4 +1,5 @@
 from datetime import datetime
+import json
 from typing import Any
 from django.contrib import messages
 from django.http import Http404, JsonResponse
@@ -402,6 +403,15 @@ class LojaDetailView(PermissionRequiredMixin, DetailView):
     model = Loja
     template_name = 'loja/loja_detail.html'
     permission_required = 'vendas.view_loja'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        loja = self.object
+        contrato = loja.contrato
+        ## transformar em json o contrato
+        contrato_json = json.dumps(contrato)
+        context['contrato'] = contrato_json
+        return context
     
 
 def product_information(request):
