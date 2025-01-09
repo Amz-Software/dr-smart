@@ -45,17 +45,21 @@ def atualizar_estoque_entrada(instance, created, **kwargs):
 #         estoque.save()
 
 
-# ATUALIZAR ESTOQUE APÓS VENDA
-@receiver(post_save, sender=ProdutoVenda)
-def atualizar_estoque_venda(sender, instance, created, **kwargs):
-    if created:
-        estoque = Estoque.objects.get(produto=instance.produto)
-        try:
-            estoque.remover_estoque(instance.quantidade)
-        except ValueError:
-            raise ValidationError(f"Estoque insuficiente para o produto {instance.produto.nome}.")
+# # ATUALIZAR ESTOQUE APÓS VENDA
+# @receiver(post_save, sender=ProdutoVenda)
+# def atualizar_estoque_venda(sender, instance, created, **kwargs):
+#     if created:
+#         print('Pos - signal', instance)
+#         print('Pos - signal', instance.produto)
+#         print('Pos - signal', instance.loja)
+#         estoque = Estoque.objects.filter(produto=instance.produto, loja=instance.loja).first()
+#         print(estoque)
+#         try:
+#             estoque.remover_estoque(instance.quantidade)
+#         except ValueError:
+#             raise ValidationError(f"Estoque insuficiente para o produto {instance.produto.nome}.")
 
 @receiver(post_delete, sender=ProdutoVenda)
 def atualizar_estoque_deletar_venda(sender, instance, **kwargs):
-    estoque = Estoque.objects.get(produto=instance.produto)
+    estoque = Estoque.objects.filter(produto=instance.produto, loja=instance.loja).first()
     estoque.adicionar_estoque(instance.quantidade)

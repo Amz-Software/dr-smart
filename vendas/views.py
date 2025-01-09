@@ -248,84 +248,75 @@ class VendaCreateView(PermissionRequiredMixin, CreateView):
         context = self.get_context_data()
         produto_venda_formset = context['produto_venda_formset']
         pagamento_formset = context['pagamento_formset']
-        
-        if produto_venda_formset.is_valid() and pagamento_formset.is_valid() and form.is_valid():
-            is_caixa_aberto = Caixa.caixa_aberto(localtime(now()).date())
 
-            if not is_caixa_aberto:
-                messages.warning(self.request, 'Não é possível realizar vendas com o caixa fechado')
-                return self.form_invalid(form)
-            
-            # Iniciar uma transação atômica
-            try:
-                with transaction.atomic():
-                    form.instance.criado_por = self.request.user
-                    form.instance.modificado_por = self.request.user
-                    form.instance.caixa = Caixa.objects.get(data_abertura=localtime(now()).date())
-                    form.instance.data_venda = localtime(now())
-                    self.object = form.save()
+        if not (produto_venda_formset.is_valid() and pagamento_formset.is_valid() and form.is_valid()):
+            return self.form_invalid(form)
 
-                    # Salvar produtos da venda
-                    produto_venda_formset.instance = self.object
+        if not Caixa.caixa_aberto(localtime(now()).date()):
+            messages.warning(self.request, 'Não é possível realizar vendas com o caixa fechado')
+            return self.form_invalid(form)
 
-                    for produto_venda in produto_venda_formset:
-                        produto = produto_venda.cleaned_data.get('produto')
-                        quantidade = produto_venda.cleaned_data.get('quantidade')
-                        imei = produto_venda.cleaned_data.get('imei')
+        loja = Loja.objects.get(id=self.request.session.get('loja_id'))
 
-                        loja_id = self.request.session.get('loja_id')
-                        loja = Loja.objects.get(id=loja_id)
-                        
-                        produto = Produto.objects.get(id=produto.id)
-                        
-                        estoque = Estoque.objects.filter(produto=produto, loja=loja).first()
-                        print('estoque', estoque)
-
-                        if quantidade > estoque.quantidade_disponivel:
-                            messages.warning(self.request, f'Quantidade de {produto} indisponível')
-                            raise ValueError(f'Quantidade indisponível para {produto}')  # Forçar rollback
-                        
-                        if produto.tipo.numero_serial:    
-                            try:
-                                produto_imei = EstoqueImei.objects.get(imei=imei, produto=produto)
-                                if produto_imei.vendido:
-                                    messages.warning(self.request, f'IMEI {imei} já vendido')
-                                    raise ValueError(f'IMEI {imei} já vendido')  # Forçar rollback
-                                produto_imei.vendido = True
-                                produto_imei.save()
-                            except EstoqueImei.DoesNotExist:
-                                messages.warning(self.request, f'IMEI {imei} não encontrado')
-                                raise ValueError(f'IMEI {imei} não encontrado')  # Forçar rollback
-
-                        # Atualizar o estoque
-                        self.atualizar_estoque(produto, quantidade, loja.id)
-                    
-                    produto_venda_formset.save()
-
-                    # Salvar pagamentos
-                    pagamento_formset.instance = self.object
-                    pagamento_formset.save()
-
-                return super().form_valid(form)
-
-            except Exception as e:
-                # Garantir rollback e exibir erro genérico
-                messages.error(self.request, f"Erro ao processar a venda: {str(e)}")
-                return self.form_invalid(form)
-        
-        return self.form_invalid(form)
-
-    def atualizar_estoque(self, produto, quantidade, loja_id):
         try:
-            loja = get_object_or_404(Loja, id=loja_id)
-            estoque = Estoque.objects.filter(produto=produto, loja=loja).first()
-            print('estoque', estoque)
-            if quantidade > estoque.quantidade_disponivel:
-                raise ValueError(f'Estoque insuficiente para o produto {produto.nome}')
+            with transaction.atomic():
+                self._salvar_venda(form, loja)
+                self._processar_produtos(produto_venda_formset, loja)
+                self._processar_pagamentos(pagamento_formset, loja)
+            return super().form_valid(form)
+        except Exception as e:
+            messages.error(self.request, f"Erro ao processar a venda: {str(e)}")
+            return self.form_invalid(form)
+
+    def _salvar_venda(self, form, loja):
+        form.instance.loja = loja
+        form.instance.criado_por = self.request.user
+        form.instance.modificado_por = self.request.user
+        form.instance.caixa = Caixa.objects.get(data_abertura=localtime(now()).date())
+        form.instance.data_venda = localtime(now())
+        self.object = form.save()
+
+    def _processar_produtos(self, formset, loja):
+        for produto_venda in formset.save(commit=False):
+            produto = produto_venda.produto
+            quantidade = produto_venda.quantidade
+            imei = produto_venda.imei
+
+            self._validar_estoque(produto, quantidade, loja)
+            if produto.tipo.numero_serial:
+                self._validar_imei(produto, imei)
+            self._atualizar_estoque(produto, quantidade, loja)
+
+            produto_venda.venda = self.object
+            produto_venda.loja = loja
+            produto_venda.save()
+
+    def _validar_estoque(self, produto, quantidade, loja):
+        estoque = Estoque.objects.filter(produto=produto, loja=loja).first()
+        if not estoque or quantidade > estoque.quantidade_disponivel:
+            raise ValueError(f"Quantidade indisponível para o produto {produto}")
+
+    def _validar_imei(self, produto, imei):
+        try:
+            produto_imei = EstoqueImei.objects.get(imei=imei, produto=produto)
+            if produto_imei.vendido:
+                raise ValueError(f"IMEI {imei} já vendido")
+            produto_imei.vendido = True
+            produto_imei.save()
+        except EstoqueImei.DoesNotExist:
+            raise ValueError(f"IMEI {imei} não encontrado")
+
+    def _atualizar_estoque(self, produto, quantidade, loja):
+        estoque = Estoque.objects.filter(produto=produto, loja=loja).first()
+        if estoque:
             estoque.remover_estoque(quantidade)
             estoque.save()
-        except Estoque.DoesNotExist:
-            raise ValueError(f'Estoque não encontrado para o produto {produto.nome} na loja {loja.nome}')
+
+    def _processar_pagamentos(self, formset, loja):
+        for pagamento in formset.save(commit=False):
+            pagamento.venda = self.object
+            pagamento.loja = loja
+            pagamento.save()
 
 
 class VendaDetailView(PermissionRequiredMixin, DetailView):

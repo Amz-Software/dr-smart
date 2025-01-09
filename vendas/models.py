@@ -157,7 +157,7 @@ class Venda(Base):
         verbose_name_plural = 'Vendas'
         
 
-class ProdutoVenda(models.Model):
+class ProdutoVenda(Base):
     produto = models.ForeignKey('produtos.Produto', on_delete=models.PROTECT, related_name='produto_vendas')
     imei = models.CharField(max_length=100, null=True, blank=True)
     valor_unitario = models.DecimalField(max_digits=10, decimal_places=2)
