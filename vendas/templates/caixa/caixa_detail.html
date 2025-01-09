@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static iam_tags %}
 {% block title %}
 Caixa {{ caixa.data_abertura|date:"d/m/Y" }}
 {% endblock title %}
@@ -34,12 +35,13 @@ Caixa {{ caixa.data_abertura|date:"d/m/Y" }}
     </div>
   </div>
 
-  <div class="row mb-3">
+  <div class="row mb-3">    
     <div class="col-12">
       <div class="card">
         <div class="card-header">
           <h4 class="card-title">Lançamentos</h4>
         </div>
+        {% if user|has_perm:"add_lancamentocaixa" %}
         <form method="post">
           {% csrf_token %}
           <div class="card-body">
@@ -57,12 +59,13 @@ Caixa {{ caixa.data_abertura|date:"d/m/Y" }}
               {% endfor %}
               <div class="col-md-4">
                 <div class="form-group mt-4">
-                  <button type="submit" class="btn btn-primary">Adicionar</button>
+                    <button type="submit" class="btn btn-primary">Adicionar</button>
                 </div>
               </div>
             </div>
           </div>
         </form>
+        {% endif %}
 
         <div class="card-body">
           <table class="table table-striped">
@@ -81,9 +84,11 @@ Caixa {{ caixa.data_abertura|date:"d/m/Y" }}
                 <td>{{ lançamento.get_tipo_lancamento_display }}</td>
                 <td>{{ lançamento.valor }}</td>
                 <td>
+                  {% if user|has_perm:"delete_lancamentocaixa" %}
                   <a href='{% url "vendas:lancamento_delete" lançamento.id %}' class="btn btn-danger">
                     <i class="bx bx-trash"></i>
                   </a>
+                  {% endif %}
                 </td>
               </tr>
               {% endfor %}
