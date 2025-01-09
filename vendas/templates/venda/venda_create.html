@@ -107,7 +107,6 @@ Criar Venda
 {% endblock %}
 
 {% block extra_scripts %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 {{ produto_venda_formset.media.js }}
 <script>
 
@@ -184,22 +183,26 @@ Criar Venda
 
                         // Configurando Select2 para o campo IMEI
                         $(imeiField).select2({
-                            ajax: {
-                                url: `/info-products/imei/${produtoId}/`,
-                                dataType: 'json',
-                                delay: 250,
-                                processResults: function (data) {
-                                    return {
-                                        results: data.map(item => ({
-                                            id: item.id,
-                                            text: item.text,
-                                        })),
-                                    };
-                                },
-                            },
-                            placeholder: "Selecione o IMEI",
-                            allowClear: true,
-                        });
+                          ajax: {
+                              url: `/info-products/imei/${produtoId}/`,
+                              dataType: 'json',
+                              delay: 250,
+                              data: function (params) {
+                                  return {
+                                      term: params.term,
+                                      produto_id: produtoId
+                                  };
+                              },
+                              processResults: function (data) {
+                                  return {
+                                      results: data.results
+                                  };
+                              },
+                              cache: true
+                          },
+                          placeholder: "Selecione o IMEI",
+                          allowClear: true,
+                      });
 
                         // Evento de seleção no campo IMEI
                         $(imeiField).on('select2:select', function (e) {

@@ -162,17 +162,21 @@ def check_produtos(request, produto_id):
     else:
         return JsonResponse({'serializado': False})
     
-
+    
 class EstoqueImeiSearchView(View):
     def get(self, request, *args, **kwargs):
-        term = request.GET.get('term', '')  # Valor digitado no campo de busca
-        loja_id = request.session.get('loja_id')
-        loja = get_object_or_404(Loja, pk=loja_id)
-        queryset = EstoqueImei.objects.filter(vendido=False, loja=loja).filter(
+        term = request.GET.get('term', '')
+        produto_id = request.GET.get('produto_id', None)
+        queryset = EstoqueImei.objects.filter(vendido=False).filter(
             Q(imei__icontains=term) | Q(produto__nome__icontains=term)
         )
-        results = [
-            {'id': obj.imei, 'text': f'{obj.imei} - {obj.produto.nome}'} for obj in queryset
-        ]
-        print(results)
+        if produto_id:
+            queryset = queryset.filter(produto_id=produto_id)
+        
+        results = []
+        for imei in queryset:
+            results.append({
+                'id': imei.imei,
+                'text': f"{imei.imei} - {imei.produto.nome}"
+            })
         return JsonResponse({'results': results})

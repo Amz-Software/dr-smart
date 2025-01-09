@@ -412,10 +412,11 @@ def product_information(request):
     product_id = request.GET.get('product_id')
     imei = request.GET.get('imei')
     product = get_object_or_404(Produto, id=product_id)
+    print('product', product)
     loja = get_object_or_404(Loja, id=request.session.get('loja_id'))
     if imei:    
         try:
-            product_imei = EstoqueImei.objects.get(imei=imei, produto=product)
+            product_imei = EstoqueImei.objects.filter(imei=imei, produto=product, loja=loja).first()
             if product_imei.vendido:
                 return JsonResponse({'status': 'error', 'message': 'IMEI já vendido'}, status=400)
             else:
@@ -423,7 +424,7 @@ def product_information(request):
         except EstoqueImei.DoesNotExist:
             return JsonResponse({'status': 'error', 'message': 'IMEI não encontrado'}, status=404)
     else:
-        estoque = Estoque.objects.get(produto=product, loja=loja)
+        estoque = Estoque.objects.filter(produto=product, loja=loja).first()
         if not estoque:
             return JsonResponse({'status': 'error', 'message': 'Estoque não encontrado'}, status=404)
         return JsonResponse({'status': 'success', 'product': product.nome, 'price': estoque.preco_medio()})

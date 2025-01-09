@@ -179,20 +179,18 @@ class ProdutoSelectWidget(HeavySelect2Widget):
 
 
 class ProdutoVendaForm(forms.ModelForm):
-            
-            
     valor_total = forms.DecimalField(label='Valor Total', disabled=True, required=False, widget=forms.NumberInput(attrs={'class': 'form-control', 'readonly': 'readonly'}))
     imei = forms.ModelChoiceField(
         queryset=EstoqueImei.objects.filter(vendido=False),
         label='imei',
         required=False,
-        empty_label='Digite o IMEI ou o nome do produto',
         widget=EstoqueImeiSelectWidget(
             max_results=10,
             attrs={
-            'data-minimum-input-length': '0',
-            'class': 'form-control'
-            })
+                'class': 'form-control',
+                'data-minimum-input-length': '0',
+            }
+        )
     )
     produto = forms.ModelChoiceField(
         queryset=Produto.objects.all(),
@@ -202,6 +200,8 @@ class ProdutoVendaForm(forms.ModelForm):
             attrs={
                 'class': 'form-control',
                 'data-minimum-input-length': '0',
+                'data-placeholder': 'Selecione um produto',
+                'allowClear': 'true',
                 },
         )
         
