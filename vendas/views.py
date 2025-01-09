@@ -385,6 +385,11 @@ class LojaUpdateView(PermissionRequiredMixin, UpdateView):
     template_name = 'loja/loja_form.html'
     permission_required = 'vendas.change_loja'
     
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user_loja'] = self.request.session.get('loja_id')
+        return kwargs
+
     def form_valid(self, form):
         messages.success(self.request, 'Loja atualizada com sucesso')
         return super().form_valid(form)

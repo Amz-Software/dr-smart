@@ -77,7 +77,7 @@ class Loja(Base):
     entrada_caixa_diaria = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     logo_loja = models.ImageField(upload_to='logos_lojas/', null=True, blank=True)
     mensagem_garantia = models.TextField(null=True, blank=True)
-    contrato = models.TextField(null=True, blank=True)
+    contrato = models.JSONField(null=True, blank=True, default=dict)
     usuarios = models.ManyToManyField('accounts.User', related_name='lojas')
 
     

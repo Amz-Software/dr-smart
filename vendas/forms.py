@@ -309,3 +309,23 @@ class LojaForm(forms.ModelForm):
         widget=UsuarioSelectWidget(attrs={'class': 'form-control'}),
         required=False
     )
+
+    def __init__(self, *args, **kwargs):
+        # Recupera o ID da loja passada como parâmetro
+        user_loja_id = kwargs.pop('user_loja', None)
+        super().__init__(*args, **kwargs)
+        # Define o valor inicial do campo 'loja' se o ID foi fornecido
+        if user_loja_id:
+            self.fields['loja'].initial = Loja.objects.get(id=user_loja_id)
+
+    def save(self, commit=True):
+        # Obtém a instância sem salvar imediatamente
+        instance = super().save(commit=False)
+        # Atribui o valor da loja ao objeto salvo
+        if not instance.loja:
+            instance.loja = self.fields['loja'].initial
+        # Salva a instância, se necessário
+        if commit:
+            instance.save()
+            self.save_m2m()
+        return instance
