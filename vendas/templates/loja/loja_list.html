@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}
+Lojas
+{% endblock title %}
+
+{% block content %}
+
+<div class="container-xxl mt-4">
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h4 class="card-title">Lojas</h4>
+          <div>
+            <form action="" method="get" class="d-inline-block me-2" id="searchForm">
+              <div class="input-group">
+                <input type="text" name="search" class="form-control" placeholder="Buscar por nome" value="{{ request.GET.search }}" onchange="this.form.submit()">
+                <a href="{% url 'vendas:loja_list' %}" class="btn btn-outline-secondary">
+                  <i class="bx bx-x"></i>
+                </a>
+              </div>
+            </form>
+            <a href="{% url 'vendas:loja_create' %}" class="btn btn-primary">
+              <i class="bx bx-plus me-1"></i> Criar Loja
+            </a>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th scope="col">Nome</th>
+                  <th scope="col">CNPJ</th>
+                  <th scope="col">Telefone</th>
+                  <th scope="col">Endereço</th>
+                  <th scope="col">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for loja in lojas %}
+                <tr>
+                  <td>{{ loja.nome }}</td>
+                  <td>{{ loja.cnpj|default:"-" }}</td>
+                  <td>{{ loja.telefone|default:"-" }}</td>
+                  <td>{{ loja.endereco|default:"-" }}</td>
+                  <td>
+                    <div class="dropdown">
+                      <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+                        <i class="bx bx-dots-vertical-rounded"></i>
+                      </button>
+                      <div class="dropdown-menu">
+                        <a class="dropdown-item" href="{% url 'vendas:loja_detail' loja.pk %}">
+                          <i class="bx bx-show me-1"></i> Detalhes
+                        </a>
+                        <a class="dropdown-item" href="{% url 'vendas:loja_update' loja.pk %}">
+                          <i class="bx bx-edit me-1"></i> Editar
+                        </a>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="5">Nenhum registro encontrado</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            {% include "snippets/pagination.html" %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

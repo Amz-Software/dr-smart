@@ -29,6 +29,11 @@
           <form id="formAuthentication" class="mb-3" method="post">
             {% csrf_token %}
             {{ form|crispy }}
+            <label for="id_loja" class="form-label">Loja*</label>
+              <select id="id_loja" name="loja" class="form-select mb-3" required>
+                <option value="">Selecione uma loja</option>
+                <!-- Este campo será preenchido dinamicamente pelo JavaScript -->
+            </select>
             <div class="mb-3">
               <button class="btn btn-primary d-grid w-100" type="submit">Entrar</button>
             </div>
@@ -45,4 +50,40 @@
     </div>
   </div>
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const usernameField = document.getElementById('id_username');
+    usernameField.addEventListener('change', buscarLojasUsername);
+  
+    async function buscarLojasUsername() {
+      const username = usernameField.value;
+      try {
+        const response = await fetch(`/buscar-lojas/?username=${username}`);
+        const data = await response.json();
+  
+        const selectLoja = document.getElementById('id_loja');
+        selectLoja.innerHTML = ''; // Limpa as opções anteriores
+  
+        if (data.lojas && data.lojas.length > 0) {
+          data.lojas.forEach(loja => {
+            const option = document.createElement('option');
+            option.value = loja.id;
+            option.text = loja.nome;
+            selectLoja.appendChild(option);
+          });
+        } else {
+          const option = document.createElement('option');
+          option.value = '';
+          option.text = 'Nenhuma loja encontrada';
+          selectLoja.appendChild(option);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar lojas:', error);
+      }
+    }
+  });
+  </script>
 {% endblock %}

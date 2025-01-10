@@ -48,19 +48,36 @@ class Caixa(Base):
     class Meta:
         verbose_name_plural = 'Caixas'
 
+class LancamentoCaixa(Base):
+    tipo_lancamento_opcoes = (
+        ('1', 'Crédito'),
+        ('2', 'Débito'),
+    )
+
+    caixa = models.ForeignKey('vendas.Caixa', on_delete=models.PROTECT, related_name='lancamentos_caixa')
+    motivo = models.CharField(max_length=100)
+    tipo_lancamento = models.CharField(max_length=1, choices=tipo_lancamento_opcoes)
+    valor = models.DecimalField(max_digits=10, decimal_places=2)
+    
+    def __str__(self):
+        return f"{self.tipo_lancamento} - R$ {self.valor}"
+    
+    class Meta:
+        verbose_name_plural = 'Lancamentos Caixa'
+
 
 class Loja(Base):
     nome = models.CharField(max_length=100)
     cnpj = models.CharField(max_length=14, null=True, blank=True)
-    endereco = models.CharField(max_length=200, null=True, blank=True)
     inscricao_estadual = models.CharField(max_length=20, null=True, blank=True)
+    endereco = models.CharField(max_length=200, null=True, blank=True)
     telefone = models.CharField(max_length=20, null=True, blank=True)
     meta_vendas_diaria = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     meta_vendas_mensal = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     entrada_caixa_diaria = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     logo_loja = models.ImageField(upload_to='logos_lojas/', null=True, blank=True)
     mensagem_garantia = models.TextField(null=True, blank=True)
-    contrato = models.TextField(null=True, blank=True)
+    contrato = models.JSONField(null=True, blank=True, default=dict)
     usuarios = models.ManyToManyField('accounts.User', related_name='lojas')
 
     
@@ -140,7 +157,7 @@ class Venda(Base):
         verbose_name_plural = 'Vendas'
         
 
-class ProdutoVenda(models.Model):
+class ProdutoVenda(Base):
     produto = models.ForeignKey('produtos.Produto', on_delete=models.PROTECT, related_name='produto_vendas')
     imei = models.CharField(max_length=100, null=True, blank=True)
     valor_unitario = models.DecimalField(max_digits=10, decimal_places=2)

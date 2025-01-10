@@ -1,3 +1,4 @@
+from django import http
 from django.contrib.auth.views import LoginView, logout_then_login, PasswordResetView,PasswordResetView, PasswordResetDoneView,PasswordResetConfirmView, PasswordResetCompleteView
 from django.contrib import messages
 from django.shortcuts import redirect
@@ -10,23 +11,27 @@ from django.db.models import Q
 from django.contrib.auth.models import Permission, Group
 from .forms import UserForm
 from .models import User
-
+from django.core.exceptions import ObjectDoesNotExist
 
 class LoginView(LoginView):
     template_name = 'login/login.html'
-    authentication_form = LoginForm
+    authentication_form = LoginForm  
 
     def form_valid(self, form):
-        loja = form.cleaned_data.get('loja')
+        # Capturar a loja do POST
+        loja_id = self.request.POST.get('loja')
         user = form.get_user()
-        if loja in user.lojas.all():
-            self.request.session['loja_id'] = loja.id
-            print(self.request.session['loja_id'])
-            return super().form_valid(form)
-        else:
-            messages.error(self.request, 'Você não tem permissão para acessar esta loja.')
-            return redirect('accounts:login')
+
+        # Validar se a loja é válida para o usuário
+        if loja_id:
+            try:
+                loja = Loja.objects.get(id=loja_id, usuarios=user)
+                self.request.session['loja_id'] = loja.id
+            except Loja.DoesNotExist:
+                messages.error(self.request, 'Loja inválida ou não permitida.')
+                return redirect('accounts:login')
         
+        return super().form_valid(form)
 
 def logout_view(request):
     messages.success(request, 'Você saiu do sistema.')
@@ -132,3 +137,15 @@ class UserListView(ListView):
             query = query.filter(Q(username__icontains=search) | Q(email__icontains=search))
 
         return query
+    
+def get_lojas_by_username(request):
+    username = request.GET.get('username')
+    if not username:
+        return http.JsonResponse({'error': 'Username não fornecido'}, status=400)
+
+    try:
+        user = User.objects.get(username=username)
+        lojas = list(Loja.objects.filter(usuarios=user).values())
+        return http.JsonResponse({'lojas': lojas})
+    except ObjectDoesNotExist:
+        return http.JsonResponse({'error': 'Usuário não encontrado'}, status=404)

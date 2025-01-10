@@ -46,7 +46,7 @@ class FornecedorForm(forms.ModelForm):
 class ProdutoEntradaForm(forms.ModelForm):
     class Meta:
         model = ProdutoEntrada
-        exclude = ['entrada', 'id']
+        exclude = ['loja', 'entrada', 'id']
 
 ProdutoEntradaFormSet = inlineformset_factory(
     EntradaEstoque, ProdutoEntrada, form=ProdutoEntradaForm, extra=1, can_delete=False
@@ -66,7 +66,7 @@ class EstoqueImeiForm(forms.ModelForm):
 
 ProdutoEntradaFormSet = modelformset_factory(
     ProdutoEntrada,
-    exclude=['entrada'],
+    exclude=['entrada', 'loja'],
     extra=1,
     can_delete=False
 )

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static iam_tags %}
 {% block title %}
 Estoque
 {% endblock title %}
@@ -72,7 +73,9 @@ Estoque
                     <tr>
                         <td>{{ produto.produto|title }}</td>
                         <td class="text-center">{{ produto.quantidade_disponivel }}</td>
-                        <td class="text-center">{{ produto.produto.total_vendas }}</td>
+                        <td class="text-center">
+                          {{ produto|total_vendas:loja_id }}
+                        </td>
                         <td class="text-center">{{ produto.preco_medio|floatformat:2 }}</td>
                         <!-- <td class="text-center">
                             <div class="dropdown">

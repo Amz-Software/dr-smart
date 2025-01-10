@@ -2,7 +2,7 @@ from django.db import models
 from vendas.models import Base
 
 class Produto(Base):
-    codigo = models.CharField(max_length=20, unique=True, blank=True, null=True)
+    codigo = models.IntegerField(unique=True, blank=True, null=True)
     nome = models.CharField(max_length=100)
     tipo = models.ForeignKey('produtos.TipoProduto', on_delete=models.PROTECT, related_name='produtos_tipo', null=True, blank=True)
     fabricante = models.ForeignKey('produtos.Fabricante', on_delete=models.PROTECT, related_name='produtos_fabricante')
@@ -11,20 +11,23 @@ class Produto(Base):
     estado = models.ForeignKey('produtos.EstadoProduto', on_delete=models.PROTECT, related_name='produtos_estado', blank=True, null=True)
     
     def gerar_codigo(self):
-        last_product = Produto.objects.all().order_by('id').last()
+        last_product = Produto.objects.all().order_by('codigo').last()
         if not last_product:
-            self.codigo = '1'
+            self.codigo = 1
         else:
-            self.codigo = str(int(last_product.codigo) + 1)
-            
+            self.codigo = last_product.codigo + 1
+
     def save(self, *args, **kwargs):
         if not self.codigo:
             self.gerar_codigo()
         super(Produto, self).save(*args, **kwargs)
+        
     
-    @property
-    def total_vendas(self):
-        return self.produto_vendas.count()
+    def total_vendas(self, loja_id=None):
+        print('no models:', loja_id)
+        if loja_id:
+            return self.produto_vendas.filter(venda__loja_id=loja_id).count()
+        return None
     
     def __str__(self):
         return f"{self.nome} ({self.codigo})"

@@ -11,6 +11,8 @@ from django.shortcuts import get_object_or_404
 from django.forms import modelformset_factory
 from django.http import HttpResponseRedirect
 from django.urls import reverse
+
+from vendas.views import BaseView
 from .models import CaixaMensal, CaixaMensalGastoFixo, CaixaMensalFuncionario, GastosAleatorios
 from financeiro.forms import GastosAleatoriosForm
 from vendas.models import Loja
@@ -23,7 +25,7 @@ from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.auth.decorators import permission_required
 
 
-class CaixaMensalListView(PermissionRequiredMixin, ListView):
+class CaixaMensalListView(BaseView, PermissionRequiredMixin, ListView):
     model = CaixaMensal
     template_name = 'caixa_mensal/caixa_mensal_list.html'
     context_object_name = 'caixas_mensais'
@@ -185,10 +187,11 @@ def reabrir_caixa_mensal(request, pk):
 
 #         return HttpResponseRedirect(self.object.get_absolute_url())
 
-class CaixaMensalDetailView(DetailView):
+class CaixaMensalDetailView(PermissionRequiredMixin, DetailView):
     model = CaixaMensal
     template_name = 'caixa_mensal/caixa_mensal_detail.html'
     context_object_name = 'caixa_mensal'
+    permission_required = 'financeiro.view_caixamensal'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -297,11 +300,12 @@ class CaixaMensalDetailView(DetailView):
             formset_gastos_aleatorios=formset_gastos_aleatorios
         ))
 
-class ContasAReceberListView(ListView):
+class ContasAReceberListView(BaseView, PermissionRequiredMixin, ListView):
     model = Pagamento
     template_name = 'contas_a_receber/contas_a_receber_list.html'
     context_object_name = 'contas_a_receber'
     paginate_by = 10
+    permission_required = 'financeiro.view_pagamento'
 
     def get_queryset(self):
         return Pagamento.objects.order_by('-criado_em')
@@ -325,10 +329,11 @@ class ContasAReceberListView(ListView):
         return "Em dia"
     
 
-class ContasAReceberDetailView(DetailView):
+class ContasAReceberDetailView(PermissionRequiredMixin, DetailView):
     model = Pagamento
     template_name = 'contas_a_receber/contas_a_receber_detail.html'
     context_object_name = 'conta_a_receber'
+    permission_required = 'financeiro.view_pagamento'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

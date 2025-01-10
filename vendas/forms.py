@@ -1,8 +1,12 @@
 from django import forms
 from django.db.models import Subquery, OuterRef, Exists
-from estoque.models import Estoque
+from accounts.models import User
+from estoque.models import Estoque, EstoqueImei
 from produtos.models import Produto
-from .models import Cliente, ContatoAdicional, Endereco, ComprovantesCliente, Pagamento, TipoPagamento, TipoEntrega, TipoVenda, Venda, ProdutoVenda
+from .models import *
+from django_select2.forms import Select2Widget, ModelSelect2Widget
+from django_select2.forms import ModelSelect2MultipleWidget, HeavySelect2Widget
+from django_select2 import forms as s2forms
 
 
 class ClienteForm(forms.ModelForm):
@@ -159,37 +163,70 @@ class VendaForm(forms.ModelForm):
             'tipo_entrega': forms.Select(attrs={'class': 'form-control'}),
             'observacao': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
-        
         labels = {
-            'cliente': 'Cliente',
-            'vendedor': 'Vendedor',
-            'tipo_venda': 'Tipo de Venda',
-            'tipo_entrega': 'Tipo de Entrega',
+            'cliente': 'Cliente*',
+            'vendedor': 'Vendedor*',
+            'tipo_venda': 'Tipo de Venda*',
+            'tipo_entrega': 'Tipo de Entrega*',
             'observacao': 'Observação',
         }
 
+class EstoqueImeiSelectWidget(HeavySelect2Widget):
+    data_view = 'estoque:estoque-imei-search'
+
+class ProdutoSelectWidget(HeavySelect2Widget):
+    data_view = 'vendas:produtos_ajax'
+
+
 class ProdutoVendaForm(forms.ModelForm):
     valor_total = forms.DecimalField(label='Valor Total', disabled=True, required=False, widget=forms.NumberInput(attrs={'class': 'form-control', 'readonly': 'readonly'}))
+    imei = forms.ModelChoiceField(
+        queryset=EstoqueImei.objects.filter(vendido=False),
+        label='imei',
+        required=False,
+        widget=EstoqueImeiSelectWidget(
+            max_results=10,
+            attrs={
+                'class': 'form-control',
+                'data-minimum-input-length': '0',
+            }
+        )
+    )
+    produto = forms.ModelChoiceField(
+        queryset=Produto.objects.all(),
+        label="Produto",
+        widget=ProdutoSelectWidget(
+            max_results=10,
+            attrs={
+                'class': 'form-control',
+                'data-minimum-input-length': '0',
+                'data-placeholder': 'Selecione um produto',
+                'allowClear': 'true',
+                },
+        )
+        
+    )       
+            
     class Meta:
         model = ProdutoVenda
         fields = '__all__'
         exclude = ['loja', 'venda']
         widgets = {
-            'produto': forms.Select(attrs={'class': 'form-control'}),
             'valor_unitario': forms.NumberInput(attrs={'class': 'form-control'}),
             'quantidade': forms.NumberInput(attrs={'class': 'form-control'}),
             'valor_desconto': forms.NumberInput(attrs={'class': 'form-control'}),
-            'imei': forms.TextInput(attrs={'class': 'form-control'}),
         }
         labels = {
-            'valor_unitario': 'Valor',
-            'valor_desconto': 'Desconto',
+            'valor_unitario': 'Valor*',
+            'valor_desconto': 'Desconto*',
+            'quantidade': 'Quantidade*', 
+            'produto': 'Produto*',
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Filtra apenas os produtos que estão em estoque (quantidade >  0)
-        self.fields['produto'].queryset = produtos = Produto.objects.filter(
+        self.fields['produto'].queryset = Produto.objects.filter(
             Exists(
                 Estoque.objects.filter(
                     produto=OuterRef('pk'),
@@ -197,7 +234,6 @@ class ProdutoVendaForm(forms.ModelForm):
                 )
             )
         )
-
 
 class PagamentoForm(forms.ModelForm):
     valor_parcela = forms.DecimalField(label='Valor Parcela', disabled=True, required=False, widget=forms.NumberInput(attrs={'class': 'form-control', 'readonly': 'readonly'}))
@@ -211,6 +247,85 @@ class PagamentoForm(forms.ModelForm):
             'parcelas': forms.NumberInput(attrs={'class': 'form-control'}),
             'data_primeira_parcela': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'date'}),
         }
+        labels = {
+            'tipo_pagamento': 'Tipo de Pagamento*',
+            'valor': 'Valor*',
+            'parcelas': 'Parcelas*',
+            'data_primeira_parcela': 'Data Primeira Parcela*',
+        }
+
+class LancamentoForm(forms.ModelForm):
+    class Meta:
+        model = LancamentoCaixa
+        fields = '__all__'
+        exclude = ['loja', 'caixa']
+        widgets = {
+            'motivo': forms.TextInput(attrs={'class': 'form-control'}),
+            'tipo_lancamento': forms.Select(attrs={'class': 'form-control'}),
+            'valor': forms.NumberInput(attrs={'class': 'form-control'}),
+        }
+        labels = {
+            'motivo': 'Motivo*',
+            'tipo_lancamento': 'Tipo de Lançamento*',
+            'valor': 'Valor*',
+        }
+    
+    def __init__(self, *args, disabled=False, **kwargs):
+        self.user = kwargs.pop('user', None)  # Pega o usuário que será passado pela view
+        super().__init__(*args, **kwargs)
+        if disabled:
+            for field in self.fields.values():
+                field.widget.attrs['disabled'] = True
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if self.user:  
+            if not instance.pk: 
+                instance.criado_por = self.user
+            instance.modificado_por = self.user 
+        if commit:
+            instance.save()
+        return instance
+        
 
 FormaPagamentoFormSet = forms.inlineformset_factory(Venda, Pagamento, form=PagamentoForm, extra=1, can_delete=False)
 ProdutoVendaFormSet = forms.inlineformset_factory(Venda, ProdutoVenda, form=ProdutoVendaForm, extra=1, can_delete=False)
+
+
+class UsuarioSelectWidget(ModelSelect2MultipleWidget):
+    search_fields = [
+        'username__icontains', 
+        'first_name__icontains', 
+        'last_name__icontains'
+    ]
+
+class LojaForm(forms.ModelForm):
+    class Meta:
+        model = Loja
+        fields = '__all__'
+
+    usuarios = forms.ModelMultipleChoiceField(
+        queryset=User.objects.all(),
+        widget=UsuarioSelectWidget(attrs={'class': 'form-control'}),
+        required=False
+    )
+
+    def __init__(self, *args, **kwargs):
+        # Recupera o ID da loja passada como parâmetro
+        user_loja_id = kwargs.pop('user_loja', None)
+        super().__init__(*args, **kwargs)
+        # Define o valor inicial do campo 'loja' se o ID foi fornecido
+        if user_loja_id:
+            self.fields['loja'].initial = Loja.objects.get(id=user_loja_id)
+
+    def save(self, commit=True):
+        # Obtém a instância sem salvar imediatamente
+        instance = super().save(commit=False)
+        # Atribui o valor da loja ao objeto salvo
+        if not instance.loja:
+            instance.loja = self.fields['loja'].initial
+        # Salva a instância, se necessário
+        if commit:
+            instance.save()
+            self.save_m2m()
+        return instance

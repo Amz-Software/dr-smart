@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}
+Detalhes da Loja
+{% endblock title %}
+
+{% block content %}
+
+<div class="container-xxl mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="card-title">Detalhes da Loja</h4>
+                    <a href="{% url 'vendas:loja_update' loja.pk %}" class="btn btn-primary">
+                        <i class="bx bx-edit me-1"></i> Editar Loja
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h5>Nome:</h5>
+                            <p>{{ loja.nome|default:"N/A" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>CNPJ:</h5>
+                            <p>{{ loja.cnpj|default:"N/A" }}</p>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h5>Telefone:</h5>
+                            <p>{{ loja.telefone|default:"N/A" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Endereço:</h5>
+                            <p>{{ loja.endereco|default:"N/A" }}</p>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h5>Meta de Vendas Diária:</h5>
+                            <p>{{ loja.meta_vendas_diaria|default:"N/A" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Meta de Vendas Mensal:</h5>
+                            <p>{{ loja.meta_vendas_mensal|default:"N/A" }}</p>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h5>Entrada de Caixa Diária:</h5>
+                            <p>{{ loja.entrada_caixa_diaria|default:"N/A" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Mensagem de Garantia:</h5>
+                            <p>{{ loja.mensagem_garantia|default:"N/A" }}</p>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <h5>Contrato:</h5>
+                            <div id="texto_contrato" data-texto="{{contrato}}" class="border p-3" style="max-height: 500px; overflow-y: auto;"></div>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <h5>Logo da Loja:</h5>
+                            {% if loja.logo_loja %}
+                            <img src="{{ loja.logo_loja.url }}" alt="Logo da Loja" class="img-fluid">
+                            {% else %}
+                            <p>Sem logo disponível</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <h5>Usuários da Loja:</h5>
+                            {% if loja.usuarios.all %}
+                                <ul class="list-group">
+                                    {% for usuario in loja.usuarios.all %}
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <span>{{ usuario.get_full_name|default:"Não Cadastrado" }}</span>
+                                            <span>{{ usuario.email|default:"Não Cadastrado" }}</span>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p>Nenhum usuário encontrado</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+{% block extra_scripts %}
+<script src="{% static 'js/formatarTextoEditor.js' %}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const divContrato = document.getElementById('texto_contrato');
+        const texto = divContrato.getAttribute('data-texto');
+        formatarTexto(texto, divContrato);
+    });
+</script>
+{% endblock %}

@@ -1,25 +1,44 @@
 from datetime import datetime
+import json
 from typing import Any
 from django.contrib import messages
-from django.http import JsonResponse
+from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
-from django.views.generic import TemplateView, ListView, DetailView, CreateView, DeleteView
+from django.views.generic import TemplateView, ListView, DetailView, CreateView, DeleteView, UpdateView, View
 from django.utils.timezone import localtime, now
 from estoque.models import Estoque, EstoqueImei
 from produtos.models import Produto
-from vendas.forms import ClienteForm, ComprovantesClienteForm, ContatoAdicionalForm, VendaForm, ProdutoVendaFormSet, FormaPagamentoFormSet
-from .models import Caixa, Cliente, Loja, Pagamento, ProdutoVenda, Venda
+from vendas.forms import ClienteForm, ComprovantesClienteForm, ContatoAdicionalForm, LojaForm, VendaForm, ProdutoVendaFormSet, FormaPagamentoFormSet, LancamentoForm
+from .models import Caixa, Cliente, Loja, Pagamento, ProdutoVenda, Venda, LancamentoCaixa
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.utils import timezone
 from django.db import transaction
+
+
+class BaseView(View):
+    def get_loja(self):
+        loja_id = self.request.session.get('loja_id')
+        if loja_id:
+            return get_object_or_404(Loja, id=loja_id)
+        return None
+
+    def get_queryset(self):
+        loja = self.get_loja()
+        if loja:
+            return super().get_queryset().filter(loja=loja)
+        
+        if not loja:
+            raise Http404("Loja não encontrada para o usuário.")
+
+        return super().get_queryset()
 
 
 class IndexView(LoginRequiredMixin, TemplateView):
     template_name = 'index.html'
     
 
-class CaixaListView(PermissionRequiredMixin, ListView):
+class CaixaListView(BaseView, PermissionRequiredMixin, ListView):
     model = Caixa
     template_name = 'caixa/caixa_list.html'
     context_object_name = 'caixas'
@@ -44,6 +63,7 @@ class CaixaListView(PermissionRequiredMixin, ListView):
                     data_abertura=today,
                     criado_por=request.user,
                     modificado_por=request.user,
+                    loja=Loja.objects.get(id=request.session.get('loja_id'))
                     )
                 messages.success(request, 'Caixa aberto com sucesso')
                 return redirect('vendas:caixa_list')
@@ -56,7 +76,7 @@ class CaixaListView(PermissionRequiredMixin, ListView):
         if fechar_caixa:
             today = timezone.localtime(timezone.now()).date()
             try:
-                caixa = Caixa.objects.get(id=fechar_caixa)
+                caixa = Caixa.objects.get(id=fechar_caixa, loja=request.session.get('loja_id'))
                 caixa.data_fechamento = today
                 caixa.save(user=request.user)
                 messages.success(request, 'Caixa fechado com sucesso')
@@ -76,10 +96,46 @@ class CaixaDetailView(PermissionRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['vendas'] = self.object.vendas.filter(is_deleted=False)
+        context['form_lancamento'] = LancamentoForm()
+        context['lancamentos'] = LancamentoCaixa.objects.filter(caixa=self.object)
         return context
+
+    def post(self, request, *args, **kwargs):
+        # Pegue o ID do caixa diretamente de kwargs
+        caixa_id = kwargs.get('pk')  # O parâmetro é chamado 'pk' na URL
+
+        try:
+            # Busque o objeto Caixa
+            caixa = Caixa.objects.get(id=caixa_id)
+        except Caixa.DoesNotExist:
+            messages.error(request, 'Erro: Caixa não existe.')
+            return redirect('vendas:caixa_list')  # Ajuste conforme sua necessidade
+
+        # Instancie o formulário com os dados do POST
+        form = LancamentoForm(request.POST, user=request.user)
+
+        if form.is_valid():
+            # Salve o formulário e associe ao caixa
+            lancamento = form.save(commit=False)
+            lancamento.caixa = caixa
+            lancamento.save()
+            messages.success(request, 'Lançamento realizado com sucesso')
+            return redirect('vendas:caixa_detail', pk=caixa_id)
+
+        # Caso o formulário seja inválido
+        messages.error(request, 'Erro ao realizar lançamento')
+        return self.get(request, *args, **kwargs)
     
 
-class ClienteListView(PermissionRequiredMixin, ListView):
+def lancamento_delete_view(request, pk):
+    lancamento = get_object_or_404(LancamentoCaixa, id=pk)
+    caixa_id = lancamento.caixa.id
+    lancamento.delete()
+    messages.success(request, 'Lançamento excluído com sucesso')
+    return redirect('vendas:caixa_detail', pk=caixa_id)
+    
+
+class ClienteListView(BaseView, PermissionRequiredMixin, ListView):
     model = Cliente
     template_name = 'cliente/cliente_list.html'
     context_object_name = 'items'
@@ -157,7 +213,7 @@ def cliente_editar_view(request):
         'cliente_id': cliente_id,
     })
 
-class VendaListView(PermissionRequiredMixin, ListView):
+class VendaListView(BaseView, PermissionRequiredMixin, ListView):
     model = Venda
     template_name = 'venda/venda_list.html'
     context_object_name = 'vendas'
@@ -193,78 +249,75 @@ class VendaCreateView(PermissionRequiredMixin, CreateView):
         context = self.get_context_data()
         produto_venda_formset = context['produto_venda_formset']
         pagamento_formset = context['pagamento_formset']
-        
-        if produto_venda_formset.is_valid() and pagamento_formset.is_valid() and form.is_valid():
-            is_caixa_aberto = Caixa.caixa_aberto(localtime(now()).date())
 
-            if not is_caixa_aberto:
-                messages.warning(self.request, 'Não é possível realizar vendas com o caixa fechado')
-                return self.form_invalid(form)
-            
-            # Iniciar uma transação atômica
-            try:
-                with transaction.atomic():
-                    form.instance.criado_por = self.request.user
-                    form.instance.modificado_por = self.request.user
-                    form.instance.caixa = Caixa.objects.get(data_abertura=localtime(now()).date())
-                    form.instance.data_venda = localtime(now())
-                    self.object = form.save()
+        if not (produto_venda_formset.is_valid() and pagamento_formset.is_valid() and form.is_valid()):
+            return self.form_invalid(form)
 
-                    # Salvar produtos da venda
-                    produto_venda_formset.instance = self.object
+        if not Caixa.caixa_aberto(localtime(now()).date()):
+            messages.warning(self.request, 'Não é possível realizar vendas com o caixa fechado')
+            return self.form_invalid(form)
 
-                    for produto_venda in produto_venda_formset:
-                        produto = produto_venda.cleaned_data.get('produto')
-                        quantidade = produto_venda.cleaned_data.get('quantidade')
-                        imei = produto_venda.cleaned_data.get('imei')
+        loja = Loja.objects.get(id=self.request.session.get('loja_id'))
 
-                        loja = self.request.session.get('loja_id')
-                        produto = Produto.objects.select_related('estoque_atual').get(id=produto.id)
-
-                        if quantidade > produto.estoque_atual.quantidade_disponivel:
-                            messages.warning(self.request, f'Quantidade de {produto} indisponível')
-                            raise ValueError(f'Quantidade indisponível para {produto}')  # Forçar rollback
-                        
-                        if produto.tipo.numero_serial:    
-                            try:
-                                produto_imei = EstoqueImei.objects.get(imei=imei, produto=produto)
-                                if produto_imei.vendido:
-                                    messages.warning(self.request, f'IMEI {imei} já vendido')
-                                    raise ValueError(f'IMEI {imei} já vendido')  # Forçar rollback
-                                produto_imei.vendido = True
-                                produto_imei.save()
-                            except EstoqueImei.DoesNotExist:
-                                messages.warning(self.request, f'IMEI {imei} não encontrado')
-                                raise ValueError(f'IMEI {imei} não encontrado')  # Forçar rollback
-
-                        # Atualizar o estoque
-                        self.atualizar_estoque(produto, quantidade, loja)
-                    
-                    produto_venda_formset.save()
-
-                    # Salvar pagamentos
-                    pagamento_formset.instance = self.object
-                    pagamento_formset.save()
-
-                return super().form_valid(form)
-
-            except Exception as e:
-                # Garantir rollback e exibir erro genérico
-                messages.error(self.request, f"Erro ao processar a venda: {str(e)}")
-                return self.form_invalid(form)
-        
-        return self.form_invalid(form)
-
-    def atualizar_estoque(self, produto, quantidade, loja_id):
         try:
-            loja = get_object_or_404(Loja, id=loja_id)
-            estoque = Estoque.objects.get(produto=produto, loja=loja)
-            if quantidade > estoque.quantidade_disponivel:
-                raise ValueError(f'Estoque insuficiente para o produto {produto.nome}')
+            with transaction.atomic():
+                self._salvar_venda(form, loja)
+                self._processar_produtos(produto_venda_formset, loja)
+                self._processar_pagamentos(pagamento_formset, loja)
+            return super().form_valid(form)
+        except Exception as e:
+            messages.error(self.request, f"Erro ao processar a venda: {str(e)}")
+            return self.form_invalid(form)
+
+    def _salvar_venda(self, form, loja):
+        form.instance.loja = loja
+        form.instance.criado_por = self.request.user
+        form.instance.modificado_por = self.request.user
+        form.instance.caixa = Caixa.objects.get(data_abertura=localtime(now()).date())
+        form.instance.data_venda = localtime(now())
+        self.object = form.save()
+
+    def _processar_produtos(self, formset, loja):
+        for produto_venda in formset.save(commit=False):
+            produto = produto_venda.produto
+            quantidade = produto_venda.quantidade
+            imei = produto_venda.imei
+
+            self._validar_estoque(produto, quantidade, loja)
+            if produto.tipo.numero_serial:
+                self._validar_imei(produto, imei)
+            self._atualizar_estoque(produto, quantidade, loja)
+
+            produto_venda.venda = self.object
+            produto_venda.loja = loja
+            produto_venda.save()
+
+    def _validar_estoque(self, produto, quantidade, loja):
+        estoque = Estoque.objects.filter(produto=produto, loja=loja).first()
+        if not estoque or quantidade > estoque.quantidade_disponivel:
+            raise ValueError(f"Quantidade indisponível para o produto {produto}")
+
+    def _validar_imei(self, produto, imei):
+        try:
+            produto_imei = EstoqueImei.objects.get(imei=imei, produto=produto)
+            if produto_imei.vendido:
+                raise ValueError(f"IMEI {imei} já vendido")
+            produto_imei.vendido = True
+            produto_imei.save()
+        except EstoqueImei.DoesNotExist:
+            raise ValueError(f"IMEI {imei} não encontrado")
+
+    def _atualizar_estoque(self, produto, quantidade, loja):
+        estoque = Estoque.objects.filter(produto=produto, loja=loja).first()
+        if estoque:
             estoque.remover_estoque(quantidade)
             estoque.save()
-        except Estoque.DoesNotExist:
-            raise ValueError(f'Estoque não encontrado para o produto {produto.nome} na loja {loja.nome}')
+
+    def _processar_pagamentos(self, formset, loja):
+        for pagamento in formset.save(commit=False):
+            pagamento.venda = self.object
+            pagamento.loja = loja
+            pagamento.save()
 
 
 class VendaDetailView(PermissionRequiredMixin, DetailView):
@@ -299,21 +352,88 @@ class CaixaTotalView(PermissionRequiredMixin, TemplateView):
         return context
     
 
+class LojaListView(BaseView, PermissionRequiredMixin, ListView):
+    model = Loja
+    template_name = 'loja/loja_list.html'
+    context_object_name = 'lojas'
+    permission_required = 'vendas.view_loja'
+    
+    def get_queryset(self):
+        query = super().get_queryset()
+        search = self.request.GET.get('search')
+        if search:
+            return query.filter(nome__icontains=search)
+        
+        return query.order_by('nome')
+
+class LojaCreateView(PermissionRequiredMixin, CreateView):
+    model = Loja
+    form_class = LojaForm
+    template_name = 'loja/loja_form.html'
+    permission_required = 'vendas.add_loja'
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Loja cadastrada com sucesso')
+        return super().form_valid(form)
+    
+    def get_success_url(self):
+        return reverse_lazy('vendas:loja_detail', kwargs={'pk': self.object.id})
+    
+
+class LojaUpdateView(PermissionRequiredMixin, UpdateView):
+    model = Loja
+    form_class = LojaForm
+    template_name = 'loja/loja_form.html'
+    permission_required = 'vendas.change_loja'
+    
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user_loja'] = self.request.session.get('loja_id')
+        return kwargs
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Loja atualizada com sucesso')
+        return super().form_valid(form)
+    
+    def get_success_url(self):
+        return reverse_lazy('vendas:loja_detail', kwargs={'pk': self.object.id})
+
+    
+class LojaDetailView(PermissionRequiredMixin, DetailView):
+    model = Loja
+    template_name = 'loja/loja_detail.html'
+    permission_required = 'vendas.view_loja'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        loja = self.object
+        contrato = loja.contrato
+        ## transformar em json o contrato
+        contrato_json = json.dumps(contrato)
+        context['contrato'] = contrato_json
+        return context
+    
+
 def product_information(request):
     product_id = request.GET.get('product_id')
     imei = request.GET.get('imei')
     product = get_object_or_404(Produto, id=product_id)
+    print('product', product)
+    loja = get_object_or_404(Loja, id=request.session.get('loja_id'))
     if imei:    
         try:
-            product_imei = EstoqueImei.objects.get(imei=imei, produto=product)
+            product_imei = EstoqueImei.objects.filter(imei=imei, produto=product, loja=loja).first()
             if product_imei.vendido:
                 return JsonResponse({'status': 'error', 'message': 'IMEI já vendido'}, status=400)
             else:
-                return JsonResponse({'status': 'success', 'product': product.nome, 'price': product.estoque_atual.preco_medio()})
+                return JsonResponse({'status': 'success', 'product': product.nome, 'price': product_imei.produto_entrada.venda_unitaria})
         except EstoqueImei.DoesNotExist:
             return JsonResponse({'status': 'error', 'message': 'IMEI não encontrado'}, status=404)
     else:
-        return JsonResponse({'status': 'success', 'product': product.nome, 'price': product.estoque_atual.preco_medio()})
+        estoque = Estoque.objects.filter(produto=product, loja=loja).first()
+        if not estoque:
+            return JsonResponse({'status': 'error', 'message': 'Estoque não encontrado'}, status=404)
+        return JsonResponse({'status': 'success', 'product': product.nome, 'price': estoque.preco_medio()})
     
 
 def get_payment_method(request):
@@ -327,3 +447,19 @@ def get_payment_method(request):
             'financeira': payment.tipo_pagamento.financeira,
             'caixa': payment.tipo_pagamento.caixa
         })
+
+
+
+from django_select2.views import AutoResponseView
+
+class ProdutoAutoComplete(AutoResponseView):
+    def get_queryset(self):
+        return Produto.objects.all()
+    
+    
+def get_produtos(request):
+    loja_id = request.session.get('loja_id')
+    loja = get_object_or_404(Loja, id=loja_id)
+    produtos = Produto.objects.filter(estoque_atual__loja_id=loja_id, estoque_atual__quantidade_disponivel__gt=0, loja=loja).distinct()
+    produtos_data = [{'id': produto.id, 'text': produto.nome} for produto in produtos]
+    return JsonResponse({'results': produtos_data})

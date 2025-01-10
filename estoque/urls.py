@@ -27,4 +27,7 @@ urlpatterns = [
     path('fornecedor/detalhe/<int:pk>/', forneViews['detail_view'].as_view(), name='fornecedor_detail'),
     path('fornecedor/editar/<int:pk>/', forneViews['update_view'].as_view(), name='fornecedor_update'),
     path('fornecedor/deletar/<int:pk>/', forneViews['delete_view'].as_view(), name='fornecedor_delete'),
+    
+    path('estoque-imei-search/', EstoqueImeiSearchView.as_view(), name='estoque-imei-search'),
+
 ]
