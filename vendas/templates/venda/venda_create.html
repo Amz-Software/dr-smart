@@ -128,7 +128,7 @@ Criar Venda
         imeiField.value = "";
         imeiField.disabled = true;
         imeiField.required = false;
-        quantidadeField.disabled = true;
+        quantidadeField.readOnly = true;
 
         console.log('Form configurado:', form);
 
@@ -163,7 +163,7 @@ Criar Venda
             imeiField.value = "";
             imeiField.disabled = true;
             imeiField.required = false;
-            quantidadeField.disabled = true;
+            quantidadeField.readOnly = true;
 
             if (!produtoId) {
                 return;
@@ -179,7 +179,7 @@ Criar Venda
                         imeiField.disabled = false;
                         imeiField.required = true;
                         quantidadeField.value = 1;
-                        quantidadeField.disabled = true;
+                        quantidadeField.readOnly = true;
 
                         // Configurando Select2 para o campo IMEI
                         $(imeiField).select2({
@@ -230,7 +230,7 @@ Criar Venda
                         imeiField.disabled = true;
                         imeiField.value = "";
                         imeiField.required = false;
-                        quantidadeField.disabled = false;
+                        quantidadeField.readOnly = false;
 
                         fetch(`/info-products/?product_id=${produtoId}`)
                             .then(response => response.json())

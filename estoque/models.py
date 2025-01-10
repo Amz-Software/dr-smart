@@ -87,7 +87,8 @@ class Estoque(Base):
         
         if qtd_entradas > 0:
             preco_medio = total / qtd_entradas
-            return preco_medio
+            preco_formatado = f"{preco_medio:.2f}"
+            return preco_formatado
         print("Nenhuma entrada encontrada, preço médio é 0")
         return 0
     
