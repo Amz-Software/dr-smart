@@ -1,3 +1,4 @@
+import json
 from django import http
 from django.contrib.auth.views import LoginView, logout_then_login, PasswordResetView,PasswordResetView, PasswordResetDoneView,PasswordResetConfirmView, PasswordResetCompleteView
 from django.contrib.auth.forms import PasswordChangeForm
@@ -172,7 +173,40 @@ def get_lojas_by_username(request):
 
     try:
         user = User.objects.get(username=username)
-        lojas = list(Loja.objects.filter(usuarios=user).values())
+        lojas = list(user.lojas.all().values())
         return http.JsonResponse({'lojas': lojas})
     except ObjectDoesNotExist:
         return http.JsonResponse({'error': 'Usuário não encontrado'}, status=404)
+    
+def get_autorizacao_user(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            username = data.get('username')
+            password = data.get('password')
+            loja_id = request.session.get('loja_id')
+
+            if not username or not password:
+                return http.JsonResponse({'success': False, 'message': 'Usuário ou senha não fornecidos.'}, status=400)
+
+            try:
+                user = User.objects.get(username=username)
+            except User.DoesNotExist:
+                return http.JsonResponse({'success': False, 'message': 'Usuário não encontrado.'}, status=404)
+
+            if not user.check_password(password):
+                return http.JsonResponse({'success': False, 'message': 'Usuário ou senha incorretos.'}, status=403)
+
+            if loja_id:
+                loja = Loja.objects.get(id=loja_id)
+                if loja not in user.lojas_gerenciadas.all():
+                    return http.JsonResponse({'success': False, 'message': 'Usuário não autorizado nesta loja.'}, status=403)
+
+            return http.JsonResponse({'success': True, 'message': 'Autorizado.'}, status=200)
+
+        except json.JSONDecodeError:
+            return http.JsonResponse({'success': False, 'message': 'Dados inválidos no corpo da requisição.'}, status=400)
+
+    return http.JsonResponse({'success': False, 'message': 'Método não permitido.'}, status=405)
+
+            

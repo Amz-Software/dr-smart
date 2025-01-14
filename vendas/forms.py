@@ -310,6 +310,12 @@ class LojaForm(forms.ModelForm):
         required=False
     )
 
+    gerentes = forms.ModelMultipleChoiceField(
+        queryset=User.objects.all(),
+        widget=UsuarioSelectWidget(attrs={'class': 'form-control'}),
+        required=False
+    )
+
     def __init__(self, *args, **kwargs):
         # Recupera o ID da loja passada como parâmetro
         user_loja_id = kwargs.pop('user_loja', None)

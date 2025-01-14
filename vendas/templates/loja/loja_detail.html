@@ -90,6 +90,23 @@ Detalhes da Loja
                             {% endif %}
                         </div>
                     </div>
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <h5>Gerentes da Loja:</h5>
+                            {% if loja.gerentes.all %}
+                                <ul class="list-group">
+                                    {% for usuario in loja.gerentes.all %}
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <span>{{ usuario.get_full_name|default:"Não Cadastrado" }}</span>
+                                            <span>{{ usuario.email|default:"Não Cadastrado" }}</span>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p>Nenhum usuário encontrado</p>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
