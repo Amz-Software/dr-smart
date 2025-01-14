@@ -1,17 +1,20 @@
 from django import http
 from django.contrib.auth.views import LoginView, logout_then_login, PasswordResetView,PasswordResetView, PasswordResetDoneView,PasswordResetConfirmView, PasswordResetCompleteView
+from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth import update_session_auth_hash
 from django.contrib import messages
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views.generic import TemplateView, ListView, CreateView
 from vendas.models import Loja
-from .forms import LoginForm
+from .forms import GroupForm, LoginForm, MyProfileForm
 from django.views.generic.edit import UpdateView
 from django.db.models import Q
 from django.contrib.auth.models import Permission, Group
 from .forms import UserForm
 from .models import User
 from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 class LoginView(LoginView):
     template_name = 'login/login.html'
@@ -63,19 +66,43 @@ class MyProfileView(TemplateView):
         context['lojas'] = Loja.objects.all()
         return context
     
-
-class MyProfileUpdateView(UpdateView):
+    
+class MyProfileUpdateView(LoginRequiredMixin, UpdateView):
     model = User
-    form_class = UserForm
+    form_class = MyProfileForm
     template_name = 'profile/my_profile_update.html'
-    success_url = reverse_lazy('accounts:my_profile')
+    success_url = reverse_lazy('accounts:my_profile_update')
 
     def get_object(self):
         return self.request.user
 
+    def form_valid(self, form):
+        messages.success(self.request, 'Perfil atualizado com sucesso.')
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        messages.error(self.request, 'Erro ao atualizar o perfil. Verifique os dados informados.')
+        return super().form_invalid(form)
+
+
+class UserCreateView(CreateView):
+    model = User
+    form_class = UserForm
+    template_name = 'user/user_form.html'
+    success_url = reverse_lazy('accounts:user_list')
+    permission_required = 'accounts.add_user'
+    
+
+class UserUpdateView(UpdateView):
+    model = User
+    form_class = UserForm
+    template_name = 'user/user_form.html'
+    success_url = reverse_lazy('accounts:user_list')
+    permission_required = 'accounts.change_user'
+    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['lojas'] = Loja.objects.all()
+        context['user'] = self.object
         return context
 
 
@@ -104,14 +131,14 @@ class GroupListView(ListView):
     
 class GroupCreateView(CreateView):
     model = Group
-    fields = ['name', 'permissions']
+    form_class = GroupForm
     template_name = 'auth/group_form.html'
     success_url = reverse_lazy('accounts:group_list')
     permission_required = 'auth.add_group'
     
 class GroupUpdateView(UpdateView):
     model = Group
-    fields = ['name', 'permissions']
+    form_class = GroupForm
     template_name = 'auth/group_form.html'
     success_url = reverse_lazy('accounts:group_list')
     permission_required = 'auth.change_group'

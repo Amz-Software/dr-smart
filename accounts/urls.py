@@ -2,6 +2,8 @@
 
 from django.urls import path
 from .views import *
+from django.contrib.auth import views as auth_views
+
 
 app_name = 'accounts'
 
@@ -23,5 +25,12 @@ urlpatterns = [
     path('permissions/', PermissionsListView.as_view(), name='permissions_list'),
     # path('gropos/deletar/<int:pk>/', GroupDeleteView.as_view(), name='group_delete'),
     
+    path('users/novo/', UserCreateView.as_view(), name='user_create'),
     path('users/', UserListView.as_view(), name='user_list'),
+    path('users/editar/<int:pk>/', UserUpdateView.as_view(), name='user_update'),
+    
+    path('meu-perfil/', MyProfileUpdateView.as_view(), name='my_profile_update'),
+    
+    path('password_change/', auth_views.PasswordChangeView.as_view(template_name='auth/password_change_form.html'), name='password_change'),
+    path('password_change/done/', auth_views.PasswordChangeDoneView.as_view(template_name='auth/password_change_done.html'), name='password_change_done'),
 ]
