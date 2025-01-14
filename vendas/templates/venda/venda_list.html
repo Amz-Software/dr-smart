@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static iam_tags %}
 {% block title %}
 Vendas
 {% endblock title %}
@@ -20,9 +21,11 @@ Vendas
             </a>
           </div>
         </form>
+        {% if user|has_perm:"add_venda" %}
         <a href="{% url 'vendas:venda_create' %}" class="btn btn-primary">
         <i class="bx bx-plus me-1"></i> Criar Venda
         </a>
+        {% endif %}
       </div>
       </div>
       <div class="card-body">
@@ -56,9 +59,11 @@ Vendas
                 <i class="bx bx-dots-vertical-rounded"></i>
               </button>
               <div class="dropdown-menu">
-                <a class="dropdown-item" href="{% url 'vendas:venda_detail' item.pk %}">
-                <i class="bx bx-show me-1"></i> Detalhes
-                </a>
+                {% if user|has_perm:"view_venda" %}
+                  <a class="dropdown-item" href="{% url 'vendas:venda_detail' item.pk %}">
+                  <i class="bx bx-show me-1"></i> Detalhes
+                  </a>
+                {% endif %}
               </div>
             </div>
           </td>

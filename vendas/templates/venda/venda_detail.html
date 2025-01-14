@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static iam_tags %}
 {% block title %}
 Venda {{ venda.data_venda|date:"d/m/Y" }}
 {% endblock title %}
@@ -16,9 +17,11 @@ Venda {{ venda.data_venda|date:"d/m/Y" }}
               <a href="{% url 'vendas:venda_list' %}" class="btn btn-primary me-2">
                 <i class="bx bx-arrow-back me-1"></i> Voltar
               </a>
+              {% if user|has_perm:"change_venda" %}
               <a href="{% url 'vendas:venda_cancel' venda.id %}" class="btn btn-danger">
                 <i class="bx bx-x me-1"></i> Cancelar
               </a>
+              {% endif %}
             </div>
         </div>
         <div class="card-body">

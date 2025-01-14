@@ -191,9 +191,9 @@ def menu_items(request):
         },
         {
             "label": "Meu Perfil",
-            "url_name": "vendas:caixa_list",
+            "url_name": "accounts:my_profile_update",
             "icon": "bx bx-user",
-            "permission": "auth.view_group",
+            "permission": "accounts.view_own_user",
             "section": "Configurações",
         },
 

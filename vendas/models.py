@@ -79,6 +79,7 @@ class Loja(Base):
     mensagem_garantia = models.TextField(null=True, blank=True)
     contrato = models.JSONField(null=True, blank=True, default=dict)
     usuarios = models.ManyToManyField('accounts.User', related_name='lojas')
+    gerentes = models.ManyToManyField('accounts.User', related_name='lojas_gerenciadas')
 
     
     def __str__(self):
@@ -155,7 +156,9 @@ class Venda(Base):
     
     class Meta:
         verbose_name_plural = 'Vendas'
-        
+        permissions = (
+            ('can_more_desconto', 'Pode dar mais desconto'),
+        )
 
 class ProdutoVenda(Base):
     produto = models.ForeignKey('produtos.Produto', on_delete=models.PROTECT, related_name='produto_vendas')

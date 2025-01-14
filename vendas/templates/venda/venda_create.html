@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static iam_tags %}
 {% block title %}
 Criar Venda
 {% endblock title %}
@@ -10,96 +11,128 @@ Criar Venda
 <div class="container-xxl mt-4">
   <div class="row">
     <div class="col-12">
-    <div class="card">
+      <div class="card">
         <div class="container-xxl flex-grow-1 container-p-y">
-            <h4 class="py-3 mb-4"><span class="text-muted fw-light">Venda/</span> Criar</h4>
-            <div class="row">
-              <div class="col-xl">
-                <div class="card mb-4">
-                  <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Criar Venda</h5>
-                  </div>
-                  <div class="card-body">
-                    <form method="post">
-                        {% csrf_token %}
-                        <!-- <h3>Dados</h3> -->
-                        <hr>
+          <h4 class="py-3 mb-4"><span class="text-muted fw-light">Venda/</span> Criar</h4>
+          <div class="row">
+            <div class="col-xl">
+              <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <h5 class="mb-0">Criar Venda</h5>
+                </div>
+                <div class="card-body">
+                  <form method="post">
+                    {% csrf_token %}
+                    <!-- <h3>Dados</h3> -->
+                    <hr>
 
-                        <div class="row g-3">
-                          <div class="col-md-6">
-                            <label for="id_cliente" class="form-label">Cliente*</label>
-                            {{ form.cliente }}
-                          </div>
-                          <div class="col-md-6">
-                            <label for="id_vendedor" class="form-label">Vendedor*</label>
-                            {{ form.vendedor }}
-                          </div>
-                          <div class="col-md-6">
-                            <label for="id_tipo_venda" class="form-label">Tipo de Venda*</label>
-                            {{ form.tipo_venda }}
-                          </div>
-                          <div class="col-md-6">
-                            <label for="id_tipo_entrega" class="form-label">Tipo de Entrega*</label>
-                            {{ form.tipo_entrega }}
-                          </div>
-                          <div class="col-md-12">
-                            <label for="id_observacao" class="form-label">observacao</label>
-                            {{ form.observacao }}
-                          </div>
+                    <div class="row g-3">
+                      <div class="col-md-6">
+                        <label for="id_cliente" class="form-label">Cliente*</label>
+                        {{ form.cliente }}
+                      </div>
+                      <div class="col-md-6">
+                        <label for="id_vendedor" class="form-label">Vendedor*</label>
+                        {{ form.vendedor }}
+                      </div>
+                      <div class="col-md-6">
+                        <label for="id_tipo_venda" class="form-label">Tipo de Venda*</label>
+                        {{ form.tipo_venda }}
+                      </div>
+                      <div class="col-md-6">
+                        <label for="id_tipo_entrega" class="form-label">Tipo de Entrega*</label>
+                        {{ form.tipo_entrega }}
+                      </div>
+                      <div class="col-md-12">
+                        <label for="id_observacao" class="form-label">observacao</label>
+                        {{ form.observacao }}
+                      </div>
 
-                        </div>
-                        
-                        <h3 class="mt-4">Produtos</h3>
+                    </div>
+
+                    <h3 class="mt-4">Produtos</h3>
+                    <hr>
+                    {{ produto_venda_formset.management_form }}
+                    <div id="produto-empty-form" style="display: none;">
+                      <div class="produto-form-template">
                         <hr>
-                        {{ produto_venda_formset.management_form }}
-                        <div id="produto-empty-form" style="display: none;">
-                          <div class="produto-form-template">
-                            <hr>
-                            {{ produto_venda_formset.empty_form}}
-                          </div>
-                        </div>
-                        <div id="produtos" class="mb-3">
-                        {% for form in produto_venda_formset %}
-                          <div class="produto-form">
-                            {{ form }}
-                            <button type="button" class="btn btn-danger btn-sm remove-produto mt-3" onclick="removerProduto(this)">Remover</button>
-                          </div>
-                        {% endfor %}
+                        {{ produto_venda_formset.empty_form}}
                       </div>
-                      <div class="acao mb-3">
-                        <button type="button" id="add-produto" class="btn btn-primary" onclick="adicionarProduto()">Adicionar Produto</button>
+                    </div>
+                    <div id="produtos" class="mb-3">
+                      {% for form in produto_venda_formset %}
+                      <div class="produto-form">
+                        {{ form }}
+                        <button type="button" class="btn btn-danger btn-sm remove-produto mt-3"
+                          onclick="removerProduto(this)">Remover</button>
                       </div>
-                        
-                        <h3>Pagamentos</h3>
+                      {% endfor %}
+                    </div>
+                    <div class="acao mb-3">
+                      <button type="button" id="add-produto" class="btn btn-primary"
+                        onclick="adicionarProduto()">Adicionar Produto</button>
+                    </div>
+
+                    <h3>Pagamentos</h3>
+                    <hr>
+                    {{ pagamento_formset.management_form }}
+                    <div id="pagamento-empty-form" style="display: none;">
+                      <div class="pagamento-form-template">
                         <hr>
-                        {{ pagamento_formset.management_form }}
-                        <div id="pagamento-empty-form" style="display: none;">
-                          <div class="pagamento-form-template">
-                            <hr>
-                            {{ pagamento_formset.empty_form}}
-                          </div>
-                        </div>
-                        <div id="pagamentos" class="mb-3">
-                        {% for form in pagamento_formset %}
-                          <div class="pagamento-form">
-                            {{ form }}
-                            <button type="button" class="btn btn-danger btn-sm remove-pagamento mt-3" onclick="removerPagamento(this)">Remover</button>
-                          </div>
-                        {% endfor %}
+                        {{ pagamento_formset.empty_form}}
                       </div>
-                      <div class="acao mb-3">
-                        <button type="button" id="add-pagamento" class="btn btn-primary" onclick="adicionarPagamento()">Adicionar Pagamento</button>
+                    </div>
+                    <div id="pagamentos" class="mb-3">
+                      {% for form in pagamento_formset %}
+                      <div class="pagamento-form">
+                        {{ form }}
+                        <button type="button" class="btn btn-danger btn-sm remove-pagamento mt-3"
+                          onclick="removerPagamento(this)">Remover</button>
                       </div>
-                        
-                      <hr>
+                      {% endfor %}
+                    </div>
+                    <div class="acao mb-3">
+                      <button type="button" id="add-pagamento" class="btn btn-primary"
+                        onclick="adicionarPagamento()">Adicionar Pagamento</button>
+                    </div>
+
+                    <hr>
+                    {% if user|has_perm:"add_venda" %}
                       <button type="submit" class="btn btn-primary">Criar Venda</button>
-                    </form>
-                  </div>
+                    {% endif %}
+                  </form>
                 </div>
               </div>
             </div>
           </div>
+        </div>
+      </div>
     </div>
+  </div>
+</div>
+
+<div class="modal fade" id="descontoModal" tabindex="-1" aria-labelledby="descontoModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="descontoModalLabel">Validação de Desconto</h5>
+      </div>
+      <div class="modal-body">
+        <form id="formPermissaoGerente">
+          <div class="mb-3">
+            <label for="username" class="form-label">Usuário</label>
+            <input type="text" class="form-control" id="username" placeholder="Usuário" required>
+          </div>
+          <div class="mb-3">
+            <label for="password" class="form-label">Senha</label>
+            <input type="password" class="form-control" id="password" placeholder="Senha" required>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cancelarDesconto">Cancelar</button>
+        <button type="button" class="btn btn-primary" id="confirmarDesconto">Confirmar</button>
+      </div>
     </div>
   </div>
 </div>
@@ -113,15 +146,63 @@ Criar Venda
   document.addEventListener('DOMContentLoaded', function () {
     // Função para configurar o formulário de produtos
     function configurarProdutoForm(form) {
-        const produtoSelect = form.querySelector('select[name$="-produto"]');
-        const imeiField = form.querySelector('select[name$="-imei"]');
-        const valorField = form.querySelector('input[name$="-valor_unitario"]');
-        const quantidadeField = form.querySelector('input[name$="-quantidade"]');
-        const valorTotalField = form.querySelector('input[name$="-valor_total"]');
-        const valorDescontoField = form.querySelector('input[name$="-valor_desconto"]');
+      const produtoSelect = form.querySelector('select[name$="-produto"]');
+      const imeiField = form.querySelector('select[name$="-imei"]');
+      const valorField = form.querySelector('input[name$="-valor_unitario"]');
+      const quantidadeField = form.querySelector('input[name$="-quantidade"]');
+      const valorTotalField = form.querySelector('input[name$="-valor_total"]');
+      const valorDescontoField = form.querySelector('input[name$="-valor_desconto"]');
 
-        // Inicializa valores
-        valorDescontoField.value = "0.00";
+      // Inicializa valores
+      valorDescontoField.value = "0.00";
+      valorField.value = "";
+      quantidadeField.value = "";
+      valorTotalField.value = "";
+      imeiField.value = "";
+      imeiField.disabled = true;
+      imeiField.required = false;
+      quantidadeField.readOnly = true;
+
+      console.log('Form configurado:', form);
+
+      // Função para atualizar o valor total
+      async function atualizarValorTotal() {
+        const valorUnitario = parseFloat(valorField.value) || 0;
+        const quantidade = parseInt(quantidadeField.value) || 0;
+        const valorDesconto = parseFloat(valorDescontoField.value) || 0;
+
+        const valorTotal = (valorUnitario * quantidade) - valorDesconto;
+        const valorTotalSemDesconto = (valorUnitario * quantidade);
+        valorTotalField.value = valorTotal.toFixed(2);
+
+        const porcentagemDesconto = (valorDesconto / (valorUnitario * quantidade)) * 100;
+        if (porcentagemDesconto > 15) {
+          valorTotalField.value = valorTotalSemDesconto.toFixed(2);
+          const result = await abrirModalParaValidacao(valorDescontoField);
+          if (!result) {
+            valorDescontoField.value = "0.00";
+            valorTotalField.value = valorTotalSemDesconto.toFixed(2);
+          } else {
+            valorTotalField.value = valorTotal.toFixed(2);
+
+          }
+        }
+      }
+
+      if (!produtoSelect || !imeiField || !valorField) return;
+
+      // Configura o campo Select2 para o produto
+      $(produtoSelect).select2({
+        placeholder: "Selecione um produto",
+        allowClear: true,
+      });
+
+      // Evento de mudança no campo produto
+      $(produtoSelect).on('select2:select', function (e) {
+        const produtoId = e.params.data.id;
+        console.log('Produto selecionado:', produtoId);
+
+        // Limpa os campos relevantes
         valorField.value = "";
         quantidadeField.value = "";
         valorTotalField.value = "";
@@ -130,128 +211,93 @@ Criar Venda
         imeiField.required = false;
         quantidadeField.readOnly = true;
 
-        console.log('Form configurado:', form);
-
-        // Função para atualizar o valor total
-        function atualizarValorTotal() {
-            const valorUnitario = parseFloat(valorField.value) || 0;
-            const quantidade = parseInt(quantidadeField.value) || 0;
-            const valorDesconto = parseFloat(valorDescontoField.value) || 0;
-
-            const valorTotal = (valorUnitario * quantidade) - valorDesconto;
-            valorTotalField.value = valorTotal.toFixed(2); // Exibe com 2 casas decimais
-            console.log('Valor Total Atualizado:', valorTotalField.value);
+        if (!produtoId) {
+          return;
         }
 
-        if (!produtoSelect || !imeiField || !valorField) return;
+        // Fetch para buscar detalhes do produto
+        fetch(`/produto/details/${produtoId}/`)
+          .then(response => response.json())
+          .then(data => {
+            console.log('Produto details API response:', data);
 
-        // Configura o campo Select2 para o produto
-        $(produtoSelect).select2({
-            placeholder: "Selecione um produto",
-            allowClear: true,
-        });
+            if (data.serializado) {
+              imeiField.disabled = false;
+              imeiField.required = true;
+              quantidadeField.value = 1;
+              quantidadeField.readOnly = true;
 
-        // Evento de mudança no campo produto
-        $(produtoSelect).on('select2:select', function (e) {
-            const produtoId = e.params.data.id;
-            console.log('Produto selecionado:', produtoId);
+              // Configurando Select2 para o campo IMEI
+              $(imeiField).select2({
+                ajax: {
+                  url: `/info-products/imei/${produtoId}/`,
+                  dataType: 'json',
+                  delay: 250,
+                  data: function (params) {
+                    return {
+                      term: params.term,
+                      produto_id: produtoId
+                    };
+                  },
+                  processResults: function (data) {
+                    return {
+                      results: data.results
+                    };
+                  },
+                  cache: true
+                },
+                placeholder: "Selecione o IMEI",
+                allowClear: true,
+              });
 
-            // Limpa os campos relevantes
-            valorField.value = "";
-            quantidadeField.value = "";
-            valorTotalField.value = "";
-            imeiField.value = "";
-            imeiField.disabled = true;
-            imeiField.required = false;
-            quantidadeField.readOnly = true;
+              // Evento de seleção no campo IMEI
+              $(imeiField).on('select2:select', function (e) {
+                const imeiValue = e.params.data.id;
+                console.log('IMEI selecionado:', imeiValue);
 
-            if (!produtoId) {
-                return;
-            }
+                if (imeiValue) {
+                  fetch(`/info-products/?product_id=${produtoId}&imei=${imeiValue}`)
+                    .then(response => response.json())
+                    .then(info => {
+                      console.log('Info products API response:', info);
 
-            // Fetch para buscar detalhes do produto
-            fetch(`/produto/details/${produtoId}/`)
+                      if (info.status === "success") {
+                        valorField.value = info.price;
+                        atualizarValorTotal();
+                      } else {
+                        alert(info.message);
+                        valorField.value = "";
+                        $(imeiField).val(null).trigger('change'); // Reseta o campo IMEI no Select2
+                      }
+                    });
+                }
+              });
+            } else {
+              imeiField.disabled = true;
+              imeiField.value = "";
+              imeiField.required = false;
+              quantidadeField.readOnly = false;
+
+              fetch(`/info-products/?product_id=${produtoId}`)
                 .then(response => response.json())
-                .then(data => {
-                    console.log('Produto details API response:', data);
+                .then(info => {
+                  console.log('Info products API response for non-serialized:', info);
 
-                    if (data.serializado) {
-                        imeiField.disabled = false;
-                        imeiField.required = true;
-                        quantidadeField.value = 1;
-                        quantidadeField.readOnly = true;
-
-                        // Configurando Select2 para o campo IMEI
-                        $(imeiField).select2({
-                          ajax: {
-                              url: `/info-products/imei/${produtoId}/`,
-                              dataType: 'json',
-                              delay: 250,
-                              data: function (params) {
-                                  return {
-                                      term: params.term,
-                                      produto_id: produtoId
-                                  };
-                              },
-                              processResults: function (data) {
-                                  return {
-                                      results: data.results
-                                  };
-                              },
-                              cache: true
-                          },
-                          placeholder: "Selecione o IMEI",
-                          allowClear: true,
-                      });
-
-                        // Evento de seleção no campo IMEI
-                        $(imeiField).on('select2:select', function (e) {
-                            const imeiValue = e.params.data.id;
-                            console.log('IMEI selecionado:', imeiValue);
-
-                            if (imeiValue) {
-                                fetch(`/info-products/?product_id=${produtoId}&imei=${imeiValue}`)
-                                    .then(response => response.json())
-                                    .then(info => {
-                                        console.log('Info products API response:', info);
-
-                                        if (info.status === "success") {
-                                            valorField.value = info.price;
-                                            atualizarValorTotal();
-                                        } else {
-                                            alert(info.message);
-                                            valorField.value = "";
-                                            $(imeiField).val(null).trigger('change'); // Reseta o campo IMEI no Select2
-                                        }
-                                    });
-                            }
-                        });
-                    } else {
-                        imeiField.disabled = true;
-                        imeiField.value = "";
-                        imeiField.required = false;
-                        quantidadeField.readOnly = false;
-
-                        fetch(`/info-products/?product_id=${produtoId}`)
-                            .then(response => response.json())
-                            .then(info => {
-                                console.log('Info products API response for non-serialized:', info);
-
-                                if (info.status === "success") {
-                                    valorField.value = info.price;
-                                    atualizarValorTotal();
-                                } else {
-                                    alert(info.message);
-                                    valorField.value = "";
-                                }
-                            });
-                    }
+                  if (info.status === "success") {
+                    valorField.value = info.price;
+                    atualizarValorTotal();
+                  } else {
+                    alert(info.message);
+                    valorField.value = "";
+                  }
                 });
-        });
+            }
+          });
+      });
 
-        valorField.addEventListener('input', atualizarValorTotal);
-        quantidadeField.addEventListener('input', atualizarValorTotal);
-        valorDescontoField.addEventListener('input', atualizarValorTotal);
+      valorField.addEventListener('input', atualizarValorTotal);
+      quantidadeField.addEventListener('input', atualizarValorTotal);
+      valorDescontoField.addEventListener('input', atualizarValorTotal);
     }
 
     // Configurar formulários existentes ao carregar a página
@@ -259,77 +305,140 @@ Criar Venda
 
     // Função para adicionar um novo formulário de produto
     function adicionarProduto() {
-        const emptyForm = document.querySelector("#produto-empty-form .produto-form-template");
-        let newForm = emptyForm.cloneNode(true);
+      const emptyForm = document.querySelector("#produto-empty-form .produto-form-template");
+      let newForm = emptyForm.cloneNode(true);
 
-        newForm.classList.remove('produto-form-template');
-        newForm.classList.add('produto-form');
+      newForm.classList.remove('produto-form-template');
+      newForm.classList.add('produto-form');
 
-        const produtoForms = document.querySelectorAll(".produto-form");
-        let totalForms = document.getElementById("id_itens_venda-TOTAL_FORMS");
-        let formIndex = produtoForms.length;
+      const produtoForms = document.querySelectorAll(".produto-form");
+      let totalForms = document.getElementById("id_itens_venda-TOTAL_FORMS");
+      let formIndex = produtoForms.length;
 
-        newForm.innerHTML = newForm.innerHTML.replace(/__prefix__/g, formIndex);
+      newForm.innerHTML = newForm.innerHTML.replace(/__prefix__/g, formIndex);
 
-        let formInputs = newForm.querySelectorAll('input, select, textarea');
-        formInputs.forEach(input => {
-            input.value = '';
-        });
+      let formInputs = newForm.querySelectorAll('input, select, textarea');
+      formInputs.forEach(input => {
+        input.value = '';
+      });
 
-        totalForms.value = formIndex + 1;
+      totalForms.value = formIndex + 1;
 
-        const removeButton = document.createElement('button');
-        removeButton.type = "button";
-        removeButton.classList.add("btn", "btn-danger", "btn-sm", "remove-produto", 'mt-3');
-        removeButton.textContent = "Remover";
-        removeButton.onclick = () => removerProduto(removeButton);
-        newForm.appendChild(removeButton);
+      const removeButton = document.createElement('button');
+      removeButton.type = "button";
+      removeButton.classList.add("btn", "btn-danger", "btn-sm", "remove-produto", 'mt-3');
+      removeButton.textContent = "Remover";
+      removeButton.onclick = () => removerProduto(removeButton);
+      newForm.appendChild(removeButton);
 
-        const produtosContainer = document.getElementById("produtos");
-        produtosContainer.appendChild(newForm);
-        newForm.style.display = '';
+      const produtosContainer = document.getElementById("produtos");
+      produtosContainer.appendChild(newForm);
+      newForm.style.display = '';
 
-        configurarProdutoForm(newForm);
-        console.log('Produto adicionado:', newForm);
+      configurarProdutoForm(newForm);
+      console.log('Produto adicionado:', newForm);
     }
 
     // Função para remover um formulário de produto
     function removerProduto(button) {
-        const produtoForm = button.closest('.produto-form');
-        produtoForm.remove();
+      const produtoForm = button.closest('.produto-form');
+      produtoForm.remove();
 
-        const totalForms = document.getElementById("id_itens_venda-TOTAL_FORMS");
-        totalForms.value = document.querySelectorAll(".produto-form").length;
+      const totalForms = document.getElementById("id_itens_venda-TOTAL_FORMS");
+      totalForms.value = document.querySelectorAll(".produto-form").length;
 
-        console.log('Produto removido:', produtoForm);
+      console.log('Produto removido:', produtoForm);
     }
 
     // Configura o botão para adicionar produtos
     document.getElementById('add-produto').onclick = adicionarProduto;
-});
+  });
 
+</script>
+
+<script>
+  async function abrirModalParaValidacao(valorDescontoField) {
+    const descontoModal = new bootstrap.Modal(document.getElementById('descontoModal'), {
+      keyboard: false,
+      backdrop: 'static'
+    });
+
+    function limparCampos() {
+      document.getElementById('username').value = '';
+      document.getElementById('password').value = '';
+    }
+
+    return new Promise((resolve) => {
+      const confirmarDescontoButton = document.getElementById('confirmarDesconto');
+      confirmarDescontoButton.onclick = function () {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
+        fetch('/autorizacao/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+          },
+          body: JSON.stringify({
+            username: username,
+            password: password
+          })
+        })
+          .then(response => {
+            if (!response.ok) {
+              return response.json().then(data => {
+                throw new Error(data.message || 'Erro desconhecido');
+              });
+            }
+            return response.json();
+          })
+          .then(data => {
+            if (data.success) {
+              descontoModal.hide();
+              limparCampos();
+              resolve(true);
+            } else {
+              alert('Erro na autorização: ' + data.message);
+            }
+          })
+          .catch(err => {
+            alert('Erro ao validar autorização: ' + err.message);
+          });
+      };
+
+      const cancelarDescontoButton = document.getElementById('cancelarDesconto');
+      cancelarDescontoButton.onclick = function () {
+        descontoModal.hide();
+        limparCampos();
+        resolve(false);
+      };
+
+      descontoModal.show();
+    });
+  }
 </script>
 
 <script>
   function adicionarPagamento() {
     const emptyForm = document.querySelector("#pagamento-empty-form .pagamento-form-template");
     let newForm = emptyForm.cloneNode(true);
-  
+
     newForm.classList.remove('pagamento-form-template');
     newForm.classList.add('pagamento-form');
-  
+
     const pagamentoForms = document.querySelectorAll(".pagamento-form");
     let totalForms = document.getElementById("id_pagamentos-TOTAL_FORMS");
     let formIndex = pagamentoForms.length;
-  
+
     newForm.innerHTML = newForm.innerHTML.replace(/__prefix__/g, formIndex);
-  
+
     // Limpar os valores dos campos clonados
     let formInputs = newForm.querySelectorAll('input, select, textarea');
     formInputs.forEach(input => {
-        input.value = '';
+      input.value = '';
     });
-  
+
     totalForms.value = formIndex + 1;
 
     // Adicionar botão de remover

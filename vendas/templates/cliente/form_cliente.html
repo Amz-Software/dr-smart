@@ -1,3 +1,4 @@
+{% load static iam_tags %}
 <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
     {% if cliente_id %}
@@ -66,6 +67,7 @@
             </div>
         {% endfor %}
     </div>
-
+    {% if user|has_perm:"change_cliente" %}
     <button type="submit" class="btn btn-primary mt-3">Salvar</button>
+    {% endif %}
 </form>

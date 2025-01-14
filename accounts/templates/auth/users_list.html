@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static iam_tags %}
 {% block title %}
 Usuários
 {% endblock title %}
@@ -20,40 +21,12 @@ Usuários
                 </a>
               </div>
             </form>
-            <!-- Button trigger modal -->
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createUserModal">
+            {% if user|has_perm:"accounts.add_user" %}
+            <a href="{% url 'accounts:user_create' %}" class="btn btn-primary">
               <i class="bx bx-plus me-1"></i>
               Criar Usuário
-            </button>
-            <!-- Modal -->
-            <div class="modal fade" id="createUserModal" tabindex="-1" aria-labelledby="createUserModalLabel" aria-hidden="true">
-              <div class="modal-dialog">
-                <div class="modal-content">
-                  <div class="modal-header">
-                    <h5 class="modal-title" id="createUserModalLabel">Criar Novo Usuário</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                  </div>
-                  <div class="modal-body">
-                    <form method="post" action="">
-                      {% csrf_token %}
-                      <div class="mb-3">
-                        <label for="username" class="form-label">Nome de Usuário</label>
-                        <input type="text" class="form-control" id="username" name="username" required>
-                      </div>
-                      <div class="mb-3">
-                        <label for="email" class="form-label">Email</label>
-                        <input type="email" class="form-control" id="email" name="email" required>
-                      </div>
-                      <div class="mb-3">
-                        <label for="password" class="form-label">Senha</label>
-                        <input type="password" class="form-control" id="password" name="password" required>
-                      </div>
-                      <button type="submit" class="btn btn-primary">Criar</button>
-                    </form>
-                  </div>
-                </div>
-              </div>
-            </div>
+            </a>
+            {% endif %}
           </div>
         </div>
         <div class="card-body">
@@ -70,7 +43,7 @@ Usuários
               <tbody>
                 {% for user in users %}
                 <tr>
-                  <td>{{ user.username|capfirst }}</td>
+                  <td>{{ user.get_full_name|capfirst }}</td>
                   <td>{{ user.email }}</td>
                   <td>{{ user.date_joined|date:"d/m/Y" }}</td>
                   <td>
@@ -110,4 +83,4 @@ Usuários
   </div>
 </div>
 
-{% endblock %}
+{% endblock content%}
