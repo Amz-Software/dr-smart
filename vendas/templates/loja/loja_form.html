@@ -76,6 +76,11 @@
                 {{ form.usuarios }}
               </div>
             </div>
+            <div class="row">
+              <div class="col-md-12 mb-3">
+                <label for="id_grupos" class="form-label">Gerentes</label>
+                {{ form.gerentes }}
+              </div>
             <button type="submit" class="btn btn-primary">{% if loja.pk %}Salvar{% else %}Criar{% endif %}</button>
           </form>
         </div>

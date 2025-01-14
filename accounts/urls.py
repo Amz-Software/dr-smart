@@ -24,4 +24,6 @@ urlpatterns = [
     # path('gropos/deletar/<int:pk>/', GroupDeleteView.as_view(), name='group_delete'),
     
     path('users/', UserListView.as_view(), name='user_list'),
+
+    path('autorizacao/', get_autorizacao_user, name='autorizacao_user'),
 ]

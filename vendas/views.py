@@ -36,6 +36,38 @@ class BaseView(View):
 
 class IndexView(LoginRequiredMixin, TemplateView):
     template_name = 'index.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        loja = Loja.objects.get(id=self.request.session.get('loja_id'))
+        caixa_diario_loja = Caixa.objects.filter(loja=loja).order_by('-data_abertura').first()
+        caixa_total = Caixa.objects.all().filter(loja=loja)
+
+        valor_caixa_total = 0
+        for caixa in caixa_total:
+            valor_caixa_total += caixa.saldo_total
+
+        vendas_mes = Venda.objects.filter(data_venda__month=timezone.now().month, loja=loja).all()
+        venda_total_mes = 0
+        for venda in vendas_mes:
+            venda_total_mes += venda.calcular_valor_total()
+
+        vendas_a_prazo = ProdutoVenda.objects.filter(venda__data_venda__month=timezone.now().month, venda__loja=loja, venda__is_deleted=False).all()
+        venda_total_prazo = 0
+        for venda in vendas_a_prazo:
+            venda_total_prazo += venda.calcular_valor_total()
+
+
+        context['loja'] = loja
+        context['caixa_diario'] = caixa_diario_loja
+        context['caixa_total'] = valor_caixa_total
+        context['venda_total_prazo'] = venda_total_prazo
+        context['venda_total_mes'] = venda_total_mes
+        context['meta_diaria'] = loja.meta_vendas_diaria
+        context['meta_mensal'] = loja.meta_vendas_mensal
+
+        return context
     
 
 class CaixaListView(BaseView, PermissionRequiredMixin, ListView):
