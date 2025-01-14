@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static iam_tags %}
 {% block title %}
 Criar Tipo de Entrega
 {% endblock title %}
@@ -24,7 +25,9 @@ Criar Tipo de Entrega
                     <form method="post">
                         {% csrf_token %}
                         {{ form.as_p }}
+                        {% if user|has_perm:"add_tipoentrega" %}
                         <button type="submit" class="btn btn-primary">Salvar</button>
+                        {% endif %}
                     </form>
                   </div>
                 </div>
