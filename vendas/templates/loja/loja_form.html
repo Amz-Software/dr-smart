@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static iam_tags %}
 {% load static %}
 {% block title %}
 {% if loja.pk %}Editar Loja{% else %}Criar Loja{% endif %}
@@ -81,7 +82,9 @@
                 <label for="id_grupos" class="form-label">Gerentes</label>
                 {{ form.gerentes }}
               </div>
+              {% if user|has_perm:"add_loja" or user|has_perm:"change_loja" %}
             <button type="submit" class="btn btn-primary">{% if loja.pk %}Salvar{% else %}Criar{% endif %}</button>
+            {% endif %}
           </form>
         </div>
       </div>
