@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static iam_tags %}
 {% block title %}
 Estoque
 {% endblock title %}
@@ -14,10 +15,12 @@ Estoque
             <form action="" method="get" class="d-inline-block me-2" id="searchForm">
               <input type="text" name="search" class="form-control d-inline-block me-2" style="width: auto;" placeholder="Pesquisar..." onchange="document.getElementById('searchForm').submit();">
             </form>
+            {% if user|has_perm:"add_entradaestoque" %}
             <a type="button" class="btn btn-primary" href={% url "estoque:estoque_entrada" %}>
                 <i class="bx bx-plus me-1"></i>
                 Adicionar Entrada
               </a>
+            {% endif %}
           </div>
         </div>
         <div class="card-body">
