@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static iam_tags %}
 {% block title %}
 Editar Cor
 {% endblock title %}
@@ -21,7 +22,9 @@ Editar Cor
                     <form method="post">
                         {% csrf_token %}
                         {{ form.as_p }}
+                        {% if user|has_perm:"change_corproduto" %}
                         <button type="submit" class="btn btn-primary">Salvar</button>
+                        {% endif %}
                     </form>
                   </div>
                 </div>
