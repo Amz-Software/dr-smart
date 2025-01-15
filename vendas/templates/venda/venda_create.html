@@ -97,7 +97,7 @@ Criar Venda
                     </div>
 
                     <hr>
-                    {% if user|has_perm:"add_venda" %}
+                    {% if user|has_perm:"vendas.add_venda" %}
                       <button type="submit" class="btn btn-primary">Criar Venda</button>
                     {% endif %}
                   </form>

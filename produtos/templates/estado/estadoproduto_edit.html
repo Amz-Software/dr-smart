@@ -22,7 +22,7 @@ Editar Estado
                     <form method="post">
                         {% csrf_token %}
                         {{ form.as_p }}
-                        {% if user|has_perm:"change_estadoproduto" %}
+                        {% if user|has_perm:"produtos.change_estadoproduto" %}
                         <button type="submit" class="btn btn-primary">Salvar</button>
                         {% endif %}
                     </form>

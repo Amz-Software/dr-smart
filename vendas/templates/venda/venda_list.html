@@ -21,7 +21,7 @@ Vendas
             </a>
           </div>
         </form>
-        {% if user|has_perm:"add_venda" %}
+        {% if user|has_perm:"vendas.add_venda" %}
         <a href="{% url 'vendas:venda_create' %}" class="btn btn-primary">
         <i class="bx bx-plus me-1"></i> Criar Venda
         </a>
@@ -59,7 +59,7 @@ Vendas
                 <i class="bx bx-dots-vertical-rounded"></i>
               </button>
               <div class="dropdown-menu">
-                {% if user|has_perm:"view_venda" %}
+                {% if user|has_perm:"vendas.view_venda" %}
                   <a class="dropdown-item" href="{% url 'vendas:venda_detail' item.pk %}">
                   <i class="bx bx-show me-1"></i> Detalhes
                   </a>

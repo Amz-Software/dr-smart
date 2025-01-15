@@ -47,7 +47,7 @@ Contas a Receber
                                     <td>{{ conta.parcelas }}</td>
                                     <td>{{ conta.data_primeira_parcela }}</td>
                                     <td>
-                                        {% if user|has_perm:"view_pagamento" %}
+                                        {% if user|has_perm:"vendas.view_pagamento" %}
                                         <a href="{% url 'financeiro:contas_a_receber_update' conta.id %}"
                                             class="btn btn-sm btn-primary">Visualizar</a>
                                         {% endif %}

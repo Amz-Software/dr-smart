@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static iam_tags %}
 {% load crispy_forms_tags static %}
 
 {% block title %}
@@ -17,7 +18,9 @@ Editar Grupo
           <form method="post">
             {% csrf_token %}
             {{ form|crispy }}
+            {% if user|has_perm:"auth.add_group" or user|has_perm:"auth.change_group" %}
             <button type="submit" class="btn btn-primary">Salvar</button>
+            {% endif %}
             <a href="{% url 'accounts:group_list' %}" class="btn btn-secondary">Cancelar</a>
           </form>
         </div>

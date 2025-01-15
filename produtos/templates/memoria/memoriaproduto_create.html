@@ -22,7 +22,7 @@ Criar Memória
                     <form method="post">
                         {% csrf_token %}
                         {{ form.as_p }}
-                        {% if user|has_perm:"add_memoriaproduto" %}
+                        {% if user|has_perm:"produtos.add_memoriaproduto" %}
                         <button type="submit" class="btn btn-primary">Salvar</button>
                         {% endif %}
                     </form>

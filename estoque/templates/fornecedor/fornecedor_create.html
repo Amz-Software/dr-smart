@@ -22,7 +22,7 @@ Criar Fornecedor
                     <form method="post">
                         {% csrf_token %}
                         {{ form.as_p }}
-                        {% if user|has_perm:"add_fornecedor" %}
+                        {% if user|has_perm:"estoque.add_fornecedor" %}
                         <button type="submit" class="btn btn-primary">Salvar</button>
                         {% endif %}
                     </form>

@@ -22,7 +22,7 @@ Criar Fabricante
                     <form method="post">
                         {% csrf_token %}
                         {{ form.as_p }}
-                        {% if user|has_perm:"add_fabricante" %}
+                        {% if user|has_perm:"produtos.add_fabricante" %}
                         <button type="submit" class="btn btn-primary">Salvar</button>
                         {% endif %}
                     </form>

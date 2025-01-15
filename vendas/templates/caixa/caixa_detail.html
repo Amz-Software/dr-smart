@@ -41,7 +41,7 @@ Caixa {{ caixa.data_abertura|date:"d/m/Y" }}
         <div class="card-header">
           <h4 class="card-title">Lançamentos</h4>
         </div>
-        {% if user|has_perm:"add_lancamentocaixa" %}
+        {% if user|has_perm:"vendas.add_lancamentocaixa" %}
         <form method="post">
           {% csrf_token %}
           <div class="card-body">
@@ -84,7 +84,7 @@ Caixa {{ caixa.data_abertura|date:"d/m/Y" }}
                 <td>{{ lançamento.get_tipo_lancamento_display }}</td>
                 <td>{{ lançamento.valor }}</td>
                 <td>
-                  {% if user|has_perm:"delete_lancamentocaixa" %}
+                  {% if user|has_perm:"vendas.delete_lancamentocaixa" %}
                   <a href='{% url "vendas:lancamento_delete" lançamento.id %}' class="btn btn-danger">
                     <i class="bx bx-trash"></i>
                   </a>

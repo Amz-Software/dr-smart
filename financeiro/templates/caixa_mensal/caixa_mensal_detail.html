@@ -178,7 +178,7 @@ Caixa Mensal - {{ caixa_mensal.loja }} - {{ caixa_mensal.mes|date:"F Y" }}
         
                 <!-- Botão de Salvar -->
                 <div class="d-flex mb-4 justify-content-center align-items-center">
-                    {% if user|has_perm:"change_caixamensal" %}
+                    {% if user|has_perm:"financeiro.change_caixamensal" %}
                     <button type="submit" class="btn btn-success w-50">Salvar</button>
                     {% endif %}
                 </div>

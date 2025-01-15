@@ -22,7 +22,7 @@ Editar Tipo pagamento
                     <form method="post">
                         {% csrf_token %}
                         {{ form.as_p }}
-                        {% if user|has_perm:"change_tipopagamento" %}
+                        {% if user|has_perm:"vendas.change_tipopagamento" %}
                         <button type="submit" class="btn btn-primary">Salvar</button>
                         {% endif %}
                     </form>

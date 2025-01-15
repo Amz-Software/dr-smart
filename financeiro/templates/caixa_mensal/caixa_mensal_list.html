@@ -22,7 +22,7 @@ Caixas Mensais
               </div>
             </form>
             <!-- Button trigger modal -->
-            {% if user|has_perm:"add_caixamensal" %}
+            {% if user|has_perm:"financeiro.add_caixamensal" %}
             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#confirmModal">
               <i class="bx bx-plus me-1"></i>
               Criar Caixa Mensal
@@ -89,14 +89,14 @@ Caixas Mensais
                         <i class="bx bx-dots-vertical-rounded"></i>
                       </button>
                       <div class="dropdown-menu">
-                        {% if user|has_perm:"view_caixamensal" %}
+                        {% if user|has_perm:"financeiro.view_caixamensal" %}
                         <a class="dropdown-item" href="{% url "financeiro:caixa_mensal_update" caixa.pk %}">
                           <i class="bx bx-show me-1"></i> Detalhes
                         </a>
                         {% endif %}
                         {% if not caixa.data_fechamento %}
                         <!-- Button trigger modal -->
-                        {% if user|has_perm:"change_caixamensal" %}
+                        {% if user|has_perm:"financeiro.change_caixamensal" %}
                         <a class="dropdown-item" href="#" data-bs-toggle="modal"
                           data-bs-target="#fecharModal{{ caixa.id }}">
                           <i class="bx bx-lock me-1"></i> Fechar

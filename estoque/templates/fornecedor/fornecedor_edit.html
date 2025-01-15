@@ -22,7 +22,7 @@ Editar Fornecedor
                     <form method="post">
                         {% csrf_token %}
                         {{ form.as_p }}
-                        {% if user|has_perm:"change_fornecedor" %}
+                        {% if user|has_perm:"estoque.change_fornecedor" %}
                         <button type="submit" class="btn btn-primary">Salvar</button>
                         {% endif %}
                     </form>

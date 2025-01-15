@@ -25,7 +25,7 @@ Criar Tipo de Entrega
                     <form method="post">
                         {% csrf_token %}
                         {{ form.as_p }}
-                        {% if user|has_perm:"add_tipoentrega" %}
+                        {% if user|has_perm:"vendas.add_tipoentrega" %}
                         <button type="submit" class="btn btn-primary">Salvar</button>
                         {% endif %}
                     </form>

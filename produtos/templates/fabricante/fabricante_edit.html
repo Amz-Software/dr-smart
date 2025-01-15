@@ -22,7 +22,7 @@ Editar Fabricante
                     <form method="post">
                         {% csrf_token %}
                         {{ form.as_p }}
-                        {% if user|has_perm:"change_fabricante" %}
+                        {% if user|has_perm:"produtos.change_fabricante" %}
                         <button type="submit" class="btn btn-primary">Salvar</button>
                         {% endif %}
                     </form>

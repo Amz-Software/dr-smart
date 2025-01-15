@@ -15,7 +15,7 @@ Estoque
             <form action="" method="get" class="d-inline-block me-2" id="searchForm">
               <input type="text" name="search" class="form-control d-inline-block me-2" style="width: auto;" placeholder="Pesquisar..." onchange="document.getElementById('searchForm').submit();">
             </form>
-            {% if user|has_perm:"add_entradaestoque" %}
+            {% if user|has_perm:"estoque.add_entradaestoque" %}
             <a type="button" class="btn btn-primary" href={% url "estoque:estoque_entrada" %}>
                 <i class="bx bx-plus me-1"></i>
                 Adicionar Entrada
@@ -48,13 +48,17 @@ Estoque
                                   <i class="bx bx-dots-vertical-rounded"></i>
                                 </button>
                                 <div class="dropdown-menu">
+                                  {% if user|has_perm:"estoque.view_entradaestoque" %}
                                     <a class="dropdown-item" href="{% url "estoque:entrada_detail" entrada.pk %}">
                                     <i class="bx bx-show me-1"></i> Detalhes
                                     </a>
+                                  {% endif %}
+                                  {% if user|has_perm:"estoque.change_entradaestoque" %}
                                     <a class="dropdown-item" href="">
                                     <i class="bx bx-edit me-1"></i>
                                     Editar
                                     </a>
+                                  {% endif %}
                                 </div>
                             </div>
                         </td>

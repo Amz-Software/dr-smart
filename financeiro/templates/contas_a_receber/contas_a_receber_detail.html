@@ -72,7 +72,7 @@ Contas a Receber
                         <div class="row mt-3 mb-3">
                             <div class="col-md-12 d-flex justify-content-center align-items-center">
                                 <a href="{% url 'financeiro:contas_a_receber_list' %}" class="btn btn-secondary w-50 me-3">Voltar</a>
-                                {% if user|has_perm:"change_pagamento" %}
+                                {% if user|has_perm:"vendas.change_pagamento" %}
                                 <button type="submit" class="btn btn-primary w-50">Salvar</button>
                                 {% endif %}
                             </div>

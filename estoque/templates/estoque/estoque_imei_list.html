@@ -23,7 +23,7 @@ Estoque
                                 </button>
                             </div>
                         </form>
-                        {% if user|has_perm:"add_entradaestoque" %}
+                        {% if user|has_perm:"estoque.add_entradaestoque" %}
                         <a type="button" class="btn btn-primary" href="{% url 'estoque:estoque_entrada' %}">
                             <i class="bx bx-plus me-1"></i>
                             Adicionar Entrada
@@ -63,7 +63,7 @@ Estoque
                                                 <i class="bx bx-dots-vertical-rounded"></i>
                                             </button>
                                             <div class="dropdown-menu">
-                                                {% if user|has_perm:"change_estoqueimei" %}
+                                                {% if user|has_perm:"estoque.change_estoqueimei" %}
                                                 <a class="dropdown-item" href="{% url 'estoque:estoque_imei_update' produto.pk %}">
                                                     <i class="bx bx-edit me-1"></i>
                                                     Editar

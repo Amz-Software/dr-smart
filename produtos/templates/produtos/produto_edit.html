@@ -22,7 +22,7 @@ Editar Produto
                     <form method="post">
                         {% csrf_token %}
                         {{ form.as_p }}
-                        {% if user|has_perm:"change_produto" %}
+                        {% if user|has_perm:"produtos.change_produto" %}
                         <button type="submit" class="btn btn-primary">Salvar</button>
                         {% endif %}
                     </form>

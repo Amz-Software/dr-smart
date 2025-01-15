@@ -16,7 +16,7 @@ Fornecedores
         <form action="" method="get" class="d-inline-block me-2" id="searchForm">
           <input type="text" name="search" value="{{ request.GET.search }}" class="form-control" placeholder="Pesquisar" onchange="document.getElementById('searchForm').submit()">
         </form>
-        {% if user|has_perm:"add_fornecedor" %}
+        {% if user|has_perm:"estoque.add_fornecedor" %}
         <a href="{% url 'estoque:fornecedor_create' %}" class="btn btn-primary">
         <i class="bx bx-plus me-1"></i> Adicionar Fornecedor
         </a>
@@ -42,12 +42,12 @@ Fornecedores
               <i class="bx bx-dots-vertical-rounded"></i>
             </button>
             <div class="dropdown-menu">
-              {% if user|has_perm:"view_fornecedor" %}
+              {% if user|has_perm:"estoque.view_fornecedor" %}
               <a class="dropdown-item" href="{% url 'estoque:fornecedor_detail' fornecedor.id %}">
               <i class="bx bx-show me-1"></i> Detalhes
               </a>
               {% endif %}
-              {% if user|has_perm:"change_fornecedor" %}
+              {% if user|has_perm:"estoque.change_fornecedor" %}
               <a class="dropdown-item" href="{% url 'estoque:fornecedor_update' fornecedor.id %}">
               <i class="bx bx-edit-alt me-1"></i> Editar
               </a>

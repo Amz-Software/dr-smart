@@ -45,7 +45,7 @@ Adicionar Entrada
                             <strong>Produtos adicionados:</strong> {{ formset.total_form_count }}
                         </div>
                         <button type="button" id="add-product" class="btn btn-success">Adicionar Produto</button>
-                        {% if user|has_perm:"add_entradaestoque" %}
+                        {% if user|has_perm:"estoque.add_entradaestoque" %}
                         <button type="submit" class="btn btn-primary">Salvar Entrada</button>
                         {% endif %}
                     </form>

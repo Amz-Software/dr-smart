@@ -22,7 +22,7 @@ Editar Cor
                     <form method="post">
                         {% csrf_token %}
                         {{ form.as_p }}
-                        {% if user|has_perm:"change_corproduto" %}
+                        {% if user|has_perm:"produtos.change_corproduto" %}
                         <button type="submit" class="btn btn-primary">Salvar</button>
                         {% endif %}
                     </form>

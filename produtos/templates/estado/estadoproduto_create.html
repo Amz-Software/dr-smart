@@ -22,7 +22,7 @@ Criar Estado
                     <form method="post">
                         {% csrf_token %}
                         {{ form.as_p }}
-                        {% if user|has_perm:"add_estadoproduto" %}
+                        {% if user|has_perm:"produtos.add_estadoproduto" %}
                         <button type="submit" class="btn btn-primary">Salvar</button>
                         {% endif %}
                     </form>

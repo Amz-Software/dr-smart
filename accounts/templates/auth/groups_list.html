@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static iam_tags %}
 {% block title %}
 Grupos
 {% endblock title %}
@@ -21,10 +22,12 @@ Grupos
               </div>
             </form>
             <!-- Button trigger modal -->
+            {% if user|has_perm:"auth.add_group" %}
             <a href="{% url 'accounts:group_create' %}" class="btn btn-primary">
               <i class="bx bx-plus me-1"></i>
               Criar Grupo
             </a>
+            {% endif %}
             <!-- Modal -->
           </div>
         </div>
@@ -47,15 +50,19 @@ Grupos
                         <i class="bx bx-dots-vertical-rounded"></i>
                       </button>
                       <div class="dropdown-menu">
+                        {% if user|has_perm:"auth.change_group" %}
                         <a class="dropdown-item" href="{% url 'accounts:group_update' group.pk %}">
                           <i class="bx bx-edit me-1"></i> Editar
                         </a>
+                        {% endif %}
+                        {% if user|has_perm:"auth.delete_group" %}
                         <form method="post" action="" class="d-inline-block">
                           {% csrf_token %}
                           <button type="submit" class="dropdown-item text-danger">
                             <i class="bx bx-trash me-1"></i> Excluir
                           </button>
                         </form>
+                        {% endif %}
                       </div>
                     </div>
                   </td>

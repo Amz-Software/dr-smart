@@ -67,7 +67,7 @@
             </div>
         {% endfor %}
     </div>
-    {% if user|has_perm:"change_cliente" %}
+    {% if user|has_perm:"vendas.change_cliente" %}
     <button type="submit" class="btn btn-primary mt-3">Salvar</button>
     {% endif %}
 </form>
