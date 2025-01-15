@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static iam_tags %}
 {% block title %}
 Caixas Mensais
 {% endblock title %}
@@ -21,10 +22,12 @@ Caixas Mensais
               </div>
             </form>
             <!-- Button trigger modal -->
+            {% if user|has_perm:"add_caixamensal" %}
             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#confirmModal">
               <i class="bx bx-plus me-1"></i>
               Criar Caixa Mensal
             </button>
+            {% endif %}
             <!-- Modal -->
             <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
               <div class="modal-dialog">
@@ -86,15 +89,19 @@ Caixas Mensais
                         <i class="bx bx-dots-vertical-rounded"></i>
                       </button>
                       <div class="dropdown-menu">
+                        {% if user|has_perm:"view_caixamensal" %}
                         <a class="dropdown-item" href="{% url "financeiro:caixa_mensal_update" caixa.pk %}">
                           <i class="bx bx-show me-1"></i> Detalhes
                         </a>
+                        {% endif %}
                         {% if not caixa.data_fechamento %}
                         <!-- Button trigger modal -->
+                        {% if user|has_perm:"change_caixamensal" %}
                         <a class="dropdown-item" href="#" data-bs-toggle="modal"
                           data-bs-target="#fecharModal{{ caixa.id }}">
                           <i class="bx bx-lock me-1"></i> Fechar
                         </a>
+                        {% endif %}
                         {% else %}
                         <a class="dropdown-item" href="">
                           <i class="bx bx-file me-1 text-danger"></i> Gerar PDF
