@@ -172,7 +172,7 @@ class UserListView(ListView):
         if search:
             query = query.filter(Q(username__icontains=search) | Q(email__icontains=search))
 
-        return query.filter(is_active=True).exclude(id=my_user.id)
+        return query.filter(is_active=True).exclude(id=my_user.id).exclude(is_superuser=True)
     
 def get_lojas_by_username(request):
     username = request.GET.get('username')
