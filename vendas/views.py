@@ -233,7 +233,7 @@ class ClienteListView(BaseView, PermissionRequiredMixin, ListView):
 def cliente_editar_view(request):
     cliente_id = request.GET.get('cliente_id')
     cliente = get_object_or_404(Cliente, id=cliente_id)
-    
+    cliente.nascimento = cliente.nascimento.strftime('%Y-%m-%d')
     form_cliente = ClienteForm(instance=cliente)
     form_adicional = ContatoAdicionalForm(instance=cliente.contato_adicional)
     form_comprovantes = ComprovantesClienteForm(instance=cliente.comprovantes)
@@ -391,12 +391,15 @@ class LojaListView(BaseView, PermissionRequiredMixin, ListView):
     permission_required = 'vendas.view_loja'
     
     def get_queryset(self):
-        query = super().get_queryset()
+        user = self.request.user
+        query = user.lojas.all()
         search = self.request.GET.get('search')
         if search:
             return query.filter(nome__icontains=search)
         
         return query.order_by('nome')
+
+    
 
 class LojaCreateView(PermissionRequiredMixin, CreateView):
     model = Loja
@@ -495,3 +498,15 @@ def get_produtos(request):
     produtos = Produto.objects.filter(estoque_atual__loja_id=loja_id, estoque_atual__quantidade_disponivel__gt=0, loja=loja).distinct()
     produtos_data = [{'id': produto.id, 'text': produto.nome} for produto in produtos]
     return JsonResponse({'results': produtos_data})
+
+class VendaPDFView(PermissionRequiredMixin, View):
+    permission_required = 'vendas.view_venda'
+    
+    def get(self, request, pk):
+        venda = get_object_or_404(Venda, id=pk)
+        context = {
+            'venda': venda,
+            'produtos': venda.itens_venda.all(),
+            'pagamentos': venda.pagamentos.all(),
+        }
+        return render(request, 'venda/venda_pdf.html', context)

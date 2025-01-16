@@ -96,8 +96,10 @@ class Cliente(Base):
     nascimento = models.DateField()
     rg = models.CharField(max_length=20)
     cep = models.CharField(max_length=8)
+    endereco = models.CharField(max_length=200, null=True, blank=True)
     bairro = models.CharField(max_length=100)
     cidade = models.CharField(max_length=100)
+    uf = models.CharField(max_length=2, null=True, blank=True)
     cliente_cred_facil = models.BooleanField(default=False)
     comprovantes = models.ForeignKey('vendas.ComprovantesCliente', on_delete=models.PROTECT, related_name='comprovantes_clientes', null=True, blank=True)
     contato_adicional = models.ForeignKey('vendas.ContatoAdicional', on_delete=models.PROTECT, related_name='contatos_adicionais', null=True, blank=True)
@@ -111,7 +113,7 @@ class Cliente(Base):
 class ContatoAdicional(Base):
     nome_adicional = models.CharField(max_length=100, null=True, blank=True)
     contato = models.CharField(max_length=20, null=True, blank=True)
-    endereco = models.CharField(max_length=200, null=True, blank=True)
+    endereco_adicional = models.CharField(max_length=200, null=True, blank=True)
 
 class Endereco(Base):
     cep = models.CharField(max_length=8)
@@ -147,6 +149,10 @@ class Venda(Base):
     caixa = models.ForeignKey('vendas.Caixa', on_delete=models.PROTECT, related_name='vendas')
     observacao = models.TextField(null=True, blank=True)
     is_deleted = models.BooleanField(default=False)
+
+    @property
+    def pagamentos_valor_total(self):
+        return sum(pagamento.valor for pagamento in self.pagamentos.all())
     
     def calcular_valor_total(self):
         return sum(item.valor_unitario * item.quantidade for item in self.itens_venda.all())
