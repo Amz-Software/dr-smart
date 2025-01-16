@@ -91,7 +91,7 @@ def menu_items(request):
                     "permission": "estoque.view_fornecedor"
                 }
             ],
-            "section": "Portal do Vendedor"
+            "section": "Estoque"
         },   
         {
             "label": "Vendas",
@@ -195,31 +195,7 @@ def menu_items(request):
             "icon": "bx bx-user",
             "permission": "accounts.view_own_user",
             "section": "Configurações",
-        },
-
-        # {
-        #     "label": "Exemplo",
-        #     "icon": "bx bx-dollar-circle",
-        #     "permission": "app.permission",
-        #     "sub_items": [
-        #         {
-        #             "label": "",
-        #             "url_name": "",
-        #             "permission": ""
-        #         },
-        #         {
-        #             "label": "",
-        #             "url_name": "main:pre_sale_Form",
-        #             "permission": "main.add_presale"
-        #         },
-        #         {
-        #             "label": "",
-        #             "url_name": "",
-        #             "permission": ""
-        #         }
-        #     ],
-        #     "section": "Portal do Vendedor"
-        # },        
+        }, 
 
     ]
   
