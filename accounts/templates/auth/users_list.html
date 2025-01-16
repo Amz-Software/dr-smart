@@ -41,30 +41,36 @@ Usuários
                 </tr>
               </thead>
               <tbody>
-                {% for user in users %}
+                {% for user_object in users %}
                 <tr>
-                  <td>{{ user.get_full_name|capfirst }}</td>
-                  <td>{{ user.email }}</td>
-                  <td>{{ user.date_joined|date:"d/m/Y" }}</td>
+                  <td>{{ user_object.get_full_name|capfirst|default:'-' }}</td>
+                  <td>{{ user_object.email }}</td>
+                  <td>{{ user_object.date_joined|date:"d/m/Y" }}</td>
                   <td>
                     <div class="dropdown">
-                      <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+                      <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="bx bx-dots-vertical-rounded"></i>
                       </button>
-                      <div class="dropdown-menu">
-                        <a class="dropdown-item" href="">
+                      <ul class="dropdown-menu">
+                        <!-- <li><a class="dropdown-item" href="">
                           <i class="bx bx-show me-1"></i> Detalhes
-                        </a>
-                        <a class="dropdown-item" href="">
+                        </a></li> -->
+                        {% if user|has_perm:"accounts.change_user" %}
+                        <li><a class="dropdown-item" href="{% url 'accounts:user_update' user.id %}">
                           <i class="bx bx-edit me-1"></i> Editar
-                        </a>
-                        <form method="post" action="" class="d-inline-block">
+                        </a></li>
+                        {% endif %}
+                        {% if user|has_perm:"accounts.delete_user" %}
+                        <li>
+                          <form method="post" action="{% url 'accounts:user_delete' user.id %}" class="d-inline-block w-100">
                           {% csrf_token %}
-                          <button type="submit" class="dropdown-item text-danger">
+                          <button type="submit" class="dropdown-item text-danger w-100">
                             <i class="bx bx-trash me-1"></i> Excluir
                           </button>
-                        </form>
-                      </div>
+                          </form>
+                        </li>
+                        {% endif %}
+                      </ul>
                     </div>
                   </td>
                 </tr>

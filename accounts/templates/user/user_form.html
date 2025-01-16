@@ -18,18 +18,7 @@ Adicionar Usuário
                 <div class="card-body">
                     <form method="post">
                         {% csrf_token %}
-                        <div class="mb-3">
-                            {{ form.first_name|as_crispy_field }}
-                        </div>
-                        <div class="mb-3">
-                            {{ form.last_name|as_crispy_field }}
-                        </div>
-                        <div class="mb-3">
-                            {{ form.email|as_crispy_field }}
-                        </div>
-                        <div class="mb-3">
-                            {{ form.password|as_crispy_field }}
-                        </div>
+                        {{ form|crispy }}
                         {% if user|has_perm:"accounts.add_user" or user|has_perm:"accounts.change_user" %}
                         <button type="submit" class="btn btn-primary">Salvar</button>
                         {% endif %}

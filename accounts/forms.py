@@ -23,9 +23,20 @@ class MyProfileForm(forms.ModelForm):
 class UserForm(forms.ModelForm):
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'email', 'password']
+        fields = ['first_name', 'last_name', 'email', 'password', 'user_permissions', 'groups']
         widgets = {
-            'password': forms.PasswordInput()
+            'password': forms.PasswordInput(),
+            'user_permissions': Select2MultipleWidget(),
+            'groups': Select2MultipleWidget()
+        }
+        
+        labels = {
+            'first_name': 'Nome',
+            'last_name': 'Sobrenome',
+            'email': 'E-mail',
+            'password': 'Senha',
+            'user_permissions': 'Permissões',
+            'groups': 'Grupos'
         }
 
     def clean(self):

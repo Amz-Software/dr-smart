@@ -107,6 +107,14 @@ class UserUpdateView(UpdateView):
         return context
 
 
+def delete_user(request, pk):
+    user = User.objects.get(pk=pk)
+    user.is_active = False
+    user.save()
+    messages.success(request, 'Usuário deletado com sucesso.')
+    return redirect('accounts:user_list')
+
+
 class PermissionsListView(ListView):
     model = Permission
     template_name = 'auth/permissions_list.html'
@@ -159,12 +167,12 @@ class UserListView(ListView):
     
     def get_queryset(self):
         query = super().get_queryset()
-
+        my_user = self.request.user
         search = self.request.GET.get('search', None)
         if search:
             query = query.filter(Q(username__icontains=search) | Q(email__icontains=search))
 
-        return query
+        return query.filter(is_active=True).exclude(id=my_user.id)
     
 def get_lojas_by_username(request):
     username = request.GET.get('username')
