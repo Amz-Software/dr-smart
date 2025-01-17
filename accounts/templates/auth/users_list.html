@@ -56,7 +56,7 @@ Usuários
                           <i class="bx bx-show me-1"></i> Detalhes
                         </a></li> -->
                         {% if user|has_perm:"accounts.change_user" %}
-                        <li><a class="dropdown-item" href="{% url 'accounts:user_update' user.id %}">
+                        <li><a class="dropdown-item" href="{% url 'accounts:user_update' user_object.id %}">
                           <i class="bx bx-edit me-1"></i> Editar
                         </a></li>
                         {% endif %}
