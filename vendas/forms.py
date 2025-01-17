@@ -187,6 +187,16 @@ class VendaForm(forms.ModelForm):
             'observacao': 'Observação',
         }
 
+    def __init__(self, *args, **kwargs):
+        loja = kwargs.pop('loja', None)  # Captura o argumento 'loja'
+        super().__init__(*args, **kwargs) 
+        if loja:
+            self.fields['cliente'].queryset = Cliente.objects.filter(loja=loja)
+            self.fields['vendedor'].queryset = Loja.objects.get(id=loja).usuarios.all()
+            self.fields['tipo_venda'].queryset = TipoVenda.objects.filter(loja=loja)
+            self.fields['tipo_entrega'].queryset = TipoEntrega.objects.filter(loja=loja)
+
+
 class EstoqueImeiSelectWidget(HeavySelect2Widget):
     data_view = 'estoque:estoque-imei-search'
 
