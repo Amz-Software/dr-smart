@@ -13,13 +13,13 @@ def menu_items(request):
             "url_name": "vendas:index",
             "icon": "bx bx-home-circle",
             "permission": "vendas.view_loja",
-            "section": "Dr Smart",
+            "section": "Inicio",
         },
         {
             "label": "Produtos",
             "icon": "bx bx-mobile",
             "permission": "produtos.view_produto",
-            "section": "Dr Smart",
+            "section": "Inicio",
             "sub_items": [
                 {
                     "label": "Produtos",

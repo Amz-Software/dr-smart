@@ -308,7 +308,8 @@ class ContasAReceberListView(BaseView, PermissionRequiredMixin, ListView):
     permission_required = 'financeiro.view_pagamento'
 
     def get_queryset(self):
-        return Pagamento.objects.order_by('-criado_em')
+        loja_id = self.request.session.get('loja_id')
+        return Pagamento.objects.order_by('-criado_em').filter(loja_id=loja_id)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
