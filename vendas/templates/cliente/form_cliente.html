@@ -21,7 +21,7 @@
                 <div class="col-md-6">
                     <div class="form-group mt-3">
                         <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                        <input type="date" class="form-control" id="{{ field.id_for_label }}" name="{{ field.name }}" value="{{ field.value|date:'Y-m-d' }}">
+                        <input type="date" class="form-control" id="{{ field.id_for_label }}" name="{{ field.name }}" value="{{ field.value|date:"Y-m-d" }}">
                     </div>
                 </div>
             {% else %}

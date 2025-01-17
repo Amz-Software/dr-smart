@@ -60,4 +60,6 @@ urlpatterns = [
     
     path('select2/fields/auto.json', ProdutoAutoComplete.as_view(), name='produto-autocomplete'),
     path('produtos/ajax/', get_produtos, name='produtos_ajax'),
+
+    path('vendas/nota/<int:pk>/', VendaPDFView.as_view(), name='venda_pdf'),
 ]

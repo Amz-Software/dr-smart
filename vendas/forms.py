@@ -23,8 +23,24 @@ class ClienteForm(forms.ModelForm):
             'rg': forms.TextInput(attrs={'class': 'form-control'}),
             'cep': forms.TextInput(attrs={'class': 'form-control'}),
             'bairro': forms.TextInput(attrs={'class': 'form-control'}),
+            'endereco': forms.TextInput(attrs={'class': 'form-control'}),
             'cidade': forms.TextInput(attrs={'class': 'form-control'}),
+            'uf': forms.TextInput(attrs={'class': 'form-control'}),
             'cliente_cred_facil': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+        labels = {
+            'nome': 'Nome*',
+            'email': 'Email*',
+            'telefone': 'Telefone*',
+            'cpf': 'CPF*',
+            'nascimento': 'Data de Nascimento*',
+            'rg': 'RG*',
+            'cep': 'CEP*',
+            'bairro': 'Bairro*',
+            'endereco': 'Endereço*',
+            'cidade': 'Cidade*',
+            'uf': 'UF*',
+            'cliente_cred_facil': 'Cliente Crédito Fácil',
         }
 
 class ContatoAdicionalForm(forms.ModelForm):
@@ -35,7 +51,7 @@ class ContatoAdicionalForm(forms.ModelForm):
         widgets = {
             'nome_adicional': forms.TextInput(attrs={'class': 'form-control'}),
             'contato': forms.TextInput(attrs={'class': 'form-control'}),
-            'endereco': forms.TextInput(attrs={'class': 'form-control'}),
+            'endereco_adicional': forms.TextInput(attrs={'class': 'form-control'}),
         }
 
 class EnderecoForm(forms.ModelForm):

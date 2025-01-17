@@ -64,6 +64,10 @@ Vendas
                   <i class="bx bx-show me-1"></i> Detalhes
                   </a>
                 {% endif %}
+                  <a class="dropdown-item" href="{% url 'vendas:venda_pdf' item.pk %}" target="_blank">
+                  <i class="bx bx-file
+                  me-1"></i> Gerar PDF
+                  </a>
               </div>
             </div>
           </td>
