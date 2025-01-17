@@ -267,6 +267,11 @@ class VendaCreateView(PermissionRequiredMixin, CreateView):
     success_url = reverse_lazy('vendas:venda_list')
     permission_required = 'vendas.add_venda'
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['loja'] = self.request.session.get('loja_id')
+        return kwargs
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         if self.request.POST:
