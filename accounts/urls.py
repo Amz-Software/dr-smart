@@ -31,7 +31,6 @@ urlpatterns = [
     path('users/deletar/<int:pk>/', delete_user, name='user_delete'),
 
     path('autorizacao/', get_autorizacao_user, name='autorizacao_user'),
-    path('users/editar/<int:pk>/', UserUpdateView.as_view(), name='user_update'),
     
     path('meu-perfil/', MyProfileUpdateView.as_view(), name='my_profile_update'),
     
