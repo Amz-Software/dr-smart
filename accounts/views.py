@@ -103,7 +103,8 @@ class UserUpdateView(UpdateView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['user'] = self.object
+        user = self.request.user
+        context['user'] = user
         return context
 
 
