@@ -13,7 +13,7 @@ def menu_items(request):
             "url_name": "vendas:index",
             "icon": "bx bx-home-circle",
             "permission": "vendas.view_loja",
-            "section": "Inicio",
+            "section": "Início",
         },
         {
             "label": "Produtos",
