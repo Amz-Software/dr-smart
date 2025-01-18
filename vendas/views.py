@@ -208,6 +208,16 @@ class ClienteListView(BaseView, PermissionRequiredMixin, ListView):
             cliente = form_cliente.save(commit=False)
             endereco = form_adicional.save(commit=False)  # Salve o contato sem commit para associá-lo
             comprovantes = form_comprovantes.save(commit=False)  # Salve comprovantes sem commit
+            loja = Loja.objects.get(id=request.session.get('loja_id'))
+            cliente.criado_por = request.user
+            cliente.modificado_por = request.user
+            cliente.loja = loja
+            endereco.criado_por = request.user
+            endereco.modificado_por = request.user
+            endereco.loja = loja
+            comprovantes.criado_por = request.user
+            comprovantes.modificado_por = request.user
+            comprovantes.loja = loja
             
             # Associa as instâncias e depois salva tudo
             cliente.contato_adicional = endereco

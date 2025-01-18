@@ -142,11 +142,11 @@ def menu_items(request):
                     "url_name": "vendas:caixa_total",
                     "permission": "vendas.view_caixa"
                 },
-                {
-                    "label": "Relatótio de Vendas",
-                    "url_name": "vendas:caixa_list",
-                    "permission": "auth.view_group"
-                },
+                # {
+                #     "label": "Relatótio de Vendas",
+                #     "url_name": "vendas:caixa_list",
+                #     "permission": "auth.view_group"
+                # },
                 {
                     "label": "Contas a Receber",
                     "url_name": "financeiro:contas_a_receber_list",
