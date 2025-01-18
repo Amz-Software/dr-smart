@@ -27,8 +27,9 @@ class EstoqueListView(BaseView, PermissionRequiredMixin, ListView):
         return context
     
     def get_queryset(self):
-        query = super().get_queryset()
-        
+        loja_id = self.request.session.get('loja_id')
+        loja = get_object_or_404(Loja, pk=loja_id)
+        query = super().get_queryset().filter(produto__loja=loja)
         search = self.request.GET.get('search', None)
         if search:
             query = query.filter(produto__nome__icontains=search)
@@ -74,9 +75,9 @@ class AdicionarEntradaEstoqueView(PermissionRequiredMixin, CreateView):
         loja_id = self.request.session.get('loja_id')
         print('LOJA ID:', loja_id)
         if self.request.POST:
-            context['formset'] = ProdutoEntradaFormSet(self.request.POST)
+            context['formset'] = ProdutoEntradaFormSet(self.request.POST, form_kwargs={'loja': loja_id})
         else:
-            context['formset'] = ProdutoEntradaFormSet(queryset=ProdutoEntrada.objects.none())  # Cria um queryset vazio para o formset
+            context['formset'] = ProdutoEntradaFormSet(queryset=ProdutoEntrada.objects.none(), form_kwargs={'loja': loja_id})  # Cria um queryset vazio para o formset
         return context
 
     def form_valid(self, form):
