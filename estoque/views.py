@@ -119,7 +119,9 @@ class EstoqueImeiListView(BaseView, PermissionRequiredMixin, ListView):
     permission_required = 'estoque.view_estoqueimei'
     
     def get_queryset(self):
-        query = super().get_queryset()
+        loja_id = self.request.session.get('loja_id')
+        loja = get_object_or_404(Loja, pk=loja_id)
+        query = super().get_queryset().filter(produto__loja=loja)
         
         search = self.request.GET.get('search', None)
         if search:
