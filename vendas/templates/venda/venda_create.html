@@ -436,7 +436,11 @@ Criar Venda
     // Limpar os valores dos campos clonados
     let formInputs = newForm.querySelectorAll('input, select, textarea');
     formInputs.forEach(input => {
-      input.value = '';
+      if (input.type === 'date') {
+        input.value = new Date().toISOString().split('T')[0];
+      } else {
+        input.value = '';
+      }
     });
 
     totalForms.value = formIndex + 1;
@@ -528,6 +532,10 @@ Criar Venda
   // Configurar formulários existentes ao carregar a página
   document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('.pagamento-form').forEach(configurarPagamentoForm);
+    // definir valor inicial a data de hoje
+    const form = document.querySelector('.pagamento-form');
+    const data_primeira_parcela = form.querySelector('input[name$="-data_primeira_parcela"]');
+    data_primeira_parcela.value = new Date().toISOString().split('T')[0];
   });
 
 </script>
