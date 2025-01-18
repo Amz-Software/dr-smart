@@ -2,6 +2,7 @@ from django.forms import inlineformset_factory, modelformset_factory
 from estoque.models import EntradaEstoque
 from django import forms
 from .models import *
+from produtos.models import Produto
 
 
 class EntradaEstoqueForm(forms.ModelForm):
@@ -48,9 +49,12 @@ class ProdutoEntradaForm(forms.ModelForm):
         model = ProdutoEntrada
         exclude = ['loja', 'entrada', 'id']
 
-ProdutoEntradaFormSet = inlineformset_factory(
-    EntradaEstoque, ProdutoEntrada, form=ProdutoEntradaForm, extra=1, can_delete=False
-)
+    def __init__(self, *args, **kwargs):
+        loja = kwargs.pop('loja', None)
+        super().__init__(*args, **kwargs)
+        if loja:
+            self.fields['produto'].queryset = Produto.objects.filter(loja=loja) 
+
 
 class EstoqueImeiForm(forms.ModelForm):
     class Meta:
@@ -62,11 +66,10 @@ class EstoqueImeiForm(forms.ModelForm):
         self.fields['vendido'].widget.attrs.update({
             'class': 'form-check-input',  # Classe Bootstrap para o toggle switch
             })
-        
-
+    
 ProdutoEntradaFormSet = modelformset_factory(
     ProdutoEntrada,
-    exclude=['entrada', 'loja'],
+    form=ProdutoEntradaForm,
     extra=1,
     can_delete=False
 )
