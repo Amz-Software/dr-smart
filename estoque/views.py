@@ -19,6 +19,7 @@ class EstoqueListView(BaseView, PermissionRequiredMixin, ListView):
     template_name = 'estoque/estoque_list.html'
     context_object_name = 'produtos'
     permission_required = 'estoque.view_estoque'
+    paginate_by = 10
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -41,6 +42,7 @@ class EntradaListView(BaseView, PermissionRequiredMixin, ListView):
     template_name = 'estoque/estoque_entrada_list.html'
     context_object_name = 'entradas'
     permission_required = 'estoque.view_entradaestoque'
+    paginate_by = 10
     
     def get_queryset(self):
         query = super().get_queryset()
@@ -117,6 +119,7 @@ class EstoqueImeiListView(BaseView, PermissionRequiredMixin, ListView):
     template_name = 'estoque/estoque_imei_list.html'
     context_object_name = 'produtos'
     permission_required = 'estoque.view_estoqueimei'
+    paginate_by = 10
     
     def get_queryset(self):
         loja_id = self.request.session.get('loja_id')
