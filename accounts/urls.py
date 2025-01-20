@@ -13,7 +13,7 @@ urlpatterns = [
     path('buscar-lojas/', get_lojas_by_username, name='buscar_lojas'),
     path('password-reset/', PasswordResetView.as_view(), name='password_reset'),
     path('password-reset/done/', PasswordResetDoneView.as_view(), name='password_reset_done'),
-    path('reset/<uidb64>/<token>/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+    path('reset/', ResetarSenhaView.as_view(), name='password_reset_confirm'),
     path('reset/done/', PasswordResetCompleteView.as_view(), name='password_reset_complete'),
     
     path('profile/', MyProfileView.as_view(), name='profile'),
