@@ -26,7 +26,7 @@ class Produto(Base):
     def total_vendas(self, loja_id=None):
         print('no models:', loja_id)
         if loja_id:
-            return self.produto_vendas.filter(venda__loja_id=loja_id).count()
+            return self.produto_vendas.filter(venda__loja_id=loja_id, venda__is_deleted=False).count()
         return None
     
     def __str__(self):

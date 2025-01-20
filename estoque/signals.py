@@ -1,8 +1,8 @@
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from django.core.exceptions import ValidationError
-from .models import Estoque, EntradaEstoque, ProdutoEntrada
-from vendas.models import ProdutoVenda
+from .models import Estoque, EntradaEstoque, ProdutoEntrada, EstoqueImei
+from vendas.models import ProdutoVenda, Venda
 
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
@@ -63,3 +63,30 @@ def atualizar_estoque_entrada(instance, created, **kwargs):
 def atualizar_estoque_deletar_venda(sender, instance, **kwargs):
     estoque = Estoque.objects.filter(produto=instance.produto, loja=instance.loja).first()
     estoque.adicionar_estoque(instance.quantidade)
+
+@receiver(post_save, sender=Venda)
+def atualizar_estoque_apos_cancelar_venda(sender, instance, **kwargs):
+    """
+    Atualiza o estoque quando uma venda é cancelada (is_deleted=True).
+    """
+    if instance.is_deleted:  # Apenas processa se a venda foi cancelada
+        # Recupera todos os itens da venda
+        venda_items = ProdutoVenda.objects.filter(venda=instance)
+
+        for item in venda_items:
+            # Atualiza o estoque do IMEI, se existir
+            if item.imei:
+                estoque_imei = EstoqueImei.objects.filter(imei=item.imei).first()
+                if estoque_imei:  # Apenas processa se encontrar algo
+                    estoque_imei.vendido = False
+                    estoque_imei.save()
+                else:
+                    raise Exception(f"Estoque IMEI não encontrado para o IMEI {item.imei}.")
+
+            # Atualiza o estoque geral do produto
+            try:
+                estoque = Estoque.objects.get(produto=item.produto, loja=item.loja)
+                estoque.adicionar_estoque(item.quantidade)
+                estoque.save()
+            except Estoque.DoesNotExist:
+                raise Exception(f"Estoque não encontrado para o produto {item.produto.nome} na loja {item.loja}.")
