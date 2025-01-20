@@ -99,7 +99,7 @@
 <td style="width: 34.9895%; height: 22px; border-color: #000000; border-style: solid;"><span style="font-size: 10pt;">{{ venda.cliente.endereco }}</span></td>
 <td style="width: 12.0662%; height: 22px; border-color: #000000; border-style: solid; text-align: center;"><span style="font-size: 10pt;">{{ venda.cliente.cep }}</span></td>
 <td style="width: 20.2681%; height: 22px; border-color: #000000; border-style: solid; text-align: center;"><span style="font-size: 10pt;">{{ venda.cliente.cidade }}</span></td>
-<td style="width: 32.6762%; height: 22px; border-color: #000000; border-style: solid; text-align: center;"><span style="font-size: 10pt;">{{ venda.cliente.uf }}</span></td>
+<td style="width: 32.6762%; height: 22px; border-color: #000000; border-style: solid; text-align: center;"><span style="font-size: 10pt;">{{ venda.cliente.uf|default:'Sem UF' }}</span></td>
 </tr>
 </tbody>
 </table>

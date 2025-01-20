@@ -47,6 +47,14 @@ class UserForm(forms.ModelForm):
             username = f"{first_name.lower()}.{last_name.lower()}"
             cleaned_data['username'] = username
         return cleaned_data
+    
+    #salvar usuário 
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.set_password(self.cleaned_data['password'])
+        if commit:
+            user.save()
+        return user
 
 
 class GroupForm(forms.ModelForm):
