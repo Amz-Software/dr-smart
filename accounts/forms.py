@@ -14,10 +14,22 @@ class LoginForm(AuthenticationForm):
 class MyProfileForm(forms.ModelForm):
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'email', 'username']
+        fields = ['first_name', 'last_name', 'email', 'username', 'password']
         widgets = {
             'password': forms.PasswordInput()
         }
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.set_password(self.cleaned_data['password'])
+        if commit:
+            user.save()
+        return user
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        print(self.instance.password)
+        self.fields['password'].value = self.instance.password
 
     
 class UserForm(forms.ModelForm):
