@@ -76,7 +76,7 @@ def atualizar_estoque_apos_cancelar_venda(sender, instance, **kwargs):
         for item in venda_items:
             # Atualiza o estoque do IMEI, se existir
             if item.imei:
-                estoque_imei = EstoqueImei.objects.filter(imei=item.imei).first()
+                estoque_imei = EstoqueImei.objects.filter(imei=item.imei, loja=item.loja).first()
                 if estoque_imei:  # Apenas processa se encontrar algo
                     estoque_imei.vendido = False
                     estoque_imei.save()
