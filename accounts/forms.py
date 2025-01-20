@@ -68,11 +68,30 @@ class UserForm(forms.ModelForm):
     #salvar usuário 
     def save(self, commit=True):
         user = super().save(commit=False)
-        user.set_password(self.cleaned_data['password'])
+        #atribuir grupos
+        groups = self.cleaned_data.get('groups')
+        user.groups.set(groups)
+
+        #atribuir permissões
+        permissions = self.cleaned_data.get('user_permissions')
+        user.user_permissions.set(permissions)
+
+        if not self.cleaned_data['password']:
+            current_password = User.objects.get(pk=user.pk).password
+            if current_password:
+                user.password = current_password  # Preserva o hash
+            else:
+                user.set_password('123456')
+        else:
+            user.set_password(self.cleaned_data['password'])
+            
         if commit:
             user.save()
         return user
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['password'].required = False
 
 class GroupForm(forms.ModelForm):
     class Meta:
