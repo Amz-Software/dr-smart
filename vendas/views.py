@@ -472,7 +472,7 @@ def product_information(request):
     loja = get_object_or_404(Loja, id=request.session.get('loja_id'))
     if imei:    
         try:
-            product_imei = EstoqueImei.objects.filter(imei=imei, produto=product, loja=loja).first()
+            product_imei = EstoqueImei.objects.filter(id=imei, produto=product, loja=loja).first()
             if product_imei.vendido:
                 return JsonResponse({'status': 'error', 'message': 'IMEI já vendido'}, status=400)
             else:
