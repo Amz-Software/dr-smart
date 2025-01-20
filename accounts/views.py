@@ -8,7 +8,7 @@ from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views.generic import TemplateView, ListView, CreateView
 from vendas.models import Loja
-from .forms import GroupForm, LoginForm, MyProfileForm
+from .forms import GroupForm, LoginForm, MyProfileForm, ResetPasswordForm
 from django.views.generic.edit import UpdateView
 from django.db.models import Q
 from django.contrib.auth.models import Permission, Group
@@ -16,6 +16,8 @@ from .forms import UserForm
 from .models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.views import PasswordChangeView, PasswordChangeDoneView
+from django.views.generic.edit import FormView
 
 class LoginView(LoginView):
     template_name = 'login/login.html'
@@ -58,6 +60,20 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
 class CustomPasswordResetCompleteView(PasswordResetCompleteView):
     template_name = 'login/password_reset_complete.html'
     
+
+class ResetarSenhaView(FormView):
+    template_name = 'login/resetar_senha.html'
+    form_class = ResetPasswordForm
+    success_url = reverse_lazy('accounts:my_profile_update')
+
+    def form_valid(self, form):
+        user = self.request.user
+        password = form.cleaned_data.get('password')
+        user.set_password(password)
+        user.save()
+        messages.success(self.request, 'Senha alterada com sucesso.')
+        return super().form_valid(form)
+
 
 class MyProfileView(TemplateView):
     template_name = 'profile/my_profile.html'

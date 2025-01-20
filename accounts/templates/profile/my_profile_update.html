@@ -20,6 +20,7 @@ Editar Perfil
                         {{ form|crispy }}
                         <button type="submit" name="save_profile" class="btn btn-primary">Salvar</button>
                     </form>
+                    <p class="mt-3"> Redefinir Senha <a href="{% url 'accounts:password_reset_confirm' %}">Clique Aqui</a></p>
                 </div>
             </div>
         </div>

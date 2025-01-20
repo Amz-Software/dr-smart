@@ -14,22 +14,27 @@ class LoginForm(AuthenticationForm):
 class MyProfileForm(forms.ModelForm):
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'email', 'username', 'password']
+        fields = ['first_name', 'last_name', 'email', 'username']
         widgets = {
             'password': forms.PasswordInput()
         }
 
-    def save(self, commit=True):
-        user = super().save(commit=False)
-        user.set_password(self.cleaned_data['password'])
-        if commit:
-            user.save()
-        return user
-    
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        print(self.instance.password)
-        self.fields['password'].value = self.instance.password
+class ResetPasswordForm(forms.Form):
+    password = forms.CharField(widget=forms.PasswordInput(
+        attrs={'placeholder': 'Nova senha', 'class': 'form-control'}
+        ), label='Nova senha')
+    password_confirm = forms.CharField(widget=forms.PasswordInput(
+        attrs={'placeholder': 'Nova senha', 'class': 'form-control'}
+    ), label='Confirme a senha')
+
+    def clean(self):
+        cleaned_data = super().clean()
+        password = cleaned_data.get('password')
+        password_confirm = cleaned_data.get('password_confirm')
+        if password and password_confirm:
+            if password != password_confirm:
+                raise forms.ValidationError('As senhas não conferem.')
+        return cleaned_data
 
     
 class UserForm(forms.ModelForm):
