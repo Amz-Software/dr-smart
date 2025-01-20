@@ -109,7 +109,8 @@
 <thead>
 <tr style="background-color: #95a5a6; height: 22px; border-color: #000000; text-align: center;">
 <td style="width: 113.25px; height: 22px; background-color: #ecf0f1; border-color: #000000; border-style: solid;"><strong><span style="font-size: 8pt;">Cód.</span></strong></td>
-<td style="width: 228.094px; height: 22px; background-color: #ecf0f1; border-color: #000000; border-style: solid;"><strong><span style="font-size: 8pt;"> Produto/serviço</span></strong></td>
+<td style="width: 228.094px; height: 22px; background-color: #ecf0f1; border-color: #000000; border-style: solid;"><strong><span style="font-size: 8pt;">Produto/serviço</span></strong></td>
+<td style="width: 228.094px; height: 22px; background-color: #ecf0f1; border-color: #000000; border-style: solid;"><strong><span style="font-size: 8pt;">IMEI</span></strong></td>
 <td style="width: 72.0625px; height: 22px; background-color: #ecf0f1; border-color: #000000; border-style: solid;"><strong><span style="font-size: 8pt;">Quantidade</span></strong></td>
 <td style="width: 110.469px; height: 22px; background-color: #ecf0f1; border-color: #000000; border-style: solid;"><strong><span style="font-size: 8pt;">Valor item</span></strong></td>
 <td style="width: 150.5px; height: 22px; background-color: #ecf0f1; border-color: #000000; border-style: solid;"><strong><span style="font-size: 8pt;">Valor desconto</span></strong></td>
@@ -121,6 +122,7 @@
 <tr>
 <td style="width: 113.25px; height: 22px; border-color: #000000; border-style: solid;"><span style="font-size: 10pt;">{{ item.produto.codigo }}</span></td>
 <td style="width: 228.094px; height: 22px; border-color: #000000; border-style: solid;"><span style="font-size: 10pt;">{{ item.produto.nome }}</span></td>
+<td style="width: 228.094px; height: 22px; border-color: #000000; border-style: solid;"><span style="font-size: 10pt;">{{ item.imei }}</span></td>
 <td style="width: 72.0625px; height: 22px; border-color: #000000; border-style: solid; text-align: center;"><span style="font-size: 10pt;">{{ item.quantidade }}</span></td>
 <td style="width: 110.469px; height: 22px; border-color: #000000; border-style: solid; text-align: right;"><span style="font-size: 10pt;">{{ item.valor_unitario|floatformat:2 }}</span></td>
 <td style="width: 150.5px; height: 22px; border-color: #000000; border-style: solid; text-align: right;"><span style="font-size: 10pt;">{{ item.valor_desconto|floatformat:2 }}</span></td>
@@ -203,8 +205,7 @@
         margin: [0, 0.5, 0, 0.5],
         filename: 'nota_venda.pdf',
         image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+        html2canvas: { scale: 1.5 },
     };
     html2pdf().from(element).set(opt).save();
 </script>
