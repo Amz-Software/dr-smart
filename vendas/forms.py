@@ -30,16 +30,16 @@ class ClienteForm(forms.ModelForm):
         }
         labels = {
             'nome': 'Nome*',
-            'email': 'Email*',
-            'telefone': 'Telefone*',
+            'email': 'Email',
+            'telefone': 'Telefone',
             'cpf': 'CPF*',
             'nascimento': 'Data de Nascimento*',
-            'rg': 'RG*',
-            'cep': 'CEP*',
-            'bairro': 'Bairro*',
-            'endereco': 'Endereço*',
-            'cidade': 'Cidade*',
-            'uf': 'UF*',
+            'rg': 'RG',
+            'cep': 'CEP',
+            'bairro': 'Bairro',
+            'endereco': 'Endereço',
+            'cidade': 'Cidade',
+            'uf': 'UF',
             'cliente_cred_facil': 'Cliente Crédito Fácil',
         }
 
