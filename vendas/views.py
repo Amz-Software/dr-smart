@@ -525,3 +525,45 @@ class VendaPDFView(PermissionRequiredMixin, View):
             'pagamentos': venda.pagamentos.all(),
         }
         return render(request, 'venda/venda_pdf.html', context)
+    
+class FolhaCaixaPDFView(PermissionRequiredMixin, View):
+    permission_required = 'vendas.view_venda'
+    
+    def get(self, request, pk):
+        caixa = get_object_or_404(Caixa, id=pk)
+        vendas = caixa.vendas.all()
+        lancamentos = caixa.lancamentos_caixa.all()
+
+        entrada_total = 0
+        saida_total = 0
+
+        for lancamento in lancamentos:
+            if lancamento.tipo_lancamento == '1':
+                entrada_total += lancamento.valor
+            else:
+                saida_total += lancamento.valor
+
+        entrada_total += caixa.saldo_total 
+        saldo_total = entrada_total - saida_total
+
+        valor_venda_por_tipo_pagamento = {}
+
+        for venda in vendas:
+            for pagamento in venda.pagamentos.all():
+                if pagamento.tipo_pagamento.nome not in valor_venda_por_tipo_pagamento:
+                    valor_venda_por_tipo_pagamento[pagamento.tipo_pagamento.nome] = 0
+                valor_venda_por_tipo_pagamento[pagamento.tipo_pagamento.nome] += pagamento.valor
+
+        print(valor_venda_por_tipo_pagamento.items())
+
+        context = {
+            'caixa': caixa,
+            'data': localtime(now()).date(),
+            'vendas': vendas,
+            'lancamentos': lancamentos,
+            'entrada_total': entrada_total,
+            'saida_total': saida_total,
+            'saldo_total': saldo_total,
+            'valor_venda_por_tipo_pagamento': valor_venda_por_tipo_pagamento.items()
+        }
+        return render(request, 'caixa/folha_caixa.html', context)
