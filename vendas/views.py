@@ -46,26 +46,16 @@ class IndexView(LoginRequiredMixin, TemplateView):
 
         valor_caixa_total = 0
         for caixa in caixa_total:
-            valor_caixa_total += caixa.saldo_total
+            valor_caixa_total += caixa.saldo_total_dinheiro
+            valor_caixa_total += caixa.entradas
+            valor_caixa_total -= caixa.saidas
 
-        vendas_mes = Venda.objects.filter(data_venda__month=timezone.now().month, loja=loja).all()
-        venda_total_mes = 0
-        for venda in vendas_mes:
-            venda_total_mes += venda.calcular_valor_total()
-
-        vendas_a_prazo = ProdutoVenda.objects.filter(venda__data_venda__month=timezone.now().month, venda__loja=loja, venda__is_deleted=False).all()
-        venda_total_prazo = 0
-        for venda in vendas_a_prazo:
-            venda_total_prazo += venda.calcular_valor_total()
-
+        caixa_diario_lucro = (caixa_diario_loja.saldo_total_dinheiro + caixa_diario_loja.entradas) - caixa_diario_loja.saidas
 
         context['loja'] = loja
         context['caixa_diario'] = caixa_diario_loja
+        context['caixa_diario_lucro'] = caixa_diario_lucro
         context['caixa_total'] = valor_caixa_total
-        context['venda_total_prazo'] = venda_total_prazo
-        context['venda_total_mes'] = venda_total_mes
-        context['meta_diaria'] = loja.meta_vendas_diaria
-        context['meta_mensal'] = loja.meta_vendas_mensal
 
         return context
     
@@ -544,7 +534,7 @@ class FolhaCaixaPDFView(PermissionRequiredMixin, View):
                 saida_total += lancamento.valor
 
         entrada_total += caixa.saldo_total 
-        saldo_total = entrada_total - saida_total
+        saldo_total = entrada_total
 
         valor_venda_por_tipo_pagamento = {}
 
@@ -554,7 +544,8 @@ class FolhaCaixaPDFView(PermissionRequiredMixin, View):
                     valor_venda_por_tipo_pagamento[pagamento.tipo_pagamento.nome] = 0
                 valor_venda_por_tipo_pagamento[pagamento.tipo_pagamento.nome] += pagamento.valor
 
-        print(valor_venda_por_tipo_pagamento.items())
+        caixa_valor_final = (caixa.saldo_total_dinheiro + caixa.entradas) - caixa.saidas
+        valor_final = entrada_total - saida_total
 
         context = {
             'caixa': caixa,
@@ -564,6 +555,8 @@ class FolhaCaixaPDFView(PermissionRequiredMixin, View):
             'entrada_total': entrada_total,
             'saida_total': saida_total,
             'saldo_total': saldo_total,
-            'valor_venda_por_tipo_pagamento': valor_venda_por_tipo_pagamento.items()
+            'valor_venda_por_tipo_pagamento': valor_venda_por_tipo_pagamento.items(),
+            'caixa_valor_final': caixa_valor_final,
+            'valor_final': valor_final
         }
         return render(request, 'caixa/folha_caixa.html', context)
