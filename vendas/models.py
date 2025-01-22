@@ -26,6 +26,18 @@ class Caixa(Base):
     @property
     def saldo_total(self):
         return sum(venda.calcular_valor_total() for venda in self.vendas.filter(is_deleted=False))
+
+    @property
+    def saldo_total_dinheiro(self):
+        return sum(venda.pagamentos_valor_total_dinheiro for venda in self.vendas.filter(is_deleted=False, pagamentos__tipo_pagamento__caixa=True))
+
+    @property
+    def saidas(self):
+        return sum(lancamento.valor for lancamento in self.lancamentos_caixa.filter(tipo_lancamento='2'))
+    
+    @property
+    def entradas(self):
+        return sum(lancamento.valor for lancamento in self.lancamentos_caixa.filter(tipo_lancamento='1'))
     
     @property
     def quantidade_vendas(self):
@@ -90,15 +102,15 @@ class Loja(Base):
 
 class Cliente(Base):
     nome = models.CharField(max_length=100)
-    email = models.EmailField()
-    telefone = models.CharField(max_length=20)
+    email = models.EmailField(null=True, blank=True)
+    telefone = models.CharField(max_length=20, null=True, blank=True)
     cpf = models.CharField(max_length=14)
     nascimento = models.DateField()
-    rg = models.CharField(max_length=20)
-    cep = models.CharField(max_length=8)
+    rg = models.CharField(max_length=20, null=True, blank=True)
+    cep = models.CharField(max_length=8, null=True, blank=True)
     endereco = models.CharField(max_length=200, null=True, blank=True)
-    bairro = models.CharField(max_length=100)
-    cidade = models.CharField(max_length=100)
+    bairro = models.CharField(max_length=100, null=True, blank=True)
+    cidade = models.CharField(max_length=100, null=True, blank=True)
     uf = models.CharField(max_length=2, null=True, blank=True)
     cliente_cred_facil = models.BooleanField(default=False)
     comprovantes = models.ForeignKey('vendas.ComprovantesCliente', on_delete=models.PROTECT, related_name='comprovantes_clientes', null=True, blank=True)
@@ -153,6 +165,11 @@ class Venda(Base):
     @property
     def pagamentos_valor_total(self):
         return sum(pagamento.valor for pagamento in self.pagamentos.all())
+    
+    @property
+    def pagamentos_valor_total_dinheiro(self):
+        return sum(pagamento.valor for pagamento in self.pagamentos.all() if pagamento.tipo_pagamento.caixa)
+    
     
     def calcular_valor_total(self):
         return sum(item.valor_unitario * item.quantidade for item in self.itens_venda.all())

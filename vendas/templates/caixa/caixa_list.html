@@ -60,7 +60,8 @@ Caixas
                 <tr>
                   <th scope="col">Data de Abertura</th>
                   <th scope="col">Quantidade de Vendas</th>
-                  <th scope="col">Saldo Total</th>
+                  <th scope="col">Vendas Total</th>
+                  <th scope="col">Vendas Caixa</th>
                   <th scope="col">Data Fechamento</th>
                   <th scope="col">Ações</th>
                 </tr>
@@ -71,6 +72,7 @@ Caixas
                   <td>Caixa - {{ caixa.data_abertura|date:"d/m/Y" }}</td>
                   <td>{{ caixa.quantidade_vendas }}</td>
                   <td>{{ caixa.saldo_total }}</td>
+                  <td>{{ caixa.saldo_total_dinheiro }}</td>
                   {% if caixa.data_fechamento %}
                   <td>
                     <span class="badge bg-danger">

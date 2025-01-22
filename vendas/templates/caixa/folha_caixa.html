@@ -145,30 +145,14 @@
                     <td>{{ lancamento.motivo }}</td>
                     {% if lancamento.tipo_lancamento == '1' %}
                     <td>Credito</td>
+                    <td class="text-right" style="color: green;">R$ {{ lancamento.valor }}</td>
                     {% else %}
                     <td>Debito</td>
+                    <td class="text-right" style="color: red;">- R$ {{ lancamento.valor }}</td>
                     {% endif %}
-                    <td class="text-right">R$ {{ lancamento.valor }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
-        </table>
-
-        <!-- Resumo -->
-        <div class="section-title">Resumo</div>
-        <table>
-            <tr>
-                <td><strong>Total Entrada:</strong></td>
-                <td class="text-right">R$ {{ entrada_total }}</td>
-            </tr>
-            <tr>
-                <td><strong>Total Saída:</strong></td>
-                <td class="text-right">R$ {{ saida_total }}</td>
-            </tr>
-            <tr>
-                <td><strong>Saldo Total:</strong></td>
-                <td class="text-right"><strong>R$ {{ saldo_total }}</strong></td>
-            </tr>
         </table>
 
         <!-- Movimento de Vendas -->
@@ -192,6 +176,40 @@
                     <td class="text-right"><strong>R$ {{ saldo_total }}</strong></td>
                 </tr>
             </tbody>
+        </table>
+
+        <!-- Resumo -->
+        <div class="section-title">Resumo</div>
+        <table>
+            <tr>
+                <td><strong>Total Entrada:</strong></td>
+                <td class="text-right">R$ {{ entrada_total }}</td>
+            </tr>
+            <tr>
+                <td><strong>Total Saída:</strong></td>
+                <td class="text-right" style="color: red;">- R$ {{ caixa.saidas }}</td>
+            </tr>
+            <tr>
+                <td><strong>Saldo Total:</strong></td>
+                <td class="text-right"><strong>R$ {{ valor_final }}</strong></td>
+            </tr>
+        </table>
+
+        <!-- Resumo Caixa-->
+        <div class="section-title">Resumo Caixa</div>
+        <table>
+            <tr>
+                <td><strong>Total Entrada:</strong></td>
+                <td class="text-right">R$ {{ caixa.saldo_total_dinheiro }}</td>
+            </tr>
+            <tr>
+                <td><strong>Total Saída:</strong></td>
+                <td class="text-right" style="color: red;">- R$ {{ caixa.saidas }}</td>
+            </tr>
+            <tr>
+                <td><strong>Saldo Total:</strong></td>
+                <td class="text-right"><strong>R$ {{ caixa_valor_final }}</strong></td>
+            </tr>
         </table>
     </div>
 
