@@ -45,7 +45,7 @@ Vendas
           <tr>
           <td>{{ item.vendedor|title }}</td>
           <td>{{ item.cliente|title }}</td>
-          <td>{{ item.data_venda|date:"d/m/Y h:s" }}</td>
+          <td>{{ item.data_venda|date:"d/m/Y H:i" }}</td>
             <td>
             {% if item.is_deleted %}
               <i class="bx bx-check text-success"></i>

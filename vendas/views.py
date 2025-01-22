@@ -365,12 +365,18 @@ class VendaDetailView(PermissionRequiredMixin, DetailView):
 
 def cancelar_venda(request, id):
     venda = get_object_or_404(Venda, id=id)
+    data_atual = localtime(now()).date()
+
     if venda.is_deleted:
         messages.warning(request, 'Venda já cancelada')
         return redirect('vendas:venda_list')
     
     if not Caixa.caixa_aberto(localtime(now()).date()):
         messages.warning(request, 'Não é possível cancelar vendas com o caixa fechado')
+        return redirect('vendas:venda_list')
+    
+    if venda.data_venda != data_atual:
+        messages.warning(request, 'Não é possível cancelar vendas de dias anteriores')
         return redirect('vendas:venda_list')
     
     venda.is_deleted = True
