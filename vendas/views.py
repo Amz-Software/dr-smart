@@ -276,10 +276,10 @@ class VendaCreateView(PermissionRequiredMixin, CreateView):
         context = super().get_context_data(**kwargs)
         loja_id = self.request.session.get('loja_id')
         if self.request.POST:
-            context['produto_venda_formset'] = ProdutoVendaFormSet(self.request.POST)
+            context['produto_venda_formset'] = ProdutoVendaFormSet(self.request.POST, form_kwargs={'loja': loja_id})
             context['pagamento_formset'] = FormaPagamentoFormSet(self.request.POST, form_kwargs={'loja': loja_id})
         else:
-            context['produto_venda_formset'] = ProdutoVendaFormSet()
+            context['produto_venda_formset'] = ProdutoVendaFormSet(form_kwargs={'loja': loja_id})
             context['pagamento_formset'] = FormaPagamentoFormSet(form_kwargs={'loja': loja_id})
         return context
 
