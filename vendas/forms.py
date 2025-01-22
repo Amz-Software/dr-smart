@@ -280,6 +280,12 @@ class PagamentoForm(forms.ModelForm):
             'data_primeira_parcela': 'Data Primeira Parcela*',
         }
 
+    def __init__(self, *args, **kwargs):
+        loja = kwargs.pop('loja', None)
+        super().__init__(*args, **kwargs)
+        if loja:
+            self.fields['tipo_pagamento'].queryset = TipoPagamento.objects.filter(loja=loja)
+
 class LancamentoForm(forms.ModelForm):
     class Meta:
         model = LancamentoCaixa
