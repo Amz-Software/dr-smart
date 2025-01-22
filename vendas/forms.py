@@ -250,6 +250,7 @@ class ProdutoVendaForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        loja = kwargs.pop('loja', None)
         super().__init__(*args, **kwargs)
         # Filtra apenas os produtos que estão em estoque (quantidade >  0)
         self.fields['produto'].queryset = Produto.objects.filter(
@@ -259,7 +260,8 @@ class ProdutoVendaForm(forms.ModelForm):
                     quantidade_disponivel__gt=0
                 )
             )
-        )
+        ).filter(loja=loja)
+        self.fields['imei'].queryset = EstoqueImei.objects.filter(vendido=False).filter(produto__loja=loja)
 
 class PagamentoForm(forms.ModelForm):
     valor_parcela = forms.DecimalField(label='Valor Parcela', disabled=True, required=False, widget=forms.NumberInput(attrs={'class': 'form-control', 'readonly': 'readonly'}))
