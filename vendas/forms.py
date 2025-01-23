@@ -227,11 +227,10 @@ class ProdutoVendaForm(forms.ModelForm):
                 'class': 'form-control',
                 'data-minimum-input-length': '0',
                 'data-placeholder': 'Selecione um produto',
-                'allowClear': 'true',
-                },
+                'data-allow-clear': 'true',
+            },
         )
-        
-    )       
+    )
             
     class Meta:
         model = ProdutoVenda

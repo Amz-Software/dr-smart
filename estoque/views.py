@@ -75,7 +75,6 @@ class AdicionarEntradaEstoqueView(PermissionRequiredMixin, CreateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         loja_id = self.request.session.get('loja_id')
-        print('LOJA ID:', loja_id)
         if self.request.POST:
             context['formset'] = ProdutoEntradaFormSet(self.request.POST, form_kwargs={'loja': loja_id})
         else:
