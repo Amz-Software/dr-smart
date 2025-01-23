@@ -264,8 +264,6 @@ class CaixaMensalDetailView(PermissionRequiredMixin, DetailView):
             prefix='gastos_aleatorios'
         )
 
-        print(request.POST)
-
         # Verificar se os formsets são válidos
         if formset_gastos_fixos.is_valid() and formset_funcionarios.is_valid() and formset_gastos_aleatorios.is_valid():
             # Salvar formset de Gastos Fixos
@@ -291,9 +289,6 @@ class CaixaMensalDetailView(PermissionRequiredMixin, DetailView):
 
         # Caso haja erros, exibir mensagem de erro e retornar o contexto com os formsets
         messages.error(request, "Erro ao atualizar o Caixa Mensal.")
-        print(formset_gastos_fixos.errors)
-        print(formset_funcionarios.errors)
-        print(formset_gastos_aleatorios.errors)
         return self.render_to_response(self.get_context_data(
             formset_gastos_fixos=formset_gastos_fixos,
             formset_funcionarios=formset_funcionarios,
@@ -351,8 +346,6 @@ class ContasAReceberDetailView(PermissionRequiredMixin, DetailView):
             parcela_form.save()
             messages.success(request, "Parcelas atualizadas com sucesso!")
             return redirect('financeiro:contas_a_receber_update', pk=conta_a_receber.pk)
-
-        print(parcela_form.errors)
 
         messages.error(request, "Erro ao atualizar as parcelas.")
         return self.render_to_response(self.get_context_data(parcela_form=parcela_form))
