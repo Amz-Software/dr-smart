@@ -50,7 +50,9 @@ class IndexView(LoginRequiredMixin, TemplateView):
             valor_caixa_total += caixa.entradas
             valor_caixa_total -= caixa.saidas
 
-        caixa_diario_lucro = (caixa_diario_loja.saldo_total_dinheiro + caixa_diario_loja.entradas) - caixa_diario_loja.saidas
+        caixa_diario_lucro = 0
+        if caixa_diario_loja:
+            caixa_diario_lucro = (caixa_diario_loja.saldo_total_dinheiro + caixa_diario_loja.entradas) - caixa_diario_loja.saidas
 
         context['loja'] = loja
         context['caixa_diario'] = caixa_diario_loja
