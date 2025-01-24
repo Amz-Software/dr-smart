@@ -11,7 +11,7 @@ class CaixaMensal(Base):
     data_abertura = models.DateTimeField(auto_now_add=True)
     data_fechamento = models.DateTimeField(blank=True, null=True)
     gasto_fixos = models.ManyToManyField('financeiro.GastoFixo', through='financeiro.CaixaMensalGastoFixo', related_name='caixas_mensais')
-    funcionarios = models.ManyToManyField('financeiro.Funcionario', through='financeiro.CaixaMensalFuncionario', related_name='caixas_mensais')
+    funcionarios = models.ManyToManyField('self', through='financeiro.CaixaMensalFuncionario')
     
     def calcular_saldo(self):
         total_gastos_fixos = sum(gasto.valor for gasto in self.gastos_fixos.all())
@@ -54,18 +54,6 @@ class GastoFixo(Base):
         verbose_name_plural = 'Gastos Fixos'
         
 
-class Funcionario(Base):
-    nome = models.CharField(max_length=100)
-    sobrenome = models.CharField(max_length=100, blank=True, null=True)
-    email = models.EmailField(blank=True, null=True)
-    user = models.OneToOneField('accounts.User', on_delete=models.PROTECT, related_name='funcionario')
-    
-    def __str__(self):
-        return self.nome
-    
-    class Meta:
-        verbose_name_plural = 'Funcionários'
-
 
 class CaixaMensalGastoFixo(Base):
     caixa_mensal = models.ForeignKey('financeiro.CaixaMensal', on_delete=models.CASCADE)
@@ -85,7 +73,7 @@ class CaixaMensalGastoFixo(Base):
 
 class CaixaMensalFuncionario(Base):
     caixa_mensal = models.ForeignKey('financeiro.CaixaMensal', on_delete=models.CASCADE)
-    funcionario = models.ForeignKey('financeiro.Funcionario', on_delete=models.CASCADE)
+    funcionario = models.ForeignKey('accounts.User', on_delete=models.CASCADE)
     comissao = models.DecimalField(max_digits=10, decimal_places=2)
     salario = models.DecimalField(max_digits=10, decimal_places=2)
     

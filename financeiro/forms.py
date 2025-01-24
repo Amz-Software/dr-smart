@@ -1,6 +1,8 @@
 # forms.py
 
 from django import forms
+
+from accounts.models import User
 from .models import *
 from vendas.models import *
 
@@ -32,19 +34,33 @@ class GastosAleatoriosForm(forms.ModelForm):
             'observacao': forms.Textarea(attrs={'rows': 1, 'class': 'form-control'}),
             'valor': forms.NumberInput(attrs={'step': '0.01', 'class': 'form-control'}),
         }
-
-class FuncionarioForm(forms.ModelForm):
-    class Meta:
-        model = Funcionario
-        fields = ['nome', 'sobrenome', 'email', 'user']
-        widgets = {
-            'email': forms.EmailInput(attrs={'placeholder': 'Email'}),
-        }
-
 class GastoFixoForm(forms.ModelForm):
     class Meta:
         model = GastoFixo
         fields = ['nome']
+        widgets = {
+            'nome': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+        labels = {
+            'nome': 'Nome do Gasto Fixo',
+        }
+
+    def __init__(self, *args, disabled=False, **kwargs):
+        self.user = kwargs.pop('user', None)  # Pega o usuário que será passado pela view
+        super().__init__(*args, **kwargs)
+        if disabled:
+            for field in self.fields.values():
+                field.widget.attrs['disabled'] = True
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if self.user:  
+            if not instance.pk: 
+                instance.criado_por = self.user
+            instance.modificado_por = self.user 
+        if commit:
+            instance.save()
+        return instance
 
 class CaixaMensalGastoFixoForm(forms.ModelForm):
     class Meta:
@@ -58,14 +74,25 @@ class CaixaMensalGastoFixoForm(forms.ModelForm):
 
 
 class CaixaMensalFuncionarioForm(forms.ModelForm):
+    nome = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
+
     class Meta:
         model = CaixaMensalFuncionario
-        fields = ['funcionario', 'comissao', 'salario']
+        fields = ['comissao', 'salario']
         widgets = {
-            'funcionario': forms.Select(attrs={'class': 'form-control'}),
             'comissao': forms.NumberInput(attrs={'step': '0.01', 'class': 'form-control'}),
             'salario': forms.NumberInput(attrs={'step': '0.01', 'class': 'form-control'}),
         }
+        labels = {
+            'comissao': 'Comissão',
+            'salario': 'Salário',
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super(CaixaMensalFuncionarioForm, self).__init__(*args, **kwargs)
+        # Preencher o campo nome com o nome do funcionário 
+        self.fields['nome'].initial = f'{self.instance.funcionario.first_name} {self.instance.funcionario.last_name}'
+        self.fields['nome'].widget.attrs['readonly'] = 'readonly'
 
 # Definições dos FormSets com Prefixo
 CaixaMensalGastoFixoFormSet = forms.modelformset_factory(
@@ -77,7 +104,8 @@ CaixaMensalGastoFixoFormSet = forms.modelformset_factory(
 CaixaMensalFuncionarioFormSet = forms.modelformset_factory(
     CaixaMensalFuncionario,
     form=CaixaMensalFuncionarioForm,
-    extra=0
+    extra=0,
+    can_delete=True
 )
 
 GastosAleatoriosFormSet = forms.inlineformset_factory(

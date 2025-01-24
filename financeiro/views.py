@@ -16,7 +16,7 @@ from vendas.views import BaseView
 from .models import CaixaMensal, CaixaMensalGastoFixo, CaixaMensalFuncionario, GastosAleatorios
 from financeiro.forms import GastosAleatoriosForm
 from vendas.models import Loja
-from .models import CaixaMensal, CaixaMensalFuncionario, CaixaMensalGastoFixo, Funcionario, GastoFixo, GastosAleatorios
+from .models import CaixaMensal, CaixaMensalFuncionario, CaixaMensalGastoFixo, GastoFixo, GastosAleatorios
 from datetime import datetime
 from django.db import transaction
 from financeiro.forms import *
@@ -66,7 +66,7 @@ def caixa_mensal_create(request):
         )
 
         # Associar todos os funcionários e gastos fixos
-        funcionarios = Funcionario.objects.filter(user__lojas=loja)
+        funcionarios = loja.usuarios.all()
         for funcionario in funcionarios:
             CaixaMensalFuncionario.objects.create(
                 caixa_mensal=caixa_mensal,
@@ -195,6 +195,7 @@ class CaixaMensalDetailView(PermissionRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        loja_id = self.request.session.get('loja_id')
         caixa_mensal = self.get_object()
 
         # Pré-configurar os Gastos Fixos associados ao Caixa Mensal
@@ -234,7 +235,7 @@ class CaixaMensalDetailView(PermissionRequiredMixin, DetailView):
     def _pre_configurar_funcionarios(self, caixa_mensal):
         """Cria associações de Funcionários ao Caixa Mensal, caso não existam."""
         if not CaixaMensalFuncionario.objects.filter(caixa_mensal=caixa_mensal).exists():
-            funcionarios_disponiveis = Funcionario.objects.all()
+            funcionarios_disponiveis = Loja.objects.get(id=self.request.session.get('loja_id')).usuarios.all()
             for funcionario in funcionarios_disponiveis:
                 CaixaMensalFuncionario.objects.create(
                     caixa_mensal=caixa_mensal,
@@ -274,7 +275,12 @@ class CaixaMensalDetailView(PermissionRequiredMixin, DetailView):
             formset_gastos_fixos.save_m2m()
 
             # Salvar formset de Funcionários
+            # verificar se o funcionário foi deletado
+            for form in formset_funcionarios.deleted_forms:
+                if form.instance.pk:
+                    form.instance.delete()
             instances_funcionarios = formset_funcionarios.save(commit=False)
+            
             for instance in instances_funcionarios:
                 instance.caixa_mensal = caixa_mensal
                 instance.save()
@@ -289,6 +295,9 @@ class CaixaMensalDetailView(PermissionRequiredMixin, DetailView):
 
         # Caso haja erros, exibir mensagem de erro e retornar o contexto com os formsets
         messages.error(request, "Erro ao atualizar o Caixa Mensal.")
+        print(formset_gastos_fixos.errors)
+        print(formset_funcionarios.errors)
+        print(formset_gastos_aleatorios.errors)
         return self.render_to_response(self.get_context_data(
             formset_gastos_fixos=formset_gastos_fixos,
             formset_funcionarios=formset_funcionarios,
