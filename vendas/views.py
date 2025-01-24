@@ -392,8 +392,46 @@ class CaixaTotalView(PermissionRequiredMixin, TemplateView):
     permission_required = 'vendas.view_caixa'
     
     def get_context_data(self, **kwargs):
+        loja_id = self.request.session.get('loja_id')
+
+        caixas = Loja.objects.get(id=loja_id).caixa_loja.all().order_by('-data_abertura')
+        vendas_caixa = []
+        entradas_caixa = []
+        saidas_caixa = []
+        total_entrada = 0
+        total_saida = 0
+        total_venda =0
+
+        for caixa in caixas:
+            vendas = caixa.vendas.filter(is_deleted=False, pagamentos__tipo_pagamento__caixa=True)
+            entradas = caixa.lancamentos_caixa.filter(tipo_lancamento='1')
+            saidas = caixa.lancamentos_caixa.filter(tipo_lancamento='2')
+            if vendas:
+                vendas_caixa.append(vendas)
+
+            if entradas:
+                entradas_caixa.append(entradas)
+
+            if saidas:
+                saidas_caixa.append(saidas)
+            
+            total_entrada += caixa.entradas
+            total_saida += caixa.saidas
+            total_venda += caixa.saldo_total_dinheiro
+
+            
+        total = (total_entrada + total_venda) - total_saida
+
         context = super().get_context_data(**kwargs)
         context['caixas'] = Caixa.objects.all()
+        context['loja'] = Loja.objects.get(id=loja_id)
+        context['vendas'] = vendas_caixa
+        context['entradas'] = entradas_caixa
+        context['saidas'] = saidas_caixa
+        context['total_entrada'] = total_entrada
+        context['total_saida'] = total_saida
+        context['total_venda'] = total_venda
+        context['total'] = total
         
         return context
     
