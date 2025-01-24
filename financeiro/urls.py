@@ -1,8 +1,12 @@
 from django.urls import path
 from .views import *
+from utils import gerador_views
 
 
 app_name = 'financeiro'
+
+gasto_fixo_views = gerador_views.generate_views(GastoFixo, GastoFixoForm, 10, template_dir='gasto_fixo')
+
 urlpatterns = [
     path('financeiro/caixa-mensal', CaixaMensalListView.as_view(), name='caixa_mensal_list'),
     path('financeiro/caixa-mensal/novo', caixa_mensal_create , name='caixa_mensal_create'),
@@ -11,4 +15,9 @@ urlpatterns = [
     path('financeiro/caixa-mensal/<int:pk>/reabrir', reabrir_caixa_mensal, name='caixa_mensal_reopen'),
     path('financeiro/contas-a-receber', ContasAReceberListView.as_view(), name='contas_a_receber_list'),
     path('financeiro/contas-a-receber/<int:pk>', ContasAReceberDetailView.as_view(), name='contas_a_receber_update'),
+
+    path('gastofixo/', gasto_fixo_views['list_view'].as_view(), name='gasto_fixo_list'),
+    path('gasto-fixo/novo', gasto_fixo_views['create_view'].as_view(), name='gasto_fixo_create'),
+    path('gasto-fixo/<int:pk>/detalhe', gasto_fixo_views['detail_view'].as_view(), name='gasto_fixo_detail'),
+    path('gasto-fixo/<int:pk>', gasto_fixo_views['update_view'].as_view(), name='gasto_fixo_update'),
 ]

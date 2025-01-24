@@ -157,6 +157,11 @@ def menu_items(request):
                     "url_name": "financeiro:caixa_mensal_list",
                     "permission": "financeiro.view_caixamensal"
                 },
+                {
+                    "label": "Gasos Fixos",
+                    "url_name": "financeiro:gasto_fixo_list",
+                    "permission": "financeiro.view_gastofixo"
+                }
             ]
         },
         {

@@ -97,6 +97,7 @@ Caixa Mensal - {{ caixa_mensal.loja }} - {{ caixa_mensal.mes|date:"F Y" }}
                                 <th>Funcionário</th>
                                 <th>Salário</th>
                                 <th>Comissão</th>
+                                <th>Apagar</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -104,9 +105,10 @@ Caixa Mensal - {{ caixa_mensal.loja }} - {{ caixa_mensal.mes|date:"F Y" }}
                             {% for form in formset_funcionarios %}
                             <tr>
                                 {{ form.id }}
-                                <td>{{ form.funcionario }}</td>
+                                <td>{{ form.nome }}</td>
                                 <td>{{ form.salario }}</td>
                                 <td>{{ form.comissao }}</td>
+                                <td>{{ form.DELETE }}</td>
                             </tr>
                             {% empty %}
                             <tr>

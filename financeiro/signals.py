@@ -1,6 +1,6 @@
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
-from .models import GastoFixo, Funcionario, CaixaMensal, CaixaMensalGastoFixo, CaixaMensalFuncionario
+from .models import GastoFixo, CaixaMensal, CaixaMensalGastoFixo, CaixaMensalFuncionario
 
 @receiver(post_save, sender=GastoFixo)
 def associar_gasto_fixo_a_caixas_mensais_abertos(sender, instance, created, **kwargs):
@@ -17,20 +17,6 @@ def associar_gasto_fixo_a_caixas_mensais_abertos(sender, instance, created, **kw
                     observacao=""
                 )
 
-@receiver(post_save, sender=Funcionario)
-def associar_funcionario_a_caixas_mensais_abertos(sender, instance, created, **kwargs):
-    """Associa um novo Funcionário apenas aos caixas mensais abertos."""
-    if created:  # Só executa quando um novo Funcionário é criado
-        caixas_mensais_abertos = CaixaMensal.objects.filter(data_fechamento=None)
-        for caixa_mensal in caixas_mensais_abertos:
-            # Verificar se já existe associação para evitar duplicação
-            if not CaixaMensalFuncionario.objects.filter(caixa_mensal=caixa_mensal, funcionario=instance).exists():
-                CaixaMensalFuncionario.objects.create(
-                    caixa_mensal=caixa_mensal,
-                    funcionario=instance,
-                    salario=0.00,  # Valor padrão
-                    comissao=0.00
-                )
 # ao excluir deve apgar as associações
 @receiver(post_delete, sender=GastoFixo)
 def desassociar_gasto_fixo_a_caixas_mensais(sender, instance, **kwargs):
@@ -39,11 +25,4 @@ def desassociar_gasto_fixo_a_caixas_mensais(sender, instance, **kwargs):
     for caixa_mensal in caixas_mensais:
         CaixaMensalGastoFixo.objects.filter(caixa_mensal=caixa_mensal, gasto_fixo=instance).delete()
 
-
-@receiver(post_delete, sender=Funcionario)
-def desassociar_funcionario_a_caixas_mensais(sender, instance, **kwargs):
-    """Desassocia um Funcionário dos caixas mensais abertos."""
-    caixas_mensais = CaixaMensal.objects.all()
-    for caixa_mensal in caixas_mensais:
-        CaixaMensalFuncionario.objects.filter(caixa_mensal=caixa_mensal, funcionario=instance).delete()
 
