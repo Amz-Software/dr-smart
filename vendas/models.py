@@ -154,7 +154,7 @@ class ComprovantesCliente(Base):
 
 class Venda(Base):
     data_venda = models.DateTimeField(auto_now_add=True)
-    cliente = models.ForeignKey('vendas.Cliente', on_delete=models.PROTECT, related_name='vendas')
+    cliente = models.ForeignKey('vendas.cliente', on_delete=models.PROTECT, related_name='vendas')
     vendedor = models.ForeignKey('accounts.User', on_delete=models.PROTECT, related_name='vendas_realizadas')
     tipo_venda = models.ForeignKey('vendas.TipoVenda', on_delete=models.PROTECT, related_name='vendas_tipo_venda')
     tipo_entrega = models.ForeignKey('vendas.TipoEntrega', on_delete=models.PROTECT, related_name='vendas_tipo_entrega')
@@ -227,6 +227,7 @@ class TipoPagamento(Base):
     caixa = models.BooleanField(default=False)
     parcelas = models.BooleanField(default=False)
     financeira = models.BooleanField(default=False)
+    carne = models.BooleanField(default=False)
     
     def __str__(self):
         return self.nome

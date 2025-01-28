@@ -10,7 +10,7 @@ from django.utils.timezone import localtime, now
 from estoque.models import Estoque, EstoqueImei
 from produtos.models import Produto
 from vendas.forms import ClienteForm, ComprovantesClienteForm, ContatoAdicionalForm, LojaForm, VendaForm, ProdutoVendaFormSet, FormaPagamentoFormSet, LancamentoForm
-from .models import Caixa, Cliente, Loja, Pagamento, ProdutoVenda, Venda, LancamentoCaixa
+from .models import Caixa, Cliente, Loja, Pagamento, ProdutoVenda, TipoPagamento, Venda, LancamentoCaixa
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.utils import timezone
 from django.db import transaction
@@ -525,14 +525,15 @@ def product_information(request):
 
 def get_payment_method(request):
     payment_id = request.GET.get('payment_id')
-    payment = get_object_or_404(Pagamento, id=payment_id)
+    payment = get_object_or_404(TipoPagamento, id=payment_id)
     
     if payment:
         return JsonResponse({
             'status': 'success',
-            'parcela': payment.tipo_pagamento.parcelas,
-            'financeira': payment.tipo_pagamento.financeira,
-            'caixa': payment.tipo_pagamento.caixa
+            'parcela': payment.parcelas,
+            'financeira': payment.financeira,
+            'caixa': payment.caixa,
+            'carne': payment.carne,
         })
 
 
@@ -607,3 +608,38 @@ class FolhaCaixaPDFView(PermissionRequiredMixin, View):
             'valor_final': valor_final
         }
         return render(request, 'caixa/folha_caixa.html', context)
+    
+
+from django.shortcuts import render
+from django.utils.timezone import now
+from .models import Caixa, Venda, LancamentoCaixa
+
+def folha_carne_view(request, pk, tipo):
+    # Busca a venda
+    venda = Venda.objects.get(pk=pk)
+    valor_total = venda.pagamentos_valor_total
+    pagamento_carne = Pagamento.objects.filter(venda=venda, tipo_pagamento__carne=True).first()
+    quantidade_parcelas = pagamento_carne.parcelas
+    valor_parcela = pagamento_carne.valor_parcela
+    nome_cliente = venda.cliente.nome.title()
+    tipo_pagamento = 'Carnê' if tipo == 'carne' else 'Promissória'
+    endereco_cliente = venda.cliente.endereco
+    cpf = venda.cliente.cpf
+
+    # Lista de parcelas (1 a quantidade_parcelas)
+    parcelas = list(range(1, quantidade_parcelas + 1))
+
+    # Contexto para o template
+    context = {
+        'venda': venda,
+        'valor_total': valor_total,
+        'tipo_pagamento': tipo_pagamento,
+        'quantidade_parcelas': quantidade_parcelas,
+        'valor_parcela': valor_parcela,
+        'nome_cliente': nome_cliente,
+        'endereco_cliente': endereco_cliente,
+        'cpf': cpf,
+        'parcelas': parcelas,  # Envia a lista de parcelas
+    }
+
+    return render(request, "venda/folha_carne.html", context)

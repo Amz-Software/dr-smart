@@ -488,6 +488,7 @@ Criar Venda
         .then(response => response.json())
         .then(data => {
           if (data.status === "success") {
+            console.log('Informações de pagamento:', data);
             if (data.parcela) {
               parcelasField.disabled = false;
               parcelasField.value = parcelasField.value || 1;

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes de Pagamento</title>
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        td {
+            border: 1px solid #000;
+            vertical-align: top;
+            padding: 10px;
+        }
+        .header {
+            background-color: #fff000;
+            font-weight: bold;
+        }
+        .content {
+            background-color: #fef9c8;
+        }
+        .center {
+            text-align: center;
+        }
+        .left {
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+
+    {% for parcela in parcelas %}
+    <!-- Tabela para cada parcela -->
+    <table>
+        <tr>
+            <td class="header" style="width: 30%;">
+                <p>{{ venda.loja.nome }} | Nº {{ venda.id }}</p>
+                <p>Vencimento: {{ parcela|date:"d/m/Y" }}</p>
+                <p><strong>R$ {{ valor_parcela }}</strong></p>
+                <p class="center">PARCELA {{ parcela }} DE {{ quantidade_parcelas }}</p>
+                <p class="center">CLIENTE</p>
+                <p>CPF/CNPJ: {{ cpf }}</p>
+                <p>ENDEREÇO: <strong>{{ endereco_cliente }}</strong></p>
+                <p>VALOR PARCIAL ..........................</p>
+            </td>
+            <td class="content">
+                <p>{{ venda.loja.nome }} | Nº {{ venda.id }}</p>
+                <p>Vencimento: {{ parcela|date:"d/m/Y" }} <strong>R$ {{ valor_parcela }}</strong></p>
+                <p>Ao <strong>{{ nome_cliente }}</strong> pagar <strong>R$ {{ valor_parcela }}</strong> por esta única via de {{ tipo_pagamento }} à <strong>{{ venda.loja.nome }}</strong>, CPF/CNPJ {{ venda.loja.cnpj }}, ou à sua ordem a quantia de {{ valor_parcela|floatformat:2 }} reais, em moeda corrente desse país, pagável em DINHEIRO.</p>
+                <p>EMITENTE: <strong>{{ nome_cliente }}</strong></p>
+                <p>DATA DA EMISSÃO: <strong>{{ venda.data|date:"d/m/Y" }}</strong></p>
+                <p>CPF/CNPJ: <strong>{{ cpf }}</strong></p>
+                <p>ENDEREÇO: <strong>{{ endereco_cliente }}</strong></p>
+                <p>ASS. DO EMITENTE .............................................................</p>
+            </td>
+        </tr>
+    </table>
+    {% endfor %}
+    
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js"></script>
+<script>
+    const element = document.body;
+    const opt = {
+        margin: [10, 10, 10, 10],
+        filename: `folha_caixa.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 3 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    };
+    html2pdf().from(element).set(opt).save();
+</script>
+
+</body>
+</html>

@@ -63,4 +63,6 @@ urlpatterns = [
 
     path('vendas/nota/<int:pk>/', VendaPDFView.as_view(), name='venda_pdf'),
     path('caixa/folha/<int:pk>/', FolhaCaixaPDFView.as_view(), name='caixa_pdf'),
+    
+    path('gerar-carne/<int:pk>/<str:tipo>/', folha_carne_view, name='gerar_carne'),
 ]
