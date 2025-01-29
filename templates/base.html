@@ -18,7 +18,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
     <title>
-    {% block title%}MobiService{% endblock %}
+    {% block title%}{{loja_atual}}{% endblock %}
     </title>
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="{% static '/images/logo.png' %}" />
@@ -75,20 +75,21 @@
         <!-- Menu -->
 
         <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
-          <div class="app-brand demo">
-            <a href="{% url 'vendas:index' %}" class="app-brand-link">
+          <div class="app-brand demo d-flex align-items-center justify-content-between">
+            <a href="{% url 'vendas:index' %}" class="app-brand-link d-flex align-items-center">
               <span>
-                <img src="{% static 'images/logo.png' %}" style="width: 60px; position: relative; right: 15px;">
+                <img src="{% static 'images/logo.png' %}" style="width: 60px; position: relative; right: 10px;">
               </span>
-              <span class="app-brand-text demo menu-text fw-medium ms-2 text-capitalize">MobiService</span>
+              <span 
+                class="app-brand-text text-truncate fw-medium text-capitalize" 
+                style="font-size: 18px; max-width: 160px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                {{ loja_atual }}
+              </span>
             </a>
             <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto">
               <i class="bx bx-chevron-left bx-sm align-middle"></i>
             </a>
           </div>
-
-
-          <div class="menu-inner-shadow"></div>
 
           <ul class="menu-inner py-1">
             {% for section, items in menu_items.items %}

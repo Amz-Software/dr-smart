@@ -5,6 +5,8 @@ from urllib import request
 
 from django.urls import reverse
 
+from vendas.models import Loja
+
 
 def menu_items(request):
     items = [
@@ -246,3 +248,11 @@ def menu_items(request):
 
     return {'menu_items': sections}
 
+
+def loja(request):
+    loja_id = request.session.get('loja_id', None)
+    
+    loja = Loja.objects.filter(pk=loja_id).first()
+    if loja:
+        return {'loja_atual': loja}
+    return {}
