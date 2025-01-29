@@ -68,6 +68,14 @@ Vendas
                   <i class="bx bx-file
                   me-1"></i> Gerar PDF
                   </a>
+                  <a class="dropdown-item" href="{% url 'vendas:gerar_carne' tipo='carne' pk=item.pk %}" target="_blank">
+                  <i class="bx bx-file
+                  me-1"></i> Gerar Carnê
+                  </a>
+                  <a class="dropdown-item" href="{% url 'vendas:gerar_carne' tipo='promissoria' pk=item.pk %}" target="_blank">
+                  <i class="bx bx-file
+                  me-1"></i> Gerar Promissória
+                  </a>
               </div>
             </div>
           </td>
