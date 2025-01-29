@@ -378,10 +378,6 @@ def cancelar_venda(request, id):
         messages.warning(request, 'Não é possível cancelar vendas com o caixa fechado')
         return redirect('vendas:venda_list')
     
-    if venda.data_venda != data_atual:
-        messages.warning(request, 'Não é possível cancelar vendas de dias anteriores')
-        return redirect('vendas:venda_list')
-    
     venda.is_deleted = True
     venda.save()
     messages.success(request, 'Venda cancelada com sucesso')
