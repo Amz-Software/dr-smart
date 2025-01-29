@@ -90,11 +90,13 @@ class TipoPagamentoForm(forms.ModelForm):
             'caixa': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'parcelas': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'financeira': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'carne': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
         help_texts = {
             'caixa': 'Esse pagamento será realizado no caixa nas formas de recebimento pelo logista.',
             'parcelas': 'Marque se o pagamento pode ser parcelado.',
             'financeira': 'Marque se o pagamento é feito por financeira.',
+            'carne': 'Marque se o pagamento é feito por carnê ou promissória.',
         }
 
     def __init__(self, *args, disabled=False, **kwargs):
