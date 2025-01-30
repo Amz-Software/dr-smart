@@ -108,6 +108,15 @@ class UserCreateView(CreateView):
     template_name = 'user/user_form.html'
     success_url = reverse_lazy('accounts:user_list')
     permission_required = 'accounts.add_user'
+
+    def form_valid(self, form):
+        loja_id = self.request.session.get('loja_id')
+        form.instance.loja = Loja.objects.get(id=loja_id)
+        form.save()
+
+        messages.success(self.request, 'Usuário criado com sucesso.')
+        return super().form_valid(form)
+    
     
 
 class UserUpdateView(UpdateView):
@@ -184,12 +193,13 @@ class UserListView(ListView):
     
     def get_queryset(self):
         query = super().get_queryset()
+        loja_id = self.request.session.get('loja_id')
         my_user = self.request.user
         search = self.request.GET.get('search', None)
         if search:
             query = query.filter(Q(username__icontains=search) | Q(email__icontains=search))
 
-        return query.filter(is_active=True).exclude(id=my_user.id).exclude(is_superuser=True)
+        return query.filter(is_active=True).exclude(id=my_user.id).exclude(is_superuser=True).filter(loja=loja_id)
     
 def get_lojas_by_username(request):
     username = request.GET.get('username')
