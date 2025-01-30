@@ -379,7 +379,7 @@ def cancelar_venda(request, id):
         return redirect('vendas:venda_list')
     
     venda.is_deleted = True
-    venda.save()
+    venda.save(user=request.user)
     messages.success(request, 'Venda cancelada com sucesso')
     return redirect('vendas:venda_list')
     
