@@ -71,5 +71,6 @@ ProdutoEntradaFormSet = modelformset_factory(
     ProdutoEntrada,
     form=ProdutoEntradaForm,
     extra=1,
+    max_num=100,
     can_delete=False
 )

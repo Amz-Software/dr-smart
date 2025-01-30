@@ -30,6 +30,11 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     function addNewProductRow() {
+        if (formCount >= 100) {
+            alert("Número máximo de produtos atingido. Por favor, finalize a entrada e inicie uma nova.");
+            return;
+        }
+
         const lastForm = formTable.querySelector(".produto-form:last-child");
         if (lastForm) {
             const newForm = lastForm.cloneNode(true);
