@@ -51,7 +51,7 @@ class EntradaListView(BaseView, PermissionRequiredMixin, ListView):
         if search:
             query = query.filter(fornecedor__nome__icontains=search)
             
-        return query
+        return query.order_by('-data_entrada')
     
 class EntradaDetailView(PermissionRequiredMixin, DetailView):
     model = EntradaEstoque
@@ -89,7 +89,7 @@ class AdicionarEntradaEstoqueView(PermissionRequiredMixin, CreateView):
         if form.is_valid() and formset.is_valid():
             entrada_estoque = form.save(commit=False)
             entrada_estoque.loja = loja
-            entrada_estoque.save()
+            entrada_estoque.save(user=self.request.user)
             produtos = formset.save(commit=False)
 
             for produto in produtos:
