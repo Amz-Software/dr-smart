@@ -14,6 +14,12 @@ class EntradaEstoqueForm(forms.ModelForm):
             'data_entrada': forms.DateInput(attrs={'type': 'date'}),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # caso tenha dado, ajustar a data de entrada para o padrão do javascript
+        if self.instance.data_entrada:
+            self.initial['data_entrada'] = self.instance.data_entrada.strftime('%Y-%m-%d')
+
 
 class FornecedorForm(forms.ModelForm):
     class Meta:

@@ -64,7 +64,52 @@ class EntradaDetailView(PermissionRequiredMixin, DetailView):
         context['produtos'] = ProdutoEntrada.objects.filter(entrada=self.object)
         return context
     
+class EntradaUpdateView(PermissionRequiredMixin, UpdateView):
+    # levar em consideração que pode ter uma venda e diminuir o estoque
+    model = EntradaEstoque
+    form_class = EntradaEstoqueForm
+    template_name = 'estoque/estoque_form.html'
+    success_url = reverse_lazy('estoque:estoque_list')
+    permission_required = 'estoque.change_entradaestoque'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        loja_id = self.request.session.get('loja_id')
+        if self.request.POST:
+            context['formset'] = ProdutoEntradaFormSet(self.request.POST, form_kwargs={'loja': loja_id})
+        else:
+            context['formset'] = ProdutoEntradaFormSet(queryset=ProdutoEntrada.objects.filter(entrada=self.object), form_kwargs={'loja': loja_id})
+        return context
     
+    def form_valid(self, form):
+        context = self.get_context_data()
+        formset = context['formset']
+        loja_id = self.request.session.get('loja_id')
+        loja = get_object_or_404(Loja, pk=loja_id)
+        if form.is_valid() and formset.is_valid():
+            entrada_estoque = form.save(commit=False)
+            entrada_estoque.loja = loja
+            entrada_estoque.save(user=self.request.user)
+            produtos = formset.save(commit=False)
+            for produto in produtos:
+                produto.entrada = entrada_estoque
+                produto.loja = loja
+                produto.save(user=self.request.user)
+                
+                # Se o produto for serializado, salve os IMEIs na tabela EstoqueImei
+                if produto.imei:  # Presumindo que o IMEI é obrigatório
+                    estoque_imei = EstoqueImei.objects.create(
+                        produto=produto.produto,
+                        imei=produto.imei,
+                        produto_entrada=produto,
+                        loja=loja
+                    )
+                    estoque_imei.save(user=self.request.user)
+            messages.success(self.request, 'Entrada de estoque atualizada com sucesso!')
+            return redirect(self.success_url)
+        else:
+            return self.form_invalid(form)
+
 class AdicionarEntradaEstoqueView(PermissionRequiredMixin, CreateView):
     model = EntradaEstoque
     form_class = EntradaEstoqueForm
