@@ -118,8 +118,10 @@ class CaixaDetailView(PermissionRequiredMixin, DetailView):
     permission_required = 'vendas.view_caixa'
     
     def get_context_data(self, **kwargs):
+        loja_id = self.request.session.get('loja_id')
+        loja = get_object_or_404(Loja, id=loja_id)
         context = super().get_context_data(**kwargs)
-        context['vendas'] = self.object.vendas.filter(is_deleted=False)
+        context['vendas'] = self.object.vendas.filter(is_deleted=False).filter(loja=loja)
         context['form_lancamento'] = LancamentoForm()
         context['lancamentos'] = LancamentoCaixa.objects.filter(caixa=self.object)
         return context
@@ -543,8 +545,9 @@ class ProdutoAutoComplete(AutoResponseView):
     
 def get_produtos(request):
     loja_id = request.session.get('loja_id')
+    term = request.GET.get('term')
     loja = get_object_or_404(Loja, id=loja_id)
-    produtos = Produto.objects.filter(estoque_atual__loja_id=loja_id, estoque_atual__quantidade_disponivel__gt=0, loja=loja).distinct()
+    produtos = Produto.objects.filter(estoque_atual__loja_id=loja_id, estoque_atual__quantidade_disponivel__gt=0, loja=loja).distinct().filter(nome__icontains=term)
     produtos_data = [{'id': produto.id, 'text': produto.nome} for produto in produtos]
     return JsonResponse({'results': produtos_data})
 

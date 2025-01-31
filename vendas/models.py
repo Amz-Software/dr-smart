@@ -42,7 +42,7 @@ class Caixa(Base):
     
     @property
     def quantidade_vendas(self):
-        return self.vendas.filter(is_deleted=False).count()
+        return self.vendas.filter(is_deleted=False).filter(loja=self.loja).count()
     
     @property
     def caixa_fechado(self):
