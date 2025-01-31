@@ -25,11 +25,11 @@ class Caixa(Base):
     
     @property
     def saldo_total(self):
-        return sum(venda.calcular_valor_total() for venda in self.vendas.filter(is_deleted=False))
+        return sum(venda.calcular_valor_total() for venda in self.vendas.filter(is_deleted=False).filter(loja=self.loja))
 
     @property
     def saldo_total_dinheiro(self):
-        total = sum(venda.pagamentos_valor_total_dinheiro for venda in self.vendas.filter(is_deleted=False, pagamentos__tipo_pagamento__caixa=True))
+        total = sum(venda.pagamentos_valor_total_dinheiro for venda in self.vendas.filter(is_deleted=False, pagamentos__tipo_pagamento__caixa=True).filter(loja=self.loja))
         return total if total else 0
 
     @property
@@ -52,11 +52,11 @@ class Caixa(Base):
         
     
     @classmethod
-    def caixa_aberto(cls, data):
-        return cls.objects.filter(data_abertura=data, data_fechamento__isnull=True).exists()
+    def caixa_aberto(cls, data, loja):
+        return cls.objects.filter(data_abertura=data, data_fechamento__isnull=True, loja=loja).exists()
 
     def __str__(self):
-        return f"Caixa do dia {self.data_abertura}"
+        return f"Caixa do dia {self.data_abertura} - {self.loja}"
 
     class Meta:
         verbose_name_plural = 'Caixas'

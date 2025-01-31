@@ -291,15 +291,14 @@ class VendaCreateView(PermissionRequiredMixin, CreateView):
         context = self.get_context_data()
         produto_venda_formset = context['produto_venda_formset']
         pagamento_formset = context['pagamento_formset']
+        loja = Loja.objects.get(id=self.request.session.get('loja_id'))
 
         if not (produto_venda_formset.is_valid() and pagamento_formset.is_valid() and form.is_valid()):
             return self.form_invalid(form)
 
-        if not Caixa.caixa_aberto(localtime(now()).date()):
+        if not Caixa.caixa_aberto(localtime(now()).date(), loja):
             messages.warning(self.request, 'Não é possível realizar vendas com o caixa fechado')
             return self.form_invalid(form)
-
-        loja = Loja.objects.get(id=self.request.session.get('loja_id'))
 
         try:
             with transaction.atomic():
@@ -315,7 +314,7 @@ class VendaCreateView(PermissionRequiredMixin, CreateView):
         form.instance.loja = loja
         form.instance.criado_por = self.request.user
         form.instance.modificado_por = self.request.user
-        form.instance.caixa = Caixa.objects.get(data_abertura=localtime(now()).date())
+        form.instance.caixa = Caixa.objects.get(data_abertura=localtime(now()).date(), loja=loja)
         form.instance.data_venda = localtime(now())
         self.object = form.save()
 
