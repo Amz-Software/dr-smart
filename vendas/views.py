@@ -375,7 +375,7 @@ def cancelar_venda(request, id):
         messages.warning(request, 'Venda já cancelada')
         return redirect('vendas:venda_list')
     
-    if not Caixa.caixa_aberto(localtime(now()).date()):
+    if not Caixa.caixa_aberto(localtime(now()).date(), Loja.objects.get(id=request.session.get('loja_id'))):
         messages.warning(request, 'Não é possível cancelar vendas com o caixa fechado')
         return redirect('vendas:venda_list')
     
@@ -546,7 +546,12 @@ def get_produtos(request):
     loja_id = request.session.get('loja_id')
     term = request.GET.get('term')
     loja = get_object_or_404(Loja, id=loja_id)
-    produtos = Produto.objects.filter(estoque_atual__loja_id=loja_id, estoque_atual__quantidade_disponivel__gt=0, loja=loja).distinct().filter(nome__icontains=term)
+    
+    if term:
+        produtos = Produto.objects.filter(estoque_atual__loja_id=loja_id, estoque_atual__quantidade_disponivel__gt=0, loja=loja).distinct().filter(nome__icontains=term)
+    else:
+        produtos = Produto.objects.filter(estoque_atual__loja_id=loja_id, estoque_atual__quantidade_disponivel__gt=0, loja=loja).distinct()
+
     produtos_data = [{'id': produto.id, 'text': produto.nome} for produto in produtos]
     return JsonResponse({'results': produtos_data})
 
