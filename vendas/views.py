@@ -375,7 +375,7 @@ def cancelar_venda(request, id):
         messages.warning(request, 'Venda já cancelada')
         return redirect('vendas:venda_list')
     
-    if not Caixa.caixa_aberto(localtime(now()).date()):
+    if not Caixa.caixa_aberto(localtime(now()).date(), Loja.objects.get(id=request.session.get('loja_id'))):
         messages.warning(request, 'Não é possível cancelar vendas com o caixa fechado')
         return redirect('vendas:venda_list')
     
