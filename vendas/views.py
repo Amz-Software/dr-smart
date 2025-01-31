@@ -118,8 +118,10 @@ class CaixaDetailView(PermissionRequiredMixin, DetailView):
     permission_required = 'vendas.view_caixa'
     
     def get_context_data(self, **kwargs):
+        loja_id = self.request.session.get('loja_id')
+        loja = get_object_or_404(Loja, id=loja_id)
         context = super().get_context_data(**kwargs)
-        context['vendas'] = self.object.vendas.filter(is_deleted=False)
+        context['vendas'] = self.object.vendas.filter(is_deleted=False).filter(loja=loja)
         context['form_lancamento'] = LancamentoForm()
         context['lancamentos'] = LancamentoCaixa.objects.filter(caixa=self.object)
         return context
