@@ -82,7 +82,7 @@ class CaixaListView(BaseView, PermissionRequiredMixin, ListView):
         if criar_caixa:
             today = timezone.localtime(timezone.now()).date()
 
-            if not Caixa.caixa_aberto(today):
+            if not Caixa.caixa_aberto(today, Loja.objects.get(id=request.session.get('loja_id'))):
                 Caixa.objects.create(
                     data_abertura=today,
                     criado_por=request.user,
