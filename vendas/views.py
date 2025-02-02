@@ -361,6 +361,178 @@ class VendaCreateView(PermissionRequiredMixin, CreateView):
             pagamento.save()
 
 
+class VendaUpdateView(PermissionRequiredMixin, UpdateView):
+    model = Venda
+    form_class = VendaForm
+    template_name = 'venda/venda_edit.html'
+    success_url = reverse_lazy('vendas:venda_list')
+    permission_required = 'vendas.change_venda'
+
+    def get_form_kwargs(self):
+        """Passa a loja para o form."""
+        kwargs = super().get_form_kwargs()
+        kwargs['loja'] = self.request.session.get('loja_id')
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        """Carrega os formsets de produtos e pagamentos."""
+        context = super().get_context_data(**kwargs)
+        loja_id = self.request.session.get('loja_id')
+
+        if self.request.POST:
+            context['produto_venda_formset'] = ProdutoVendaFormSet(
+                self.request.POST,
+                instance=self.object,
+                form_kwargs={'loja': loja_id}
+            )
+            context['pagamento_formset'] = FormaPagamentoFormSet(
+                self.request.POST,
+                instance=self.object,
+                form_kwargs={'loja': loja_id}
+            )
+        else:
+            context['produto_venda_formset'] = ProdutoVendaFormSet(
+                instance=self.object,
+                form_kwargs={'loja': loja_id}
+            )
+            context['pagamento_formset'] = FormaPagamentoFormSet(
+                instance=self.object,
+                form_kwargs={'loja': loja_id}
+            )
+        return context
+
+    def form_valid(self, form):
+        """Valida os formsets e chama processamento das regras."""
+        context = self.get_context_data()
+        produto_venda_formset = context['produto_venda_formset']
+        pagamento_formset = context['pagamento_formset']
+        loja = Loja.objects.get(id=self.request.session.get('loja_id'))
+
+        if not (produto_venda_formset.is_valid() and
+                pagamento_formset.is_valid() and
+                form.is_valid()):
+            return self.form_invalid(form)
+
+        # Verifica se o caixa está aberto
+        if not Caixa.caixa_aberto(localtime(now()).date(), loja):
+            messages.warning(self.request, 'Não é possível editar vendas com o caixa fechado')
+            return self.form_invalid(form)
+
+        try:
+            with transaction.atomic():
+                # Atualiza dados básicos da venda
+                self._atualizar_venda(form, loja)
+                # Processa produtos (incluindo estoques e IMEI)
+                self._processar_produtos(produto_venda_formset, loja)
+                # Processa pagamentos
+                self._processar_pagamentos(pagamento_formset, loja)
+            return super().form_valid(form)
+        except Exception as e:
+            messages.error(self.request, f"Erro ao processar a venda: {str(e)}")
+            return self.form_invalid(form)
+
+    def _atualizar_venda(self, form, loja):
+        """Salva a instância da venda com possíveis alterações."""
+        form.instance.loja = loja
+        form.instance.modificado_por = self.request.user
+        self.object = form.save()
+
+    def _processar_produtos(self, formset, loja):
+        """Cria/atualiza/remove itens de venda, validando e atualizando estoques."""
+        # Salva em memória (commit=False) para poder manipular
+        produtos_modificados = formset.save(commit=False)
+
+        # 1) Deletar itens que foram marcados para exclusão no formset
+        for deletado in formset.deleted_objects:
+            # Se sua regra for reverter o estoque do item removido:
+            self._restaurar_estoque(deletado.produto, deletado.quantidade, loja)
+            # Se tiver IMEI, reverter IMEI também:
+            if deletado.produto.tipo.numero_serial and deletado.imei:
+                self._restaurar_imei(deletado.produto, deletado.imei)
+            # Finalmente, remover do banco
+            deletado.delete()
+
+        # 2) Salvar/atualizar itens (novos ou já existentes)
+        for produto_venda in produtos_modificados:
+            produto = produto_venda.produto
+            quantidade = produto_venda.quantidade
+            imei = produto_venda.imei
+
+            # Valida se existe estoque suficiente
+            self._validar_estoque(produto, quantidade, loja)
+
+            # Valida se IMEI está disponível (caso seja serializado)
+            if produto.tipo.numero_serial:
+                self._validar_imei(produto, imei)
+
+            # Atualiza o estoque (remove a quantidade vendida)
+            self._atualizar_estoque(produto, quantidade, loja)
+
+            # Liga ao objeto principal e salva de fato
+            produto_venda.venda = self.object
+            produto_venda.loja = loja
+            produto_venda.save()
+
+        # Se houver relacionamentos M2M no form, salvar
+        formset.save_m2m()
+
+    def _processar_pagamentos(self, formset, loja):
+        """Processa pagamentos do formset, incluindo exclusão e criação/atualização."""
+        pagamentos_modificados = formset.save(commit=False)
+
+        # Remover pagamentos excluídos
+        for deletado in formset.deleted_objects:
+            deletado.delete()
+
+        # Salvar/atualizar pagamentos
+        for pagamento in pagamentos_modificados:
+            pagamento.venda = self.object
+            pagamento.loja = loja
+            pagamento.save()
+
+        formset.save_m2m()
+
+    # ============ Métodos auxiliares de estoque e IMEI (mesmos da criação) ============
+    def _validar_estoque(self, produto, quantidade, loja):
+        estoque = Estoque.objects.filter(produto=produto, loja=loja).first()
+        if not estoque or quantidade > estoque.quantidade_disponivel:
+            raise ValueError(f"Quantidade indisponível para o produto {produto}")
+
+    def _atualizar_estoque(self, produto, quantidade, loja):
+        """Remove quantidade do estoque."""
+        estoque = Estoque.objects.filter(produto=produto, loja=loja).first()
+        if estoque:
+            estoque.remover_estoque(quantidade)
+            estoque.save()
+
+    def _validar_imei(self, produto, imei):
+        try:
+            produto_imei = EstoqueImei.objects.get(imei=imei, produto=produto)
+            if produto_imei.vendido:
+                raise ValueError(f"IMEI {imei} já vendido")
+            # Marca como vendido
+            produto_imei.vendido = True
+            produto_imei.save()
+        except EstoqueImei.DoesNotExist:
+            raise ValueError(f"IMEI {imei} não encontrado")
+
+    def _restaurar_estoque(self, produto, quantidade, loja):
+        """Se removeu um item do formset, pode restaurar a quantidade no estoque."""
+        estoque = Estoque.objects.filter(produto=produto, loja=loja).first()
+        if estoque:
+            estoque.adicionar_estoque(quantidade)
+            estoque.save()
+
+    def _restaurar_imei(self, produto, imei):
+        """Se removeu um item com IMEI do formset, pode reverter o status de vendido."""
+        try:
+            produto_imei = EstoqueImei.objects.get(imei=imei, produto=produto)
+            produto_imei.vendido = False
+            produto_imei.save()
+        except EstoqueImei.DoesNotExist:
+            # Se não existir, você pode decidir lançar exceção ou apenas ignorar
+            pass
+
 class VendaDetailView(PermissionRequiredMixin, DetailView):
     model = Venda
     template_name = 'venda/venda_detail.html'

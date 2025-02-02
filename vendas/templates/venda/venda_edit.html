@@ -1,0 +1,538 @@
+{% extends "base.html" %}
+{% load static iam_tags %}
+{% block title %}Editar Venda{% endblock title %}
+
+{% block content %}
+<div class="container-xxl mt-4">
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="container-xxl flex-grow-1 container-p-y">
+          <h4 class="py-3 mb-4"><span class="text-muted fw-light">Venda/</span> Editar</h4>
+          <div class="row">
+            <div class="col-xl">
+              <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <h5 class="mb-0">Editar Venda</h5>
+                </div>
+                <div class="card-body">
+                  <form method="post">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                      <div class="col-md-6">
+                        <label for="id_cliente" class="form-label">Cliente*</label>
+                        {{ form.cliente }}
+                      </div>
+                      <div class="col-md-6">
+                        <label for="id_vendedor" class="form-label">Vendedor*</label>
+                        {{ form.vendedor }}
+                      </div>
+                      <div class="col-md-6">
+                        <label for="id_tipo_venda" class="form-label">Tipo de Venda*</label>
+                        {{ form.tipo_venda }}
+                      </div>
+                      <div class="col-md-6">
+                        <label for="id_tipo_entrega" class="form-label">Tipo de Entrega*</label>
+                        {{ form.tipo_entrega }}
+                      </div>
+                      <div class="col-md-12">
+                        <label for="id_observacao" class="form-label">Observação</label>
+                        {{ form.observacao }}
+                      </div>
+                    </div>
+
+                    <h3 class="mt-4">Produtos</h3>
+                    <hr>
+                    {{ produto_venda_formset.management_form }}
+                    <div class="table-responsive mb-3">
+                      <table class="table table-bordered">
+                        <thead>
+                          <tr>
+                            <th>Produto</th>
+                            <th>IMEI</th>
+                            <th>Quantidade</th>
+                            <th>Valor Unitário</th>
+                            <th>Desconto</th>
+                            <th>Valor Total</th>
+                            <th>Ações</th>
+                          </tr>
+                        </thead>
+                        <tbody id="produtos">
+                          {% for form in produto_venda_formset %}
+                          <tr class="produto-form">
+                            <td>{{ form.produto }}</td>
+                            <td>{{ form.imei }}</td>
+                            <td>{{ form.quantidade }}</td>
+                            <td>{{ form.valor_unitario }}</td>
+                            <td>{{ form.valor_desconto }}</td>
+                            <td>{{ form.valor_total }}</td>
+                            <td>
+                              <button type="button" class="btn btn-danger btn-sm remove-produto" onclick="removerProduto(this)">Remover</button>
+                            </td>
+                          </tr>
+                          {% endfor %}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <h3>Pagamentos</h3>
+                    <hr>
+                    {{ pagamento_formset.management_form }}
+                    <div class="table-responsive mb-3">
+                      <table class="table table-bordered">
+                        <thead>
+                          <tr>
+                            <th>Tipo de Pagamento</th>
+                            <th>Valor</th>
+                            <th>Parcelas</th>
+                            <th>Valor Parcela</th>
+                            <th>Data Primeira Parcela</th>
+                            <th>Ações</th>
+                          </tr>
+                        </thead>
+                        <tbody id="pagamentos">
+                          {% for form in pagamento_formset %}
+                          <tr class="pagamento-form">
+                            <td>{{ form.tipo_pagamento }}</td>
+                            <td>{{ form.valor }}</td>
+                            <td>{{ form.parcelas }}</td>
+                            <td>{{ form.valor_parcela }}</td>
+                            <td>{{ form.data_primeira_parcela }}</td>
+                            <td>
+                              <button type="button" class="btn btn-danger btn-sm remove-pagamento" onclick="removerPagamento(this)">Remover</button>
+                            </td>
+                          </tr>
+                          {% endfor %}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <hr>
+                    {% if user|has_perm:"vendas.change_venda" %}
+                      <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+                    {% endif %}
+                    <a href="{% url 'vendas:venda_list' %}" class="btn btn-secondary">Voltar</a>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+{{ produto_venda_formset.media.js }}
+<script>
+  // -------------------------------------------------------------------------
+  // Configuração do formulário de produto
+  // -------------------------------------------------------------------------
+  function configurarProdutoForm(form) {
+    const produtoSelect = form.querySelector('select[name$="-produto"]');
+    const imeiField = form.querySelector('select[name$="-imei"]');
+    const valorField = form.querySelector('input[name$="-valor_unitario"]');
+    const quantidadeField = form.querySelector('input[name$="-quantidade"]');
+    const valorTotalField = form.querySelector('input[name$="-valor_total"]');
+    const valorDescontoField = form.querySelector('input[name$="-valor_desconto"]');
+
+    if (!produtoSelect || !imeiField || !valorField) return;
+
+    // Inicializa valores
+    valorDescontoField.value = "0.00";
+
+    // Destruir Select2 existente se houver (pra evitar conflitos ao recriar form dinâmico)
+    if ($(imeiField).data('select2')) {
+      $(imeiField).select2('destroy');
+    }
+    imeiField.value = "";
+    imeiField.disabled = true;
+    imeiField.required = false;
+    quantidadeField.readOnly = false;
+
+    // Destruir Select2 existente do produto se houver
+    if ($(produtoSelect).data('select2')) {
+      $(produtoSelect).select2('destroy');
+    }
+
+    // Configura Select2 para o produto
+    $(produtoSelect).select2({
+      placeholder: "Selecione um produto",
+      allowClear: true,
+      width: '100%'
+    });
+
+    // Função para atualizar o valor total (inclui lógica de desconto e modal de autorização)
+    async function atualizarValorTotal() {
+      const valorUnitario = parseFloat(valorField.value) || 0;
+      const quantidade = parseInt(quantidadeField.value) || 0;
+      const valorDesconto = parseFloat(valorDescontoField.value) || 0;
+
+      const valorTotalSemDesconto = (valorUnitario * quantidade);
+      let valorTotal = valorTotalSemDesconto - valorDesconto;
+
+      const porcentagemDesconto = (valorDesconto / (valorUnitario * quantidade)) * 100;
+
+      // Se desconto for maior que X%, abrir modal para autorização
+      if (porcentagemDesconto > 15) {
+        // Primeiro, reverte o desconto antes da autorização
+        valorTotalField.value = valorTotalSemDesconto.toFixed(2);
+
+        // Abre o modal e aguarda resposta
+        const result = await abrirModalParaValidacao(valorDescontoField);
+        if (!result) {
+          // Se não autorizado
+          valorDescontoField.value = "0.00";
+          valorTotalField.value = valorTotalSemDesconto.toFixed(2);
+          return;
+        } else {
+          // Se autorizado
+          valorTotalField.value = valorTotal.toFixed(2);
+          return;
+        }
+      }
+
+      // Caso o desconto não exceda X%, segue normalmente
+      valorTotalField.value = valorTotal.toFixed(2);
+    }
+
+    // Evento ao selecionar produto
+    $(produtoSelect).on('select2:select', function (e) {
+      const produtoId = e.params.data.id;
+      
+      // Limpa campos relevantes
+      valorField.value = "";
+      quantidadeField.value = "";
+      valorTotalField.value = "";
+      imeiField.value = "";
+      imeiField.disabled = true;
+      imeiField.required = false;
+      quantidadeField.readOnly = true;
+
+      if (!produtoId) {
+        return;
+      }
+
+      // Busca detalhes do produto
+      fetch(`/produto/details/${produtoId}/`)
+        .then(response => response.json())
+        .then(data => {
+          console.log('Produto details API response:', data);
+
+          if (data.serializado) {
+            // Se o produto exige IMEI
+            imeiField.disabled = false;
+            imeiField.required = true;
+            quantidadeField.value = 1;
+            quantidadeField.readOnly = true;
+
+            // Configura Select2 para o campo IMEI
+            $(imeiField).select2({
+              ajax: {
+                url: `/info-products/imei/${produtoId}/`,
+                dataType: 'json',
+                delay: 250,
+                data: function (params) {
+                  return {
+                    term: params.term,
+                    produto_id: produtoId
+                  };
+                },
+                processResults: function (data) {
+                  return {
+                    results: data.results
+                  };
+                },
+                cache: true
+              },
+              placeholder: "Selecione o IMEI",
+              allowClear: true,
+            });
+
+            // Ao selecionar IMEI
+            $(imeiField).on('select2:select', function (e) {
+              const imeiValue = e.params.data.id;
+              console.log('IMEI selecionado:', imeiValue);
+
+              if (imeiValue) {
+                fetch(`/info-products/?product_id=${produtoId}&imei=${imeiValue}`)
+                  .then(response => response.json())
+                  .then(info => {
+                    console.log('Info products API response:', info);
+
+                    if (info.status === "success") {
+                      valorField.value = info.price;
+                      atualizarValorTotal();
+                    } else {
+                      alert(info.message);
+                      valorField.value = "";
+                      $(imeiField).val(null).trigger('change'); // Reseta o campo IMEI no Select2
+                    }
+                  });
+              }
+            });
+          } else {
+            // Produto não exige IMEI
+            imeiField.disabled = true;
+            imeiField.value = "";
+            imeiField.required = false;
+            quantidadeField.readOnly = false;
+
+            fetch(`/info-products/?product_id=${produtoId}`)
+              .then(response => response.json())
+              .then(info => {
+                console.log('Info products API response for non-serialized:', info);
+
+                if (info.status === "success") {
+                  valorField.value = info.price;
+                  atualizarValorTotal();
+                } else {
+                  alert(info.message);
+                  valorField.value = "";
+                }
+              });
+          }
+        });
+    });
+
+    // Eventos para recalcular valor total
+    valorField.addEventListener('input', atualizarValorTotal);
+    quantidadeField.addEventListener('input', atualizarValorTotal);
+    valorDescontoField.addEventListener('input', atualizarValorTotal);
+  }
+
+  // -------------------------------------------------------------------------
+  // Funções de remoção de linhas de produto/pagamento
+  // -------------------------------------------------------------------------
+  function removerProduto(button) {
+    const produtoForm = button.closest('tr');
+    produtoForm.remove();
+
+    // Ajusta TOTAL_FORMS do formset
+    const totalForms = document.getElementById('id_itens_venda-TOTAL_FORMS');
+    totalForms.value = document.querySelectorAll('.produto-form').length;
+  }
+
+  function removerPagamento(button) {
+    const pagamentoForm = button.closest('tr');
+    pagamentoForm.remove();
+
+    // Ajusta TOTAL_FORMS do formset
+    const totalForms = document.getElementById('id_pagamentos-TOTAL_FORMS');
+    totalForms.value = document.querySelectorAll('.pagamento-form').length;
+  }
+
+  // -------------------------------------------------------------------------
+  // Funções de adição de linhas de produto/pagamento (caso queira permitir)
+  // -------------------------------------------------------------------------
+  function adicionarProduto() {
+    const template = document.querySelector('#produto-empty-form');
+    if (!template) {
+      console.error('Template de produto não encontrado');
+      return;
+    }
+    
+    let newForm = template.content.querySelector('tr').cloneNode(true);
+    const produtoForms = document.querySelectorAll('.produto-form');
+    let totalForms = document.getElementById('id_itens_venda-TOTAL_FORMS');
+    let formIndex = produtoForms.length;
+
+    newForm.innerHTML = newForm.innerHTML.replace(/__prefix__/g, formIndex);
+
+    // Limpa valores iniciais
+    let formInputs = newForm.querySelectorAll('input, select, textarea');
+    formInputs.forEach(input => {
+      input.value = '';
+    });
+
+    totalForms.value = formIndex + 1;
+
+    document.getElementById('produtos').appendChild(newForm);
+    configurarProdutoForm(newForm);
+  }
+
+  function adicionarPagamento() {
+    const template = document.querySelector('#pagamento-empty-form');
+    if (!template) {
+      console.error('Template de pagamento não encontrado');
+      return;
+    }
+    
+    let newForm = template.content.querySelector('tr').cloneNode(true);
+    const pagamentoForms = document.querySelectorAll('.pagamento-form');
+    let totalForms = document.getElementById('id_pagamentos-TOTAL_FORMS');
+    let formIndex = pagamentoForms.length;
+
+    newForm.innerHTML = newForm.innerHTML.replace(/__prefix__/g, formIndex);
+
+    // Limpa valores iniciais
+    let formInputs = newForm.querySelectorAll('input, select, textarea');
+    formInputs.forEach(input => {
+      if (input.type === 'date') {
+        // Data atual
+        input.value = new Date().toISOString().split('T')[0];
+      } else {
+        input.value = '';
+      }
+    });
+
+    totalForms.value = formIndex + 1;
+
+    document.getElementById('pagamentos').appendChild(newForm);
+    configurarPagamentoForm(newForm);
+  }
+
+  // -------------------------------------------------------------------------
+  // Função para abrir modal (autorização de descontos maiores)
+  // -------------------------------------------------------------------------
+  async function abrirModalParaValidacao(valorDescontoField) {
+    const descontoModal = new bootstrap.Modal(document.getElementById('descontoModal'), {
+      keyboard: false,
+      backdrop: 'static'
+    });
+
+    function limparCampos() {
+      document.getElementById('username').value = '';
+      document.getElementById('password').value = '';
+    }
+
+    return new Promise((resolve) => {
+      const confirmarDescontoButton = document.getElementById('confirmarDesconto');
+      confirmarDescontoButton.onclick = function () {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
+        fetch('/autorizacao/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+          },
+          body: JSON.stringify({ username, password })
+        })
+          .then(response => {
+            if (!response.ok) {
+              return response.json().then(data => {
+                throw new Error(data.message || 'Erro desconhecido');
+              });
+            }
+            return response.json();
+          })
+          .then(data => {
+            if (data.success) {
+              descontoModal.hide();
+              limparCampos();
+              resolve(true);
+            } else {
+              alert('Erro na autorização: ' + data.message);
+            }
+          })
+          .catch(err => {
+            alert('Erro ao validar autorização: ' + err.message);
+          });
+      };
+
+      const cancelarDescontoButton = document.getElementById('cancelarDesconto');
+      cancelarDescontoButton.onclick = function () {
+        descontoModal.hide();
+        limparCampos();
+        resolve(false);
+      };
+
+      descontoModal.show();
+    });
+  }
+
+  // -------------------------------------------------------------------------
+  // Configuração do formulário de pagamento (parcelas, valor da parcela, etc.)
+  // -------------------------------------------------------------------------
+  function configurarPagamentoForm(form) {
+    const tipoPagamentoSelect = form.querySelector('select[name$="-tipo_pagamento"]');
+    const parcelasField = form.querySelector('input[name$="-parcelas"]');
+    const valorField = form.querySelector('input[name$="-valor"]');
+    const valorParcelaField = form.querySelector('input[name$="-valor_parcela"]');
+
+    if (!tipoPagamentoSelect || !parcelasField || !valorField || !valorParcelaField) return;
+
+    function atualizarParcelas() {
+      const paymentId = tipoPagamentoSelect.value;
+
+      if (!paymentId) {
+        parcelasField.disabled = true;
+        parcelasField.value = 1;
+        atualizarValorParcela();
+        return;
+      }
+
+      // Exemplo de rota para buscar se o tipo de pagamento permite parcelas
+      fetch(`/info-payment/?payment_id=${paymentId}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === 'success') {
+            console.log('Informações de pagamento:', data);
+            if (data.parcela) {
+              parcelasField.disabled = false;
+              parcelasField.value = parcelasField.value || 1;
+            } else {
+              parcelasField.disabled = true;
+              parcelasField.value = 1;
+            }
+            atualizarValorParcela();
+          } else {
+            alert('Erro ao buscar informações do tipo de pagamento.');
+          }
+        })
+        .catch(err => {
+          console.error('Erro ao buscar informações de pagamento:', err);
+        });
+    }
+
+    function atualizarValorParcela() {
+      const valor = parseFloat(valorField.value) || 0;
+      const parcelas = parseInt(parcelasField.value) || 1;
+      valorParcelaField.value = (valor / parcelas).toFixed(2);
+    }
+
+    // Eventos
+    parcelasField.addEventListener('input', atualizarValorParcela);
+    valorField.addEventListener('input', atualizarValorParcela);
+    tipoPagamentoSelect.addEventListener('change', atualizarParcelas);
+
+    // Inicializar
+    atualizarParcelas();
+  }
+
+  // -------------------------------------------------------------------------
+  // Quando a página carrega, configurar todos os formulários existentes
+  // -------------------------------------------------------------------------
+  document.addEventListener('DOMContentLoaded', function () {
+    // Produtos
+    document.querySelectorAll('.produto-form').forEach(configurarProdutoForm);
+
+    // Pagamentos
+    document.querySelectorAll('.pagamento-form').forEach(configurarPagamentoForm);
+
+    // Botões de adicionar (se quiser permitir no editar)
+    const addProdutoBtn = document.getElementById('add-produto');
+    const addPagamentoBtn = document.getElementById('add-pagamento');
+
+    if (addProdutoBtn) {
+      addProdutoBtn.addEventListener('click', adicionarProduto);
+    }
+    if (addPagamentoBtn) {
+      addPagamentoBtn.addEventListener('click', adicionarPagamento);
+    }
+
+    // Exemplo de configuração inicial da data nos pagamentos
+    const form = document.querySelector('.pagamento-form');
+    if (form) {
+      const data_primeira_parcela = form.querySelector('input[name$=\"-data_primeira_parcela\"]');
+      if (data_primeira_parcela) {
+        data_primeira_parcela.value = new Date().toISOString().split('T')[0];
+      }
+    }
+  });
+</script>
+{% endblock %}
