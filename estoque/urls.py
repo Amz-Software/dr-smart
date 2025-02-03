@@ -15,6 +15,7 @@ urlpatterns = [
     path('estoque/entrada/', EntradaListView.as_view(), name='entrada_list'),
     path('estoque/entrada/<int:pk>/', EntradaDetailView.as_view(), name='entrada_detail'),
     path('estoque/entrada/editar/<int:pk>/', EntradaUpdateView.as_view(), name='entrada_update'),
+    path('estoque/inventario', inventario_estoque_pdf, name='inventario_pdf'),
     
     path('estoque_imei/', EstoqueImeiListView.as_view(), name='estoque_imei_list'),
     path('estoque_imei/editar/<int:pk>/', EstoqueImeiUpdateView.as_view(), name='estoque_imei_update'),

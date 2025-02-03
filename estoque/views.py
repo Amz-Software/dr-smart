@@ -1,5 +1,5 @@
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.views import View
 from django.views.generic import ListView, CreateView, DetailView, UpdateView
@@ -232,3 +232,14 @@ class EstoqueImeiSearchView(View):
                 'text': f'{imei.imei} - {imei.produto.nome}'
             })
         return JsonResponse({'results': results})
+    
+def inventario_estoque_pdf (request):
+    loja = get_object_or_404(Loja, pk=request.session.get('loja_id'))
+    produtos = Estoque.objects.filter(loja=loja)
+    
+    context = {
+        'produtos': produtos,
+        'loja': loja
+    }
+
+    return render(request, "estoque/folha_estoque.html", context)

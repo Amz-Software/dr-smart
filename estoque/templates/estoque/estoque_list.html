@@ -15,12 +15,17 @@ Estoque
             <form action="" method="get" class="d-inline-block me-2" id="searchForm">
               <input type="text" name="search" class="form-control d-inline-block me-2" style="width: auto;" placeholder="Pesquisar..." onchange="document.getElementById('searchForm').submit();">
             </form>
+
             {% if user|has_perm:"estoque.add_entradaestoque" %}
             <a type="button" class="btn btn-primary" href={% url "estoque:estoque_entrada" %}>
                 <i class="bx bx-plus me-1"></i>
                 Adicionar Entrada
               </a>
             {% endif %}
+            <!-- botão gerar inventário estoque -->
+            <a type="button" class="btn btn-primary" href={% url "estoque:inventario_pdf" %}>
+              <i class="bx bx-file me-1"></i> Gerar Inventário
+            </a>
             <!-- Button trigger modal -->
             {% comment %} <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#confirmModal">
               <i class="bx bx-plus me-1"></i>
