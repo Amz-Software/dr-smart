@@ -81,6 +81,10 @@
         .text-right {
             text-align: right;
         }
+
+        .page-break {
+            page-break-before: always;
+        }
     </style>
 </head>
 <body>
@@ -89,7 +93,7 @@
     </div>
 
     <div class="footer">
-        Data de Emissão: {% now "d/m/Y H:i" %} | Página <span class="page"></span>
+        Data de Emissão: {% now "d/m/Y H:i" %}
     </div>
 
     <div class="content">

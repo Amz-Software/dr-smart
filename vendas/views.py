@@ -573,7 +573,7 @@ class FolhaCaixaPDFView(PermissionRequiredMixin, View):
     
     def get(self, request, pk):
         caixa = get_object_or_404(Caixa, id=pk)
-        vendas = caixa.vendas.filter(is_deleted=False).filter(pagamentos__tipo_pagamento__nao_contabilizar=False)
+        vendas = caixa.vendas.filter(is_deleted=False)
         lancamentos = caixa.lancamentos_caixa.all()
 
         entrada_total = 0
