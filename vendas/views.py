@@ -573,7 +573,7 @@ class FolhaCaixaPDFView(PermissionRequiredMixin, View):
     
     def get(self, request, pk):
         caixa = get_object_or_404(Caixa, id=pk)
-        vendas = caixa.vendas.all()
+        vendas = caixa.vendas.filter(is_deleted=False).filter(pagamentos__tipo_pagamento__nao_contabilizar=False)
         lancamentos = caixa.lancamentos_caixa.all()
 
         entrada_total = 0
@@ -592,9 +592,10 @@ class FolhaCaixaPDFView(PermissionRequiredMixin, View):
 
         for venda in vendas:
             for pagamento in venda.pagamentos.all():
-                if pagamento.tipo_pagamento.nome not in valor_venda_por_tipo_pagamento:
-                    valor_venda_por_tipo_pagamento[pagamento.tipo_pagamento.nome] = 0
-                valor_venda_por_tipo_pagamento[pagamento.tipo_pagamento.nome] += pagamento.valor
+                if not pagamento.tipo_pagamento.nao_contabilizar:
+                    if pagamento.tipo_pagamento.nome not in valor_venda_por_tipo_pagamento:
+                        valor_venda_por_tipo_pagamento[pagamento.tipo_pagamento.nome] = 0
+                    valor_venda_por_tipo_pagamento[pagamento.tipo_pagamento.nome] += pagamento.valor
 
         caixa_valor_final = (caixa.saldo_total_dinheiro + caixa.entradas) - caixa.saidas
         valor_final = entrada_total - saida_total

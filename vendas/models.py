@@ -25,7 +25,7 @@ class Caixa(Base):
     
     @property
     def saldo_total(self):
-        return sum(venda.calcular_valor_total() for venda in self.vendas.filter(is_deleted=False).filter(loja=self.loja))
+        return sum(venda.calcular_valor_total() for venda in self.vendas.filter(is_deleted=False).filter(loja=self.loja).filter(pagamentos__tipo_pagamento__nao_contabilizar=False))
 
     @property
     def saldo_total_dinheiro(self):
@@ -42,7 +42,7 @@ class Caixa(Base):
     
     @property
     def quantidade_vendas(self):
-        return self.vendas.filter(is_deleted=False).filter(loja=self.loja).count()
+        return self.vendas.filter(is_deleted=False).filter(loja=self.loja).filter(pagamentos__tipo_pagamento__nao_contabilizar=False).count()
     
     @property
     def caixa_fechado(self):
@@ -228,6 +228,7 @@ class TipoPagamento(Base):
     parcelas = models.BooleanField(default=False)
     financeira = models.BooleanField(default=False)
     carne = models.BooleanField(default=False)
+    nao_contabilizar = models.BooleanField(default=False)
     
     def __str__(self):
         return self.nome
