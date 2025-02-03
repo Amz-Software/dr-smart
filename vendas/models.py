@@ -165,7 +165,7 @@ class Venda(Base):
 
     @property
     def pagamentos_valor_total(self):
-        return sum(pagamento.valor for pagamento in self.pagamentos.all())
+        return sum(pagamento.valor for pagamento in self.pagamentos.all().filter(tipo_pagamento__nao_contabilizar=False))
     
     @property
     def pagamentos_valor_total_dinheiro(self):
