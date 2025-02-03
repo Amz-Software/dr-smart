@@ -101,6 +101,7 @@
                 <tr>
                     <th>Nome</th>
                     <th>Quantidade</th>
+                    <th>Custo médio</th>
                     <th>Preço médio</th>
                 </tr>
             </thead>
@@ -109,6 +110,7 @@
                     <tr>
                         <td>{{ produto.produto|title }}</td>
                         <td class="text-center">{{ produto.quantidade_disponivel }}</td>
+                        <td class="text-right">R$ {{ produto.preco_medio_custo|floatformat:2 }}</td>
                         <td class="text-right">R$ {{ produto.preco_medio|floatformat:2 }}</td>
                     </tr>
                 {% endfor %}
