@@ -6,86 +6,97 @@
     <title>Folha de Caixa</title>
     <style>
         @page {
-            margin: 20mm 15mm;
+          margin: 20mm 15mm 25mm 15mm; /* top, right, bottom, left */
         }
-
+    
         body {
-            font-family: Arial, Helvetica, sans-serif;
-            font-size: 10pt;
-            margin: 0;
+          font-family: Arial, Helvetica, sans-serif;
+          font-size: 10pt;
+          margin: 0;
         }
-
+    
         table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 10px;
+          width: 100%;
+          border-collapse: collapse;
+          margin-bottom: 10px;
         }
-
+    
         th, td {
-            border: 1px solid black;
-            padding: 5px;
-            text-align: left;
-            word-wrap: break-word;
+          border: 1px solid black;
+          padding: 5px;
+          text-align: left;
+          word-wrap: break-word;
         }
-
+    
         th {
-            background-color: #f9f9f9;
+          background-color: #f9f9f9;
         }
-
+    
         .header, .footer {
-            position: fixed;
-            width: 100%;
-            left: 0;
-            right: 0;
+          position: fixed;
+          width: 100%;
+          left: 0;
+          right: 0;
         }
-
+    
         .header {
-            top: 0;
-            height: 60px;
-            text-align: center;
-            font-size: 12pt;
-            font-weight: bold;
-            border-bottom: 1px solid black;
-            background-color: white;
-            z-index: 1000;
+          top: 0;
+          height: 60px;
+          text-align: center;
+          font-size: 12pt;
+          font-weight: bold;
+          border-bottom: 1px solid black;
+          background-color: white;
+          z-index: 1000;
         }
-
+    
         .footer {
-            bottom: 0;
-            height: 40px;
-            text-align: right;
-            font-size: 8pt;
-            color: #555;
-            background-color: white;
-            z-index: 1000;
+          bottom: 0;
+          height: 40px;
+          text-align: right;
+          font-size: 8pt;
+          color: #555;
+          background-color: white;
+          z-index: 1000;
         }
-
+    
         .footer .page:after {
-            content: counter(page);
+          content: counter(page);
         }
-
+    
         .content {
-            margin: 80px 0; /* Espaço para header e footer */
+          margin: 80px 0 100px; /* Espaço para header (80px) e footer (100px) */
         }
-
+    
         .section-title {
-            font-weight: bold;
-            margin: 15px 0 10px;
-            text-transform: uppercase;
+          font-weight: bold;
+          margin: 15px 0 10px;
+          text-transform: uppercase;
         }
-
+    
         .text-center {
-            text-align: center;
+          text-align: center;
         }
-
+    
         .text-right {
-            text-align: right;
+          text-align: right;
         }
-
+    
         .page-break {
-            page-break-before: always;
+          page-break-before: always;
         }
-    </style>
+    
+        /* Impede quebra de página dentro da tabela de resumo */
+        @media print {
+          .tabela-resumo {
+            page-break-inside: avoid;
+          }
+          /* Remove o posicionamento fixo para header e footer na impressão */
+          .header, .footer {
+            position: static;
+          }
+        }
+      </style>
 </head>
 <body>
     <div class="header">
