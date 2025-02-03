@@ -91,12 +91,22 @@ class TipoPagamentoForm(forms.ModelForm):
             'parcelas': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'financeira': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'carne': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'nao_contabilizar': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
         help_texts = {
             'caixa': 'Esse pagamento será realizado no caixa nas formas de recebimento pelo logista.',
             'parcelas': 'Marque se o pagamento pode ser parcelado.',
             'financeira': 'Marque se o pagamento é feito por financeira.',
             'carne': 'Marque se o pagamento é feito por carnê ou promissória.',
+            'nao_contabilizar': 'Marque se o pagamento não deve ser contabilizado.',
+        }
+        labels = {
+            'nome': 'Nome*',
+            'caixa': 'Caixa',
+            'parcelas': 'Parcelas',
+            'financeira': 'Financeira',
+            'carne': 'Carnê',
+            'nao_contabilizar': 'Não Contabilizar',
         }
 
     def __init__(self, *args, disabled=False, **kwargs):
