@@ -235,7 +235,7 @@ class EstoqueImeiSearchView(View):
     
 def inventario_estoque_pdf (request):
     loja = get_object_or_404(Loja, pk=request.session.get('loja_id'))
-    produtos = Estoque.objects.filter(loja=loja)
+    produtos = Estoque.objects.filter(loja=loja).filter(quantidade_disponivel__gt=0)
     
     context = {
         'produtos': produtos,
