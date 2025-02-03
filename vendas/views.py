@@ -622,6 +622,11 @@ def folha_carne_view(request, pk, tipo):
     venda = Venda.objects.get(pk=pk)
     valor_total = venda.pagamentos_valor_total
     pagamento_carne = Pagamento.objects.filter(venda=venda, tipo_pagamento__carne=True).first()
+
+    if not pagamento_carne:
+        messages.error(request, 'Venda não possui pagamento em carnê ou promissória')
+        return redirect('vendas:venda_list')
+    
     quantidade_parcelas = pagamento_carne.parcelas
     valor_parcela = pagamento_carne.valor_parcela
     nome_cliente = venda.cliente.nome.title()
