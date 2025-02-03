@@ -21,7 +21,7 @@ def menu_items(request):
             "label": "Produtos",
             "icon": "bx bx-mobile",
             "permission": "produtos.view_produto",
-            "section": "Inicio",
+            "section": "Produtos",
             "sub_items": [
                 {
                     "label": "Produtos",
