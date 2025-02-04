@@ -585,7 +585,7 @@ class FolhaCaixaPDFView(PermissionRequiredMixin, View):
             else:
                 saida_total += lancamento.valor
 
-        entrada_total += caixa.saldo_total 
+        entrada_total += caixa.saldo_total_dinheiro
         saldo_total = entrada_total
 
         valor_venda_por_tipo_pagamento = {}
