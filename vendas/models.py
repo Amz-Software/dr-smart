@@ -29,7 +29,7 @@ class Caixa(Base):
 
     @property
     def saldo_total_dinheiro(self):
-        total = sum(venda.pagamentos_valor_total_dinheiro for venda in self.vendas.filter(is_deleted=False, pagamentos__tipo_pagamento__caixa=True).filter(loja=self.loja))
+        total = sum(venda.pagamentos_valor_total_dinheiro for venda in self.vendas.filter(is_deleted=False, pagamentos__tipo_pagamento__caixa=True).filter(loja=self.loja).filter(caixa=self))
         return total if total else 0
     
     def saldo_final(self):
