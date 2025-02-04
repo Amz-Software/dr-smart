@@ -392,7 +392,7 @@ class CaixaTotalView(PermissionRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         loja_id = self.request.session.get('loja_id')
 
-        caixas = Loja.objects.get(id=loja_id).caixa_loja.all().order_by('-data_abertura')
+        caixas = Loja.objects.get(id=loja_id).caixa_loja.all().order_by('-data_abertura').filter(data_fechamento__isnull=False)
         vendas_caixa = []
         entradas_caixa = []
         saidas_caixa = []
