@@ -392,7 +392,7 @@ class CaixaTotalView(PermissionRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         loja_id = self.request.session.get('loja_id')
 
-        caixas = Loja.objects.get(id=loja_id).caixa_loja.all().order_by('-data_abertura')
+        caixas = Loja.objects.get(id=loja_id).caixa_loja.all().order_by('-data_abertura').filter(data_fechamento__isnull=False)
         vendas_caixa = []
         entradas_caixa = []
         saidas_caixa = []
@@ -599,6 +599,7 @@ class FolhaCaixaPDFView(PermissionRequiredMixin, View):
 
         caixa_valor_final = (caixa.saldo_total_dinheiro + caixa.entradas) - caixa.saidas
         valor_final = entrada_total - saida_total
+        valor_por_tipo_pagamento_total = sum(valor_venda_por_tipo_pagamento.values())
 
         context = {
             'caixa': caixa,
@@ -607,6 +608,7 @@ class FolhaCaixaPDFView(PermissionRequiredMixin, View):
             'lancamentos': lancamentos,
             'entrada_total': entrada_total,
             'saida_total': saida_total,
+            'valor_por_tipo_pagamento_total': valor_por_tipo_pagamento_total,
             'saldo_total': saldo_total,
             'valor_venda_por_tipo_pagamento': valor_venda_por_tipo_pagamento.items(),
             'caixa_valor_final': caixa_valor_final,
