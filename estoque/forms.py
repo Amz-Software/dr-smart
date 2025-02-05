@@ -80,3 +80,11 @@ ProdutoEntradaFormSet = modelformset_factory(
     max_num=100,
     can_delete=False
 )
+
+ProdutoEntradaEditFormSet = modelformset_factory(
+    ProdutoEntrada,
+    form=ProdutoEntradaForm,
+    extra=0,
+    max_num=100,
+    can_delete=True
+)
