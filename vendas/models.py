@@ -33,7 +33,7 @@ class Caixa(Base):
         return total if total else 0
     
     def saldo_final(self):
-        return self.saldo_total_dinheiro + self.entradas - self.saidas
+        return (self.saldo_total_dinheiro + self.entradas) - self.saidas
 
     @property
     def saidas(self):
