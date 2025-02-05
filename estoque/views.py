@@ -33,7 +33,7 @@ class EstoqueListView(BaseView, PermissionRequiredMixin, ListView):
         query = super().get_queryset().filter(produto__loja=loja)
         search = self.request.GET.get('search', None)
         if search:
-            query = query.filter(produto__nome__icontains=search)
+            query = query.filter(produto__nome__icontains=search).filter(loja=loja)
             
         return query
 
