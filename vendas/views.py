@@ -585,9 +585,6 @@ class FolhaCaixaPDFView(PermissionRequiredMixin, View):
             else:
                 saida_total += lancamento.valor
 
-        entrada_total += caixa.saldo_total 
-        saldo_total = entrada_total
-
         valor_venda_por_tipo_pagamento = {}
 
         for venda in vendas:
@@ -600,6 +597,9 @@ class FolhaCaixaPDFView(PermissionRequiredMixin, View):
         caixa_valor_final = (caixa.saldo_total_dinheiro + caixa.entradas) - caixa.saidas
         valor_final = entrada_total - saida_total
         valor_por_tipo_pagamento_total = sum(valor_venda_por_tipo_pagamento.values())
+
+        entrada_total += valor_por_tipo_pagamento_total
+        saldo_total = entrada_total
 
         context = {
             'caixa': caixa,
