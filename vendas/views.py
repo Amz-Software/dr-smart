@@ -595,10 +595,10 @@ class FolhaCaixaPDFView(PermissionRequiredMixin, View):
                     valor_venda_por_tipo_pagamento[pagamento.tipo_pagamento.nome] += pagamento.valor
 
         caixa_valor_final = (caixa.saldo_total_dinheiro + caixa.entradas) - caixa.saidas
-        valor_final = entrada_total - saida_total
         valor_por_tipo_pagamento_total = sum(valor_venda_por_tipo_pagamento.values())
 
         entrada_total += valor_por_tipo_pagamento_total
+        valor_final = entrada_total - saida_total
         saldo_total = entrada_total
 
         context = {
