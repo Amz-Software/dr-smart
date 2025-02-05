@@ -28,6 +28,7 @@ Estoque
             <table class="table table-hover align-middle">
               <thead>
                 <tr>
+                  <th scope="col">ID</th>
                   <th scope="col">Fornecedor</th>
                   <th scope="col" class="text-center">Data da Entrada</th>
                   <th scope="col" class="text-center">Emitida por</th>
@@ -39,6 +40,7 @@ Estoque
                 {% if entradas %}
                   {% for entrada in entradas %}
                     <tr>
+                        <td>{{ entrada.id }}</td>
                         <td>{{ entrada.fornecedor|title }}</td>
                         <td class="text-center">{{ entrada.data_entrada }}</td>
                         <td class="text-center">{{ entrada.criado_por }}</td>
