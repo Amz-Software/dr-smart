@@ -199,6 +199,14 @@ class ProdutoVenda(Base):
     def calcular_valor_total(self):
         return (self.valor_unitario * self.quantidade) - self.valor_desconto
     
+    def lucro(self):
+        from estoque.models import ProdutoEntrada
+        return (self.valor_unitario - ProdutoEntrada.objects.filter(produto=self.produto).last().custo_unitario) * self.quantidade
+    
+    def custo(self):
+        from estoque.models import ProdutoEntrada
+        return ProdutoEntrada.objects.filter(produto=self.produto).last().custo_unitario * self.quantidade
+    
     def __str__(self):
         return f"{self.produto.nome} x {self.quantidade} (R$ {self.valor_unitario})"
     

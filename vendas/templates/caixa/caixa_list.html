@@ -102,6 +102,11 @@ Caixas
                           <i class="bx bx-file me-1"></i> Folha Caixa
                         </a>
                         {% endif %}
+                        {% if user|has_perm:"vendas.view_caixa" %}
+                        <a class="dropdown-item" href="{% url "vendas:caixa_produto_pdf" caixa.pk %}" target="_blank">
+                          <i class="bx bx-file me-1"></i> Relatório Produtos
+                        </a>
+                        {% endif %}
                         {% if not caixa.data_fechamento %}
                           <!-- Button trigger modal -->
                           {% if user|has_perm:"vendas.change_caixa" %}

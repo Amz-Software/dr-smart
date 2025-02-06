@@ -616,6 +616,59 @@ class FolhaCaixaPDFView(PermissionRequiredMixin, View):
         }
         return render(request, 'caixa/folha_caixa.html', context)
     
+class FolhaProdutoPDFView(PermissionRequiredMixin, View):
+    permission_required = 'vendas.view_venda'
+
+    def get(self, request, pk):
+        caixa = get_object_or_404(Caixa, id=pk)
+        vendas = caixa.vendas.filter(is_deleted=False)
+        
+        # preciso das seguintes informações:      <th>ID Venda</th>
+                    #<th>ID Produto</th>
+                    #<th>Produto</th>
+                    #<th>Tipo Produto</th>
+                    #<th>Vendedor</th>
+                    #<th>Custo</th>
+                    #<th>Preço</th>
+                    #<th>Quantidade</th>
+                    #<th>Total</th>
+                    #<th>Lucro</th>
+
+        produtos_info = {}
+
+        for venda in vendas:
+            for produto in venda.itens_venda.all():
+                if produto.produto.nome not in produtos_info:
+                    produtos_info[produto.produto.nome] = {
+                        'id_venda': venda.id,
+                        'id_produto': produto.produto.id,
+                        'produto': produto.produto.nome,
+                        'tipo_produto': produto.produto.tipo.nome,
+                        'vendedor': venda.vendedor.get_full_name(),
+                        'preco': produto.valor_unitario,
+                        'quantidade': produto.quantidade,
+                        'custo': produto.custo(),
+                        'total': produto.calcular_valor_total(),
+                        'lucro': produto.lucro(),
+                    }
+                    pagamentos = venda.pagamentos.all()
+                    formas = ', '.join([pagamento.tipo_pagamento.nome for pagamento in pagamentos])
+                    produtos_info[produto.produto.nome]['formas_pagamento'] = formas
+                else:
+                    produtos_info[produto.produto.nome]['quantidade'] += produto.quantidade
+                    produtos_info[produto.produto.nome]['total'] += produto.calcular_valor_total()
+                    produtos_info[produto.produto.nome]['lucro'] += produto.lucro()
+
+
+        context = {
+            'caixa': caixa,
+            'data': localtime(now()).date(),
+            'produtos': produtos_info.values(),
+        }
+
+        return render(request, 'caixa/folha_produtos.html', context)
+
+
 
 from django.shortcuts import render
 from django.utils.timezone import now
