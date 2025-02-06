@@ -54,6 +54,16 @@ class IndexView(LoginRequiredMixin, TemplateView):
         if caixa_diario_loja:
             caixa_diario_lucro = (caixa_diario_loja.saldo_total_dinheiro + caixa_diario_loja.entradas) - caixa_diario_loja.saidas
 
+        entrada_caixa_total = LancamentoCaixaTotal.objects.filter(tipo_lancamento='1', loja=loja)
+        saida_caixa_total = LancamentoCaixaTotal.objects.filter(tipo_lancamento='2', loja=loja)
+
+        for entrada in entrada_caixa_total:
+            valor_caixa_total += entrada.valor
+
+        for saida in saida_caixa_total:
+            valor_caixa_total -= saida.valor
+
+
         context['loja'] = loja
         context['caixa_diario'] = caixa_diario_loja
         context['caixa_diario_lucro'] = caixa_diario_lucro
