@@ -659,24 +659,12 @@ class FolhaProdutoPDFView(PermissionRequiredMixin, View):
     def get(self, request, pk):
         caixa = get_object_or_404(Caixa, id=pk)
         vendas = caixa.vendas.filter(is_deleted=False)
-        
-        # preciso das seguintes informações:      <th>ID Venda</th>
-                    #<th>ID Produto</th>
-                    #<th>Produto</th>
-                    #<th>Tipo Produto</th>
-                    #<th>Vendedor</th>
-                    #<th>Custo</th>
-                    #<th>Preço</th>
-                    #<th>Quantidade</th>
-                    #<th>Total</th>
-                    #<th>Lucro</th>
-
         produtos_info = {}
 
         for venda in vendas:
             for produto in venda.itens_venda.all():
-                if produto.produto.nome not in produtos_info:
-                    produtos_info[produto.produto.nome] = {
+                if produto.produto.nome:
+                    produtos_info[venda.id] = {
                         'id_venda': venda.id,
                         'id_produto': produto.produto.id,
                         'produto': produto.produto.nome,
@@ -690,11 +678,7 @@ class FolhaProdutoPDFView(PermissionRequiredMixin, View):
                     }
                     pagamentos = venda.pagamentos.all()
                     formas = ', '.join([pagamento.tipo_pagamento.nome for pagamento in pagamentos])
-                    produtos_info[produto.produto.nome]['formas_pagamento'] = formas
-                else:
-                    produtos_info[produto.produto.nome]['quantidade'] += produto.quantidade
-                    produtos_info[produto.produto.nome]['total'] += produto.calcular_valor_total()
-                    produtos_info[produto.produto.nome]['lucro'] += produto.lucro()
+                    produtos_info[venda.id]['formas_pagamento'] = formas
 
 
         context = {
