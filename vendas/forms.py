@@ -335,6 +335,21 @@ class LancamentoForm(forms.ModelForm):
             instance.save()
         return instance
         
+class LancamentoCaixaTotalForm(forms.ModelForm):
+    class Meta:
+        model = LancamentoCaixaTotal
+        fields = '__all__'
+        exclude = ['loja', 'caixa']
+        widgets = {
+            'motivo': forms.TextInput(attrs={'class': 'form-control'}),
+            'tipo_lancamento': forms.Select(attrs={'class': 'form-control'}),
+            'valor': forms.NumberInput(attrs={'class': 'form-control'}),
+        }
+        labels = {
+            'motivo': 'Motivo*',
+            'tipo_lancamento': 'Tipo de Lançamento*',
+            'valor': 'Valor*',
+        }
 
 FormaPagamentoFormSet = forms.inlineformset_factory(Venda, Pagamento, form=PagamentoForm, extra=1, can_delete=False)
 ProdutoVendaFormSet = forms.inlineformset_factory(Venda, ProdutoVenda, form=ProdutoVendaForm, extra=1, can_delete=False)
