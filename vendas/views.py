@@ -9,8 +9,8 @@ from django.views.generic import TemplateView, ListView, DetailView, CreateView,
 from django.utils.timezone import localtime, now
 from estoque.models import Estoque, EstoqueImei
 from produtos.models import Produto
-from vendas.forms import ClienteForm, ComprovantesClienteForm, ContatoAdicionalForm, LojaForm, VendaForm, ProdutoVendaFormSet, FormaPagamentoFormSet, LancamentoForm, LancamentoCaixaTotalForm
-from .models import Caixa, Cliente, Loja, Pagamento, ProdutoVenda, TipoPagamento, Venda, LancamentoCaixa, LancamentoCaixaTotal
+from vendas.forms import ClienteForm, ComprovantesClienteForm, ContatoAdicionalForm, LojaForm, VendaForm, ProdutoVendaFormSet, FormaPagamentoFormSet, LancamentoForm
+from .models import Caixa, Cliente, Loja, Pagamento, ProdutoVenda, TipoPagamento, Venda, LancamentoCaixa
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.utils import timezone
 from django.db import transaction
@@ -159,13 +159,6 @@ def lancamento_delete_view(request, pk):
     lancamento.delete()
     messages.success(request, 'Lançamento excluído com sucesso')
     return redirect('vendas:caixa_detail', pk=caixa_id)
-
-def lancamento_total_delete_view(request, pk):
-    lancamento = get_object_or_404(LancamentoCaixaTotal, id=pk)
-    loja_id = lancamento.loja.id
-    lancamento.delete()
-    messages.success(request, 'Lançamento excluído com sucesso')
-    return redirect('vendas:caixa_total')
     
 
 class ClienteListView(BaseView, PermissionRequiredMixin, ListView):
@@ -398,9 +391,8 @@ class CaixaTotalView(PermissionRequiredMixin, TemplateView):
     
     def get_context_data(self, **kwargs):
         loja_id = self.request.session.get('loja_id')
-        loja = Loja.objects.get(id=loja_id)
 
-        caixas = Loja.objects.get(id=loja_id).caixa_loja.all().order_by('-data_abertura')
+        caixas = Loja.objects.get(id=loja_id).caixa_loja.all().order_by('-data_abertura').filter(data_fechamento__isnull=False)
         vendas_caixa = []
         entradas_caixa = []
         saidas_caixa = []
@@ -425,18 +417,6 @@ class CaixaTotalView(PermissionRequiredMixin, TemplateView):
             total_saida += caixa.saidas
             total_venda += caixa.saldo_total_dinheiro
 
-        entradas_caixa_total = LancamentoCaixaTotal.objects.filter(tipo_lancamento='1', loja=loja)
-        saidas_caixa_total = LancamentoCaixaTotal.objects.filter(tipo_lancamento='2', loja=loja)
-
-        for entrada in entradas_caixa_total:
-            total_entrada += entrada.valor
-
-        for saida in saidas_caixa_total:
-            total_saida += saida.valor
-
-        entradas_caixa.append(entradas_caixa_total)
-        saidas_caixa.append(saidas_caixa_total)
-
             
         total = (total_entrada + total_venda) - total_saida
 
@@ -450,25 +430,8 @@ class CaixaTotalView(PermissionRequiredMixin, TemplateView):
         context['total_saida'] = total_saida
         context['total_venda'] = total_venda
         context['total'] = total
-        context['form_lancamento'] = LancamentoCaixaTotalForm()
-        context['lancamentos'] = LancamentoCaixaTotal.objects.filter(loja=loja)
         
         return context
-    
-    def post(self, request, *args, **kwargs):
-        loja_id = request.session.get('loja_id')
-        loja = Loja.objects.get(id=loja_id)
-        form = LancamentoCaixaTotalForm(request.POST)
-        
-        if form.is_valid():
-            form.instance.loja = loja
-            form.instance.criado_por = request.user
-            form.save()
-            messages.success(request, 'Lançamento realizado com sucesso')
-            return redirect('vendas:caixa_total')
-        
-        messages.error(request, 'Erro ao realizar lançamento')
-        return self.get(request, *args, **kwargs)
     
 
 class LojaListView(BaseView, PermissionRequiredMixin, ListView):
