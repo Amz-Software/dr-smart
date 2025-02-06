@@ -134,7 +134,7 @@ Caixas - Loja
           <div class="card-header">
             <h4 class="card-title">Lançamentos</h4>
           </div>
-          {% if user|has_perm:"vendas.add_lancamentocaixa" %}
+          {% if user|has_perm:"vendas.add_lancamentocaixatotal" %}
           <form method="post">
             {% csrf_token %}
             <div class="card-body">
@@ -177,7 +177,7 @@ Caixas - Loja
                   <td>{{ lançamento.get_tipo_lancamento_display }}</td>
                   <td>{{ lançamento.valor }}</td>
                   <td>
-                    {% if user|has_perm:"vendas.delete_lancamentocaixa" %}
+                    {% if user|has_perm:"vendas.delete_lancamentocaixatotal" %}
                     <a href='{% url "vendas:caixa_total_lancamento_delete" lançamento.id %}' class="btn btn-danger">
                       <i class="bx bx-trash"></i>
                     </a>
