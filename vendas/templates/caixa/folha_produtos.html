@@ -150,11 +150,19 @@
                     <td>R$ {{ produto.total }}</td>
                     <td>R$ {{ produto.lucro }}</td>
                 </tr>
-            {% empty %}
+                {% empty %}
                 <tr>
                     <td colspan="9">Nenhum produto vendido.</td>
                 </tr>
-            {% endfor %}
+                {% endfor %}
+                <tr>
+                    <td colspan="10" class="text-right">Total de Produtos Vendidos:</td>
+                    <td>{{ total_produtos }}</td>
+                </tr>
+                <tr>
+                    <td colspan="10" class="text-right">Valor total:</td>
+                    <td>R$ {{ valor_total }}</td>
+                </tr>
             </tbody>
         </table>
     </div>
