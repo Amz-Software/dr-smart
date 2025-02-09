@@ -683,6 +683,8 @@ class FolhaProdutoPDFView(PermissionRequiredMixin, View):
             pagamentos = venda.pagamentos.all()
             formas_pagamento = ', '.join(set(p.tipo_pagamento.nome for p in pagamentos))
             valor_total += venda.pagamentos_valor_total
+            total_custos = 0
+            total_lucro = 0
 
             for produto in venda.itens_venda.all():
                 if produto.produto and produto.produto.nome:
@@ -695,18 +697,23 @@ class FolhaProdutoPDFView(PermissionRequiredMixin, View):
                         'preco': produto.valor_unitario,
                         'quantidade': produto.quantidade,
                         'custo': produto.custo(),
-                        'total': produto.calcular_valor_total(),
+                        'total': venda.pagamentos_valor_total,
                         'lucro': produto.lucro(),
                         'formas_pagamento': formas_pagamento
                     })
-                    total_produtos += 1
+                    total_produtos += produto.quantidade
+
+        total_lucro = sum(produto['lucro'] for produto in produtos_info)
+        total_custos = sum(produto['custo'] for produto in produtos_info)
 
         context = {
             'caixa': caixa,
             'data': localtime(now()).date(),
             'produtos': produtos_info,
             'total_produtos': total_produtos,
-            'valor_total': valor_total
+            'valor_total': valor_total,
+            'total_custos': total_custos,
+            'total_lucro': total_lucro
         }
 
         return render(request, 'caixa/folha_produtos.html', context)
