@@ -33,6 +33,7 @@ Vendas
         <table class="table table-hover">
         <thead>
           <tr>
+          <th scope="col">ID</th>
           <th scope="col">Vendedor</th>
           <th scope="col">Cliente</th>
           <th scope="col">Data</th>
@@ -45,6 +46,7 @@ Vendas
         <tbody>
           {% for item in vendas %}
           <tr>
+          <td>{{ item.pk }}</td>
           <td>{{ item.vendedor|title }}</td>
           <td>{{ item.cliente|title }}</td>
           <td>{{ item.data_venda|date:"d/m/Y H:i" }}</td>

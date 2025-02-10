@@ -668,13 +668,27 @@ class FolhaProdutoPDFView(PermissionRequiredMixin, View):
 
     def get(self, request, pk):
         caixa = get_object_or_404(Caixa, id=pk)
-        vendas = caixa.vendas.filter(is_deleted=False)
-        produtos_info = {}
+
+        # Otimiza a query trazendo os relacionamentos necessários
+        vendas = caixa.vendas.filter(is_deleted=False).prefetch_related(
+            'itens_venda__produto', 'pagamentos'
+        )
+
+        produtos_info = []
+        total_produtos = 0
+        valor_total = 0
 
         for venda in vendas:
+            # Captura todas as formas de pagamento únicas
+            pagamentos = venda.pagamentos.all()
+            formas_pagamento = ', '.join(set(p.tipo_pagamento.nome for p in pagamentos))
+            valor_total += venda.pagamentos_valor_total
+            total_custos = 0
+            total_lucro = 0
+
             for produto in venda.itens_venda.all():
-                if produto.produto.nome:
-                    produtos_info[venda.id] = {
+                if produto.produto and produto.produto.nome:
+                    produtos_info.append({
                         'id_venda': venda.id,
                         'id_produto': produto.produto.id,
                         'produto': produto.produto.nome,
@@ -683,22 +697,26 @@ class FolhaProdutoPDFView(PermissionRequiredMixin, View):
                         'preco': produto.valor_unitario,
                         'quantidade': produto.quantidade,
                         'custo': produto.custo(),
-                        'total': produto.calcular_valor_total(),
+                        'total': venda.pagamentos_valor_total,
                         'lucro': produto.lucro(),
-                    }
-                    pagamentos = venda.pagamentos.all()
-                    formas = ', '.join([pagamento.tipo_pagamento.nome for pagamento in pagamentos])
-                    produtos_info[venda.id]['formas_pagamento'] = formas
+                        'formas_pagamento': formas_pagamento
+                    })
+                    total_produtos += produto.quantidade
 
+        total_lucro = sum(produto['lucro'] for produto in produtos_info)
+        total_custos = sum(produto['custo'] for produto in produtos_info)
 
         context = {
             'caixa': caixa,
             'data': localtime(now()).date(),
-            'produtos': produtos_info.values(),
+            'produtos': produtos_info,
+            'total_produtos': total_produtos,
+            'valor_total': valor_total,
+            'total_custos': total_custos,
+            'total_lucro': total_lucro
         }
 
         return render(request, 'caixa/folha_produtos.html', context)
-
 
 
 from django.shortcuts import render
