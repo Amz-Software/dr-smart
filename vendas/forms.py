@@ -230,6 +230,8 @@ class ProdutoVendaForm(forms.ModelForm):
             attrs={
                 'class': 'form-control',
                 'data-minimum-input-length': '0',
+                'data-placeholder': 'Selecione um IMEI',
+                'data-allow-clear': 'true',
             }
         )
     )
