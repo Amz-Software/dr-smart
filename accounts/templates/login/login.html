@@ -56,9 +56,15 @@
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     const usernameField = document.getElementById('id_username');
+    usernameField.addEventListener('blur', buscarLojasUsername);
     usernameField.addEventListener('change', buscarLojasUsername);
-  
+    const botaoEntrar = document.querySelector('button[type="submit"]');
+    botaoEntrar.classList.add('d-none');
+
     async function buscarLojasUsername() {
+      if (!botaoEntrar.classList.contains('d-none')) {
+        botaoEntrar.classList.add('d-none');
+      }
       const username = usernameField.value;
       try {
         const response = await fetch(`/buscar-lojas/?username=${username}`);
@@ -73,15 +79,24 @@
             option.value = loja.id;
             option.text = loja.nome;
             selectLoja.appendChild(option);
+            if (botaoEntrar.classList.contains('d-none')) {
+              botaoEntrar.classList.remove('d-none');
+            }
           });
         } else {
           const option = document.createElement('option');
           option.value = '';
           option.text = 'Nenhuma loja encontrada';
           selectLoja.appendChild(option);
+          if (!botaoEntrar.classList.contains('d-none')) {
+            botaoEntrar.classList.add('d-none');
+          }
         }
       } catch (error) {
         console.error('Erro ao buscar lojas:', error);
+        if (!botaoEntrar.classList.contains('d-none')) {
+          botaoEntrar.classList.add('d-none');
+        }
       }
     }
   });
