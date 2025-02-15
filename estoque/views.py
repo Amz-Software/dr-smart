@@ -1,3 +1,4 @@
+import datetime
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
@@ -256,3 +257,15 @@ def inventario_estoque_pdf (request):
     }
 
     return render(request, "estoque/folha_estoque.html", context)
+
+def inventario_estoque_imei_pdf (request):
+    loja = get_object_or_404(Loja, pk=request.session.get('loja_id'))
+    produtos = EstoqueImei.objects.filter(loja=loja).filter(vendido=False)
+    
+    context = {
+        'produtos': produtos,
+        'loja': loja,
+        'data_hoje': datetime.datetime.now()
+    }
+
+    return render(request, "estoque/folha_estoque_imei.html", context)
