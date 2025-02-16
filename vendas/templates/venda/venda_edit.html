@@ -60,6 +60,10 @@
                         <tbody id="produtos">
                           {% for form in produto_venda_formset %}
                           <tr class="produto-form">
+                            {# Renderize os campos ocultos (como o id) #}
+                            {% for hidden in form.hidden_fields %}
+                              {{ hidden }}
+                            {% endfor %}
                             <td>{{ form.produto }}</td>
                             <td>{{ form.imei }}</td>
                             <td>{{ form.quantidade }}</td>
@@ -74,6 +78,7 @@
                         </tbody>
                       </table>
                     </div>
+                    
 
                     <h3>Pagamentos</h3>
                     <hr>
@@ -93,6 +98,9 @@
                         <tbody id="pagamentos">
                           {% for form in pagamento_formset %}
                           <tr class="pagamento-form">
+                            {% for hidden in form.hidden_fields %}
+                              {{ hidden }}
+                            {% endfor %}
                             <td>{{ form.tipo_pagamento }}</td>
                             <td>{{ form.valor }}</td>
                             <td>{{ form.parcelas }}</td>
@@ -106,6 +114,7 @@
                         </tbody>
                       </table>
                     </div>
+                    
 
                     <hr>
                     {% if user|has_perm:"vendas.change_venda" %}
@@ -163,6 +172,30 @@
       allowClear: true,
       width: '100%'
     });
+
+    function verificarProduto() {
+      console.log('Verificando produto...');
+      const produtoId = produtoSelect.value;
+      const quantidade = parseInt(quantidadeField.value) || 0;
+
+      if (!produtoId) {
+        quantidadeField.readOnly = true;
+      }
+
+      fetch(`/produto/details/${produtoId}/`)
+        .then(response => response.json())
+        .then(data => {
+          console.log('Produto details API response:', data);
+          console.log('data:', data);
+          if (data.serializado) {
+            quantidadeField.value = 1;
+            quantidadeField.readOnly = true;
+          } else {
+            quantidadeField.readOnly = false;
+          }
+        });
+      
+    }
 
     // Função para atualizar o valor total (inclui lógica de desconto e modal de autorização)
     async function atualizarValorTotal() {
@@ -297,12 +330,15 @@
         });
     });
 
-    // Eventos para recalcular valor total
+    quantidadeField.addEventListener('input', function () {
+      verificarProduto();
+      atualizarValorTotal();
+    });
     valorField.addEventListener('input', atualizarValorTotal);
-    quantidadeField.addEventListener('input', atualizarValorTotal);
     valorDescontoField.addEventListener('input', atualizarValorTotal);
   }
 
+  
   // -------------------------------------------------------------------------
   // Funções de remoção de linhas de produto/pagamento
   // -------------------------------------------------------------------------

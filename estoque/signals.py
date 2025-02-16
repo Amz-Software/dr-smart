@@ -34,31 +34,6 @@ def atualizar_estoque_entrada(instance, created, **kwargs):
             estoque.remover_estoque(quantidade_antiga - quantidade_nova)
 
 
-
-# @receiver(post_delete, sender=EntradaEstoque)
-# def atualizar_estoque_deletar_entrada(sender, instance, **kwargs):
-#     estoque = Estoque.objects.get(produto=instance.produto)
-#     try:
-#         estoque.remover_estoque(instance.quantidade)
-#     except ValueError:
-#         estoque.quantidade_disponivel = 0
-#         estoque.save()
-
-
-# # ATUALIZAR ESTOQUE APÓS VENDA
-# @receiver(post_save, sender=ProdutoVenda)
-# def atualizar_estoque_venda(sender, instance, created, **kwargs):
-#     if created:
-#         print('Pos - signal', instance)
-#         print('Pos - signal', instance.produto)
-#         print('Pos - signal', instance.loja)
-#         estoque = Estoque.objects.filter(produto=instance.produto, loja=instance.loja).first()
-#         print(estoque)
-#         try:
-#             estoque.remover_estoque(instance.quantidade)
-#         except ValueError:
-#             raise ValidationError(f"Estoque insuficiente para o produto {instance.produto.nome}.")
-
 @receiver(post_delete, sender=ProdutoEntrada)
 def atualizar_estoque_deletar_entrada(sender, instance, **kwargs):
     estoque = Estoque.objects.filter(produto=instance.produto, loja=instance.loja).first()
@@ -95,3 +70,58 @@ def atualizar_estoque_apos_cancelar_venda(sender, instance, **kwargs):
                 estoque.save()
             except Estoque.DoesNotExist:
                 raise Exception(f"Estoque não encontrado para o produto {item.produto.nome} na loja {item.loja}.")
+
+
+
+@receiver(pre_save, sender=ProdutoVenda)
+def salvar_quantidade_antiga(instance, **kwargs):
+    if instance.pk:
+        produto_venda_antigo = ProdutoVenda.objects.get(pk=instance.pk)
+        instance._quantidade_antiga = produto_venda_antigo.quantidade
+        instance._produto_antigo = produto_venda_antigo
+    else:
+        instance._quantidade_antiga = 0
+        instance._produto_antigo = None
+
+
+@receiver(post_save, sender=ProdutoVenda)
+def atualizar_estoque_apos_editar_venda(sender, created, instance, **kwargs):
+    if not created:
+        
+        if instance.imei:
+            estoque_imei = EstoqueImei.objects.filter(imei=instance.imei, loja=instance.loja).first()
+            if estoque_imei:
+                estoque_imei.vendido = False
+                estoque_imei.save()
+            else:
+                raise Exception(f"Estoque IMEI não encontrado para o IMEI {instance.imei}.")
+
+        try:
+            estoque_novo = Estoque.objects.get(produto=instance.produto, loja=instance.loja)
+            quantidade_antiga = instance._quantidade_antiga
+            quantidade_nova = instance.quantidade
+
+            if instance._produto_antigo.produto != instance.produto:
+                if instance._produto_antigo.imei:
+                    estoque_imei_antigo = EstoqueImei.objects.filter(imei=instance._produto_antigo.imei, loja=instance.loja).first()
+                    if estoque_imei_antigo:
+                        estoque_imei_antigo.vendido = False
+                        estoque_imei_antigo.save()
+                    else:
+                        raise Exception(f"Estoque IMEI não encontrado para o IMEI {instance._produto_antigo.imei}.")
+
+                estoque_antigo = Estoque.objects.get(produto=instance._produto_antigo.produto, loja=instance.loja)
+                estoque_antigo.adicionar_estoque(quantidade_antiga)
+                estoque_antigo.save()
+
+                # Remove a quantidade do novo produto do estoque
+                estoque_novo.remover_estoque(quantidade_nova)
+            else:
+                if quantidade_nova > quantidade_antiga:
+                    estoque_novo.remover_estoque(quantidade_nova - quantidade_antiga)
+                elif quantidade_nova < quantidade_antiga:
+                    estoque_novo.adicionar_estoque(quantidade_antiga - quantidade_nova)
+
+            estoque_novo.save()
+        except Estoque.DoesNotExist:
+            raise Exception(f"Estoque não encontrado para o produto {instance.produto.nome} na loja {instance.loja}.")

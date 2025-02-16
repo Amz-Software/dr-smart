@@ -23,10 +23,9 @@ def criar_ou_atualizar_parcelas(sender, instance, created, **kwargs):
                 pagamento=instance,
                 numero_parcela=numero,
                 valor=instance.valor_parcela,
-                data_vencimento=calcular_data_vencimento(instance.data_primeira_parcela, numero,
+                data_vencimento=calcular_data_vencimento(instance.data_primeira_parcela, numero),
                 criado_por=instance.criado_por,
                 modificado_por=instance.modificado_por
-                )
             )
 
 def calcular_data_vencimento(data_primeira_parcela, numero_parcela):
