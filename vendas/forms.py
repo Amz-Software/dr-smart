@@ -91,12 +91,22 @@ class TipoPagamentoForm(forms.ModelForm):
             'parcelas': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'financeira': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'carne': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'nao_contabilizar': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
         help_texts = {
             'caixa': 'Esse pagamento será realizado no caixa nas formas de recebimento pelo logista.',
             'parcelas': 'Marque se o pagamento pode ser parcelado.',
             'financeira': 'Marque se o pagamento é feito por financeira.',
             'carne': 'Marque se o pagamento é feito por carnê ou promissória.',
+            'nao_contabilizar': 'Marque se o pagamento não deve ser contabilizado.',
+        }
+        labels = {
+            'nome': 'Nome*',
+            'caixa': 'Caixa',
+            'parcelas': 'Parcelas',
+            'financeira': 'Financeira',
+            'carne': 'Carnê',
+            'nao_contabilizar': 'Não Contabilizar',
         }
 
     def __init__(self, *args, disabled=False, **kwargs):
@@ -191,12 +201,15 @@ class VendaForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         loja = kwargs.pop('loja', None)  # Captura o argumento 'loja'
+        user = kwargs.pop('user', None)  # Captura o argumento 'user'
         super().__init__(*args, **kwargs) 
         if loja:
             self.fields['cliente'].queryset = Cliente.objects.filter(loja=loja)
             self.fields['vendedor'].queryset = Loja.objects.get(id=loja).usuarios.all()
             self.fields['tipo_venda'].queryset = TipoVenda.objects.filter(loja=loja)
             self.fields['tipo_entrega'].queryset = TipoEntrega.objects.filter(loja=loja)
+        if user:
+            self.fields['vendedor'].initial = user
 
 
 class EstoqueImeiSelectWidget(HeavySelect2Widget):
@@ -217,6 +230,8 @@ class ProdutoVendaForm(forms.ModelForm):
             attrs={
                 'class': 'form-control',
                 'data-minimum-input-length': '0',
+                'data-placeholder': 'Selecione um IMEI',
+                'data-allow-clear': 'true',
             }
         )
     )
@@ -322,6 +337,21 @@ class LancamentoForm(forms.ModelForm):
             instance.save()
         return instance
         
+class LancamentoCaixaTotalForm(forms.ModelForm):
+    class Meta:
+        model = LancamentoCaixaTotal
+        fields = '__all__'
+        exclude = ['loja', 'caixa']
+        widgets = {
+            'motivo': forms.TextInput(attrs={'class': 'form-control'}),
+            'tipo_lancamento': forms.Select(attrs={'class': 'form-control'}),
+            'valor': forms.NumberInput(attrs={'class': 'form-control'}),
+        }
+        labels = {
+            'motivo': 'Motivo*',
+            'tipo_lancamento': 'Tipo de Lançamento*',
+            'valor': 'Valor*',
+        }
 
 FormaPagamentoFormSet = forms.inlineformset_factory(Venda, Pagamento, form=PagamentoForm, extra=1, can_delete=False)
 ProdutoVendaFormSet = forms.inlineformset_factory(Venda, ProdutoVenda, form=ProdutoVendaForm, extra=1, can_delete=False)

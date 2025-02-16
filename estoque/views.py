@@ -1,5 +1,6 @@
+import datetime
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.views import View
 from django.views.generic import ListView, CreateView, DetailView, UpdateView
@@ -11,8 +12,9 @@ from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.auth.decorators import login_required
 from produtos.models import Produto
 from vendas.models import Loja
-from .forms import EntradaEstoqueForm, EstoqueImeiForm, ProdutoEntradaForm, ProdutoEntradaFormSet
+from .forms import EntradaEstoqueForm, EstoqueImeiForm, ProdutoEntradaForm, ProdutoEntradaFormSet, ProdutoEntradaEditFormSet
 from vendas.views import BaseView
+from vendas.models import Venda
 
 class EstoqueListView(BaseView, PermissionRequiredMixin, ListView):
     model = Estoque
@@ -33,7 +35,7 @@ class EstoqueListView(BaseView, PermissionRequiredMixin, ListView):
         query = super().get_queryset().filter(produto__loja=loja)
         search = self.request.GET.get('search', None)
         if search:
-            query = query.filter(produto__nome__icontains=search)
+            query = query.filter(produto__nome__icontains=search).filter(produto__loja=loja)
             
         return query
 
@@ -46,12 +48,13 @@ class EntradaListView(BaseView, PermissionRequiredMixin, ListView):
     
     def get_queryset(self):
         query = super().get_queryset()
-        
+        loja_id = self.request.session.get('loja_id')
+        loja = get_object_or_404(Loja, pk=loja_id)
         search = self.request.GET.get('search', None)
         if search:
-            query = query.filter(fornecedor__nome__icontains=search)
+            query = query.filter(fornecedor__nome__icontains=search).filter(loja=loja)
             
-        return query.order_by('-data_entrada')
+        return query.order_by('-data_entrada').filter(loja=loja)
     
 class EntradaDetailView(PermissionRequiredMixin, DetailView):
     model = EntradaEstoque
@@ -68,7 +71,7 @@ class EntradaUpdateView(PermissionRequiredMixin, UpdateView):
     # levar em consideração que pode ter uma venda e diminuir o estoque
     model = EntradaEstoque
     form_class = EntradaEstoqueForm
-    template_name = 'estoque/estoque_form.html'
+    template_name = 'estoque/estoque_form_edit.html'
     success_url = reverse_lazy('estoque:estoque_list')
     permission_required = 'estoque.change_entradaestoque'
 
@@ -76,9 +79,9 @@ class EntradaUpdateView(PermissionRequiredMixin, UpdateView):
         context = super().get_context_data(**kwargs)
         loja_id = self.request.session.get('loja_id')
         if self.request.POST:
-            context['formset'] = ProdutoEntradaFormSet(self.request.POST, form_kwargs={'loja': loja_id})
+            context['formset'] = ProdutoEntradaEditFormSet(self.request.POST, form_kwargs={'loja': loja_id})
         else:
-            context['formset'] = ProdutoEntradaFormSet(queryset=ProdutoEntrada.objects.filter(entrada=self.object), form_kwargs={'loja': loja_id})
+            context['formset'] = ProdutoEntradaEditFormSet(queryset=ProdutoEntrada.objects.filter(entrada=self.object), form_kwargs={'loja': loja_id})
         return context
     
     def form_valid(self, form):
@@ -89,8 +92,11 @@ class EntradaUpdateView(PermissionRequiredMixin, UpdateView):
         if form.is_valid() and formset.is_valid():
             entrada_estoque = form.save(commit=False)
             entrada_estoque.loja = loja
-            entrada_estoque.save(user=self.request.user)
             produtos = formset.save(commit=False)
+            # verificar se excluiu algum produto
+            for produto in formset.deleted_objects:
+                produto.delete()
+
             for produto in produtos:
                 produto.entrada = entrada_estoque
                 produto.loja = loja
@@ -105,6 +111,14 @@ class EntradaUpdateView(PermissionRequiredMixin, UpdateView):
                         loja=loja
                     )
                     estoque_imei.save(user=self.request.user)
+
+            #verificar se a entrada não esta vazia
+            if not entrada_estoque.produtos.all():
+                entrada_estoque.delete()
+                messages.error(self.request, 'Entrada Excluída, pois não possui produtos.')
+                return redirect(self.success_url)
+
+            entrada_estoque.save(user=self.request.user)
             messages.success(self.request, 'Entrada de estoque atualizada com sucesso!')
             return redirect(self.success_url)
         else:
@@ -172,7 +186,7 @@ class EstoqueImeiListView(BaseView, PermissionRequiredMixin, ListView):
         
         search = self.request.GET.get('search', None)
         if search:
-            query = query.filter(Q(imei__icontains=search)|Q(produto__nome__icontains=search))
+            query = query.filter(Q(imei__icontains=search)|Q(produto__nome__icontains=search)).filter(produto__loja=loja)
             
         return query
     
@@ -232,3 +246,26 @@ class EstoqueImeiSearchView(View):
                 'text': f'{imei.imei} - {imei.produto.nome}'
             })
         return JsonResponse({'results': results})
+    
+def inventario_estoque_pdf (request):
+    loja = get_object_or_404(Loja, pk=request.session.get('loja_id'))
+    produtos = Estoque.objects.filter(loja=loja).filter(quantidade_disponivel__gt=0)
+    
+    context = {
+        'produtos': produtos,
+        'loja': loja
+    }
+
+    return render(request, "estoque/folha_estoque.html", context)
+
+def inventario_estoque_imei_pdf (request):
+    loja = get_object_or_404(Loja, pk=request.session.get('loja_id'))
+    produtos = EstoqueImei.objects.filter(loja=loja).filter(vendido=False)
+    
+    context = {
+        'produtos': produtos,
+        'loja': loja,
+        'data_hoje': datetime.datetime.now()
+    }
+
+    return render(request, "estoque/folha_estoque_imei.html", context)

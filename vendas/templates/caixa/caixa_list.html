@@ -72,7 +72,7 @@ Caixas
                   <td>Caixa - {{ caixa.data_abertura|date:"d/m/Y" }}</td>
                   <td>{{ caixa.quantidade_vendas }}</td>
                   <td>{{ caixa.saldo_total }}</td>
-                  <td>{{ caixa.saldo_total_dinheiro }}</td>
+                  <td>{{ caixa.saldo_final }}</td>
                   {% if caixa.data_fechamento %}
                   <td>
                     <span class="badge bg-danger">
@@ -100,6 +100,11 @@ Caixas
                         {% if user|has_perm:"vendas.view_caixa" %}
                         <a class="dropdown-item" href="{% url "vendas:caixa_pdf" caixa.pk %}" target="_blank">
                           <i class="bx bx-file me-1"></i> Folha Caixa
+                        </a>
+                        {% endif %}
+                        {% if user|has_perm:"vendas.view_caixa" %}
+                        <a class="dropdown-item" href="{% url "vendas:caixa_produto_pdf" caixa.pk %}" target="_blank">
+                          <i class="bx bx-file me-1"></i> Relatório Produtos
                         </a>
                         {% endif %}
                         {% if not caixa.data_fechamento %}

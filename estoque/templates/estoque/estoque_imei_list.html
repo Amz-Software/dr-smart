@@ -29,6 +29,10 @@ Estoque
                             Adicionar Entrada
                         </a>
                         {% endif %}
+                        <a type="button" class="btn btn-primary" target="_blank" href="{% url 'estoque:inventario_imei_pdf' %}">
+                            <i class="bx bx-file me-1"></i>
+                            Gerar PDF
+                        </a>
                     </div>
                 </div>                
                 <div class="card-body">

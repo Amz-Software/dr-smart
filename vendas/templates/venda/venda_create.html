@@ -67,39 +67,39 @@ Criar Venda
                     </tr>
                   </template>
 
-                  <div class="table-responsive mb-3">
-                    <table class="table table-bordered">
-                      <thead>
-                        <tr>
-                          <th style="width: 20%">Produto</th>
-                          <th style="width: 20%">IMEI</th>
-                          <th>Quantidade</th>
-                          <th style="width: 20%">Valor Unitário</th>
-                          <th style="width: 20%">Desconto</th>
-                          <th style="width: 20%">Valor Total</th>
-                          <th>Ações</th>
-                        </tr>
-                      </thead>
-                      <tbody id="produtos">
-                        {% for form in produto_venda_formset %}
-                        <tr class="produto-form">
-                          <td>{{ form.produto }}</td>
-                          <td>{{ form.imei }}</td>
-                          <td>{{ form.quantidade }}</td>
-                          <td>{{ form.valor_unitario }}</td>
-                          <td>{{ form.valor_desconto }}</td>
-                          <td>{{ form.valor_total }}</td>
-                          <td>
-                            <button type="button" class="btn btn-danger btn-sm remove-produto" onclick="removerProduto(this)">Remover</button>
-                          </td>
-                        </tr>
-                        {% endfor %}
-                      </tbody>
-                    </table>
-                  </div>
-                  <div class="acao mb-3">
-                    <button type="button" id="add-produto" class="btn btn-primary">Adicionar Produto</button>
-                  </div>
+                    <div class="table-responsive mb-3">
+                      <table class="table table-bordered">
+                        <thead>
+                          <tr>
+                            <th>Produto</th>
+                            <th style="width: 25%">IMEI</th>
+                            <th>Quantidade</th>
+                            <th style="width: 25%">Valor Unitário</th>
+                            <th style="width: 15%">Desconto</th>
+                            <th style="width: 25%">Valor Total</th>
+                            <th>Ações</th>
+                          </tr>
+                        </thead>
+                        <tbody id="produtos">
+                          {% for form in produto_venda_formset %}
+                          <tr class="produto-form">
+                            <td>{{ form.produto }}</td>
+                            <td>{{ form.imei }}</td>
+                            <td>{{ form.quantidade }}</td>
+                            <td>{{ form.valor_unitario }}</td>
+                            <td>{{ form.valor_desconto }}</td>
+                            <td>{{ form.valor_total }}</td>
+                            <td>
+                              <button type="button" class="btn btn-danger btn-sm remove-produto" onclick="removerProduto(this)">Remover</button>
+                            </td>
+                          </tr>
+                          {% endfor %}
+                        </tbody>
+                      </table>
+                    </div>
+                    <div class="acao mb-3">
+                      <button type="button" id="add-produto" class="btn btn-primary">Adicionar Produto</button>
+                    </div>
 
                   <h3>Pagamentos</h3>
                   <hr>

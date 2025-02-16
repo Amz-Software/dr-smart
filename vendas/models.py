@@ -25,12 +25,15 @@ class Caixa(Base):
     
     @property
     def saldo_total(self):
-        return sum(venda.calcular_valor_total() for venda in self.vendas.filter(is_deleted=False).filter(loja=self.loja))
+        return sum(venda.pagamentos_valor_total for venda in self.vendas.filter(is_deleted=False).filter(loja=self.loja).filter(caixa=self))
 
     @property
     def saldo_total_dinheiro(self):
-        total = sum(venda.pagamentos_valor_total_dinheiro for venda in self.vendas.filter(is_deleted=False, pagamentos__tipo_pagamento__caixa=True).filter(loja=self.loja))
+        total = sum(venda.pagamentos_valor_total_dinheiro for venda in self.vendas.filter(is_deleted=False, pagamentos__tipo_pagamento__caixa=True).filter(loja=self.loja).filter(caixa=self))
         return total if total else 0
+    
+    def saldo_final(self):
+        return (self.saldo_total_dinheiro + self.entradas) - self.saidas
 
     @property
     def saidas(self):
@@ -42,7 +45,7 @@ class Caixa(Base):
     
     @property
     def quantidade_vendas(self):
-        return self.vendas.filter(is_deleted=False).filter(loja=self.loja).count()
+        return self.vendas.filter(is_deleted=False).filter(loja=self.loja).filter(caixa=self).count()
     
     @property
     def caixa_fechado(self):
@@ -60,6 +63,22 @@ class Caixa(Base):
 
     class Meta:
         verbose_name_plural = 'Caixas'
+
+class LancamentoCaixaTotal(Base):
+    tipo_lancamento_opcoes = (
+        ('1', 'Crédito'),
+        ('2', 'Débito'),
+    )
+
+    motivo = models.CharField(max_length=100)
+    tipo_lancamento = models.CharField(max_length=1, choices=tipo_lancamento_opcoes)
+    valor = models.DecimalField(max_digits=10, decimal_places=2)
+    
+    def __str__(self):
+        return f"{self.tipo_lancamento} - R$ {self.valor}"
+    
+    class Meta:
+        verbose_name_plural = 'Lancamentos Caixa Total'
 
 class LancamentoCaixa(Base):
     tipo_lancamento_opcoes = (
@@ -165,7 +184,7 @@ class Venda(Base):
 
     @property
     def pagamentos_valor_total(self):
-        return sum(pagamento.valor for pagamento in self.pagamentos.all())
+        return sum(pagamento.valor for pagamento in self.pagamentos.all().filter(tipo_pagamento__nao_contabilizar=False))
     
     @property
     def pagamentos_valor_total_dinheiro(self):
@@ -173,7 +192,7 @@ class Venda(Base):
     
     
     def calcular_valor_total(self):
-        return sum(item.valor_unitario * item.quantidade for item in self.itens_venda.all())
+        return sum(produto.calcular_valor_total() for produto in self.itens_venda.all())
     
     def __str__(self):
         return f"{self.cliente} - {self.data_venda.strftime('%d/%m/%Y')}"
@@ -195,6 +214,14 @@ class ProdutoVenda(Base):
 
     def calcular_valor_total(self):
         return (self.valor_unitario * self.quantidade) - self.valor_desconto
+    
+    def lucro(self):
+        from estoque.models import ProdutoEntrada
+        return (self.valor_unitario - ProdutoEntrada.objects.filter(produto=self.produto).last().custo_unitario) * self.quantidade
+    
+    def custo(self):
+        from estoque.models import ProdutoEntrada
+        return ProdutoEntrada.objects.filter(produto=self.produto).last().custo_unitario * self.quantidade
     
     def __str__(self):
         return f"{self.produto.nome} x {self.quantidade} (R$ {self.valor_unitario})"
@@ -228,6 +255,7 @@ class TipoPagamento(Base):
     parcelas = models.BooleanField(default=False)
     financeira = models.BooleanField(default=False)
     carne = models.BooleanField(default=False)
+    nao_contabilizar = models.BooleanField(default=False)
     
     def __str__(self):
         return self.nome

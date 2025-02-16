@@ -11,7 +11,7 @@
 
         body {
             font-family: Arial, Helvetica, sans-serif;
-            font-size: 10pt;
+            font-size: 9pt; /* Diminuído de 10pt para 9pt */
             line-height: 1.5;
             margin: 0;
         }
@@ -47,14 +47,14 @@
             height: 50px;
             text-align: center;
             font-weight: bold;
-            font-size: 12pt;
+            font-size: 11pt; /* Diminuído de 12pt para 11pt */
         }
 
         .footer {
             bottom: 0;
             height: 30px;
             text-align: right;
-            font-size: 8pt;
+            font-size: 7pt; /* Diminuído de 8pt para 7pt */
             color: #555;
         }
 
@@ -70,6 +70,7 @@
             font-weight: bold;
             margin: 15px 0 10px;
             text-transform: uppercase;
+            font-size: 9pt; /* Diminuído de 10pt para 9pt */
         }
 
         .text-center {
@@ -117,7 +118,7 @@
         <table>
             <tr>
                 <td>
-                    <img src="{{ loja.imagemlogo }}" alt="Logo da Loja" style="height: 50px;">
+                    <img src="{{ loja.imagemlogo }}" style="height: 50px;">
                 </td>
                 <td>
                     <strong>{{ venda.loja.nome }}</strong><br>
@@ -189,7 +190,7 @@
             </tbody>
             <tfoot>
                 <tr>
-                    <td colspan="6" class="text-right"><strong>Total Geral:</strong></td>
+                    <td colspan="6" class="text-right"><strong>Total:</strong></td>
                     <td class="text-right"><strong>{{ venda.calcular_valor_total }}</strong></td>
                 </tr>
             </tfoot>
@@ -230,9 +231,6 @@
             Assinatura do Cliente
         </div>
         <!-- mensagem -->
-        <div class="text-right">
-            Data e Hora da Impressão: {% now "d/m/Y H:i" %}
-        </div>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js"></script>
     <script data-venda="{{ venda.id }}">
@@ -246,9 +244,7 @@
             html2canvas: { scale: 3 },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
         };
-        html2pdf().from(element).set(opt).save();
+        print();
     </script>
 </body>
 </html>
-
-

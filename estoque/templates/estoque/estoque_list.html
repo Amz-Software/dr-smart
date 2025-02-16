@@ -15,12 +15,17 @@ Estoque
             <form action="" method="get" class="d-inline-block me-2" id="searchForm">
               <input type="text" name="search" class="form-control d-inline-block me-2" style="width: auto;" placeholder="Pesquisar..." onchange="document.getElementById('searchForm').submit();">
             </form>
+
             {% if user|has_perm:"estoque.add_entradaestoque" %}
             <a type="button" class="btn btn-primary" href={% url "estoque:estoque_entrada" %}>
                 <i class="bx bx-plus me-1"></i>
                 Adicionar Entrada
               </a>
             {% endif %}
+            <!-- botão gerar inventário estoque -->
+            <a type="button" class="btn btn-primary" target="_blank"  href={% url "estoque:inventario_pdf" %}>
+              <i class="bx bx-file me-1"></i> Gerar Inventário
+            </a>
             <!-- Button trigger modal -->
             {% comment %} <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#confirmModal">
               <i class="bx bx-plus me-1"></i>
@@ -65,7 +70,9 @@ Estoque
                   <th scope="col">Nome</th>
                   <th scope="col" class="text-center">Quantidade</th>
                   <th scope="col" class="text-center">Qtd. Vendas</th>
-                  <th scope="col" class="text-center">Preço (R$)</th>
+                  <th scope="col" class="text-center">Custo médio</th>
+                  <th scope="col" class="text-center">Preço médio</th>
+                  <th scope="col" class="text-center">Última Entrada</th>
                   <!-- <th scope="col" class="text-center">Ações</th> -->
                 </tr>
               </thead>
@@ -78,7 +85,13 @@ Estoque
                         <td class="text-center">
                           {{ produto|total_vendas:loja_id }}
                         </td>
-                        <td class="text-center">{{ produto.preco_medio|floatformat:2 }}</td>
+                        <td class="text-center">R$ {{ produto.preco_medio_custo|floatformat:2 }}</td>
+                        <td class="text-center">R$ {{ produto.preco_medio|floatformat:2 }}</td>
+                        <td class="text-center">
+                          <a>
+                            {{ produto.ultima_entrada.entrada.id }}
+                          </a>
+                        </td>
                         <!-- <td class="text-center">
                             <div class="dropdown">
                                 <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">

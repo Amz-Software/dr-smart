@@ -19,6 +19,7 @@ urlpatterns = [
     path('caixas/<int:pk>/', CaixaDetailView.as_view(), name='caixa_detail'),
     path('caixa/caixa-total/', CaixaTotalView.as_view(), name='caixa_total'),
     path('caixa/lancamento/<int:pk>/', lancamento_delete_view, name='lancamento_delete'),
+    path('caixa/caixa-total/lancamento/<int:pk>/', lancamento_total_delete_view, name='caixa_total_lancamento_delete'),
 
     #cliente
     path('clientes/', ClienteListView.as_view(), name='cliente_list'),
@@ -64,6 +65,6 @@ urlpatterns = [
 
     path('vendas/nota/<int:pk>/', VendaPDFView.as_view(), name='venda_pdf'),
     path('caixa/folha/<int:pk>/', FolhaCaixaPDFView.as_view(), name='caixa_pdf'),
-    
+    path('caixa/folha-produtos/<int:pk>/', FolhaProdutoPDFView.as_view(), name='caixa_produto_pdf'),
     path('gerar-carne/<int:pk>/<str:tipo>/', folha_carne_view, name='gerar_carne'),
 ]

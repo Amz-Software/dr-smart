@@ -28,7 +28,7 @@ def generate_views(modelo, form=None, paginacao=10, template_dir=''):
             loja = get_object_or_404(Loja, pk=loja_id)
             search = self.request.GET.get('search')
             if search:
-                return modelo.objects.filter(nome__icontains=search)
+                return modelo.objects.filter(nome__icontains=search).filter(loja=loja)
             return modelo.objects.filter(loja=loja)
 
     class GeneratedCreateView(PermissionRequiredMixin, CreateView):

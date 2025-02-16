@@ -76,13 +76,28 @@ class EstoqueImei(Base):
 class Estoque(Base):
     produto = models.ForeignKey('produtos.Produto', on_delete=models.CASCADE, related_name='estoque_atual')
     quantidade_disponivel = models.PositiveIntegerField(default=0)
-    
+
+    @property
+    def ultima_entrada(self):
+        return self.produto.entradas_estoque.last()
     
     def preco_medio(self):
         qtd_entradas = self.produto.entradas_estoque.count()
         total = 0
         for entrada in self.produto.entradas_estoque.all():
             total += entrada.venda_unitaria
+        
+        if qtd_entradas > 0:
+            preco_medio = total / qtd_entradas
+            preco_formatado = f"{preco_medio:.2f}"
+            return preco_formatado
+        return 0
+    
+    def preco_medio_custo(self):
+        qtd_entradas = self.produto.entradas_estoque.count()
+        total = 0
+        for entrada in self.produto.entradas_estoque.all():
+            total += entrada.custo_unitario
         
         if qtd_entradas > 0:
             preco_medio = total / qtd_entradas
