@@ -54,7 +54,6 @@
                             <th>Valor Unitário</th>
                             <th>Desconto</th>
                             <th>Valor Total</th>
-                            <th>Ações</th>
                           </tr>
                         </thead>
                         <tbody id="produtos">
@@ -70,9 +69,6 @@
                             <td>{{ form.valor_unitario }}</td>
                             <td>{{ form.valor_desconto }}</td>
                             <td>{{ form.valor_total }}</td>
-                            <td>
-                              <button type="button" class="btn btn-danger btn-sm remove-produto" onclick="removerProduto(this)">Remover</button>
-                            </td>
                           </tr>
                           {% endfor %}
                         </tbody>
@@ -92,7 +88,6 @@
                             <th>Parcelas</th>
                             <th>Valor Parcela</th>
                             <th>Data Primeira Parcela</th>
-                            <th>Ações</th>
                           </tr>
                         </thead>
                         <tbody id="pagamentos">
@@ -106,9 +101,6 @@
                             <td>{{ form.parcelas }}</td>
                             <td>{{ form.valor_parcela }}</td>
                             <td>{{ form.data_primeira_parcela }}</td>
-                            <td>
-                              <button type="button" class="btn btn-danger btn-sm remove-pagamento" onclick="removerPagamento(this)">Remover</button>
-                            </td>
                           </tr>
                           {% endfor %}
                         </tbody>

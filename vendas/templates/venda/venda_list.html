@@ -72,7 +72,7 @@ Vendas
                 {% endif %}
                 {% if user|has_perm:"vendas.change_venda" %}
                   <a class="dropdown-item" href="{% url 'vendas:venda_update' item.pk %}">
-                  <i class="bx bx-show me-1"></i> Editar
+                  <i class="bx bx-edit-alt me-1"></i> Editar
                   </a>
                 {% endif %}
                   <a class="dropdown-item" href="{% url 'vendas:venda_pdf' item.pk %}" target="_blank">
