@@ -15,6 +15,7 @@ from vendas.models import Loja
 from .forms import EntradaEstoqueForm, EstoqueImeiForm, ProdutoEntradaForm, ProdutoEntradaFormSet, ProdutoEntradaEditFormSet
 from vendas.views import BaseView
 from vendas.models import Venda
+from produtos.models import TipoProduto
 
 class EstoqueListView(BaseView, PermissionRequiredMixin, ListView):
     model = Estoque
@@ -26,7 +27,9 @@ class EstoqueListView(BaseView, PermissionRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         loja_id = self.request.session.get('loja_id')
+        tipos_produtos = TipoProduto.objects.all()
         context['loja_id'] = loja_id
+        context['tipos'] = tipos_produtos
         return context
     
     def get_queryset(self):
@@ -249,7 +252,11 @@ class EstoqueImeiSearchView(View):
     
 def inventario_estoque_pdf (request):
     loja = get_object_or_404(Loja, pk=request.session.get('loja_id'))
+    tipo = request.GET.get('tipo', None)
     produtos = Estoque.objects.filter(loja=loja).filter(quantidade_disponivel__gt=0)
+
+    if tipo:
+        produtos = produtos.filter(produto__tipo_id=tipo)
     
     context = {
         'produtos': produtos,
