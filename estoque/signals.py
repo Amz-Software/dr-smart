@@ -88,11 +88,18 @@ def salvar_quantidade_antiga(instance, **kwargs):
 def atualizar_estoque_apos_editar_venda(sender, created, instance, **kwargs):
     if not created:
         
-        if instance.imei:
-            estoque_imei = EstoqueImei.objects.filter(imei=instance.imei, loja=instance.loja).first()
-            if estoque_imei:
-                estoque_imei.vendido = False
-                estoque_imei.save()
+        if (instance._produto_antigo.imei and instance.imei) and (instance._produto_antigo.imei != instance.imei):
+            estoque_imei_antigo = EstoqueImei.objects.filter(imei=instance._produto_antigo.imei, loja=instance.loja).first()
+            if estoque_imei_antigo:
+                estoque_imei_antigo.vendido = False
+                estoque_imei_antigo.save()
+            else:
+                raise Exception(f"Estoque IMEI não encontrado para o IMEI {instance._produto_antigo.imei}.")
+
+            estoque_imei_novo = EstoqueImei.objects.filter(imei=instance.imei, loja=instance.loja).first()
+            if estoque_imei_novo:
+                estoque_imei_novo.vendido = True
+                estoque_imei_novo.save()
             else:
                 raise Exception(f"Estoque IMEI não encontrado para o IMEI {instance.imei}.")
 

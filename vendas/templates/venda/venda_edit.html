@@ -148,8 +148,6 @@
     if ($(imeiField).data('select2')) {
       $(imeiField).select2('destroy');
     }
-    imeiField.value = "";
-    imeiField.disabled = true;
     imeiField.required = false;
     quantidadeField.readOnly = false;
 
@@ -183,10 +181,12 @@
             quantidadeField.value = 1;
             quantidadeField.readOnly = true;
           } else {
+            imeiField.value = "";
+            imeiField.disabled = true;
+            imeiField.required = false;
             quantidadeField.readOnly = false;
           }
-        });
-      
+        }); 
     }
 
     // Função para atualizar o valor total (inclui lógica de desconto e modal de autorização)
@@ -301,9 +301,9 @@
           } else {
             // Produto não exige IMEI
             imeiField.disabled = true;
-            imeiField.value = "";
             imeiField.required = false;
             quantidadeField.readOnly = false;
+            $(imeiField).val(null).trigger('change');
 
             fetch(`/info-products/?product_id=${produtoId}`)
               .then(response => response.json())
@@ -320,6 +320,30 @@
               });
           }
         });
+    });
+
+    $(imeiField).on('select2:select', function (e) {
+      console.log('IMEI selecionado:', e.params.data);
+      const imeiId = e.params.data.id;
+      console.log('IMEI selecionado:', imeiId);
+      const produtoId = produtoSelect.value;
+
+      if (produtoId && imeiId) {
+      console.log('Produto selecionado:', produtoId);
+      fetch(`/produto/details/${produtoId}/`)
+        .then(response => response.json())
+        .then(data => {
+
+        if (data.serializado) {
+          quantidadeField.value = 1;
+          quantidadeField.readOnly = true;
+        } else {
+          quantidadeField.readOnly = false;
+          imeiField.disabled = true;
+          $(imeiField).val(null).trigger('change');
+        }
+        });
+      }
     });
 
     quantidadeField.addEventListener('input', function () {

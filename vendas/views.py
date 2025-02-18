@@ -536,7 +536,9 @@ class VendaUpdateView(PermissionRequiredMixin, UpdateView):
         
     def _validar_imei(self, produto, imei):
         try:
-            produto_imei = EstoqueImei.objects.get(imei=imei, produto=produto)
+            print(produto)
+            print(imei)
+            produto_imei = EstoqueImei.objects.get(imei=imei)
             if produto_imei.vendido:
                 error_message = f"IMEI {imei} já vendido"
                 logger.error("IMEI já vendido para o produto %s: %s", produto, imei)
@@ -735,10 +737,18 @@ class LojaDetailView(PermissionRequiredMixin, DetailView):
 def product_information(request):
     product_id = request.GET.get('product_id')
     imei = request.GET.get('imei')
-    product = get_object_or_404(Produto, id=product_id)
-    print('product', product)
+    product = get_object_or_404(Produto, id=product_id) if product_id else None
+    imei_id = request.GET.get('imei_id')
     loja = get_object_or_404(Loja, id=request.session.get('loja_id'))
-    if imei:    
+    
+    if imei_id:
+        product_imei = EstoqueImei.objects.get(id=imei_id, loja=loja)
+        if product_imei.vendido:
+            return JsonResponse({'status': 'error', 'message': 'IMEI já vendido'}, status=400)
+        else:
+            return JsonResponse({'status': 'success', 'product': product_imei.produto.nome, 'price': product_imei.produto_entrada.venda_unitaria})
+    
+    if imei and product:    
         try:
             product_imei = EstoqueImei.objects.filter(id=imei, produto=product, loja=loja).first()
             if product_imei.vendido:
@@ -747,11 +757,12 @@ def product_information(request):
                 return JsonResponse({'status': 'success', 'product': product.nome, 'price': product_imei.produto_entrada.venda_unitaria})
         except EstoqueImei.DoesNotExist:
             return JsonResponse({'status': 'error', 'message': 'IMEI não encontrado'}, status=404)
-    else:
+    elif product and not imei:
         estoque = Estoque.objects.filter(produto=product, loja=loja).first()
         if not estoque:
             return JsonResponse({'status': 'error', 'message': 'Estoque não encontrado'}, status=404)
         return JsonResponse({'status': 'success', 'product': product.nome, 'price': estoque.preco_medio()})
+
     
 
 def get_payment_method(request):

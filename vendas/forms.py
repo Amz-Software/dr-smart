@@ -6,7 +6,35 @@ from produtos.models import Produto
 from .models import *
 from django_select2.forms import Select2Widget, ModelSelect2Widget
 from django_select2.forms import ModelSelect2MultipleWidget, HeavySelect2Widget
-from django_select2 import forms as s2forms
+
+class EstoqueImeiSelectWidgetEdit(HeavySelect2Widget):
+    data_view = 'estoque:estoque-imei-search-edit'
+    
+    def render(self, name, value, attrs=None, renderer=None):
+        # Se houver um valor, insere a opção inicial no HTML
+        initial_options = []
+        if value:
+            try:
+                imei_obj = self.get_queryset().get(pk=value)
+                # Monta o texto da opção igual ao utilizado na view de busca
+                text = f'{imei_obj.imei} - {imei_obj.produto.nome} - {imei_obj.vendido}'
+                initial_options = [(imei_obj.pk, text)]
+                # Se desejar, pode inserir também um atributo no select para uso no JS:
+                if attrs is None:
+                    attrs = {}
+                attrs['data-initial-text'] = text
+            except Exception:
+                initial_options = [(value, value)]
+        
+        # Armazena as opções originais (se houver)
+        original_choices = list(self.choices)
+        # Mescla a opção inicial com as demais
+        choices = initial_options + original_choices
+        self.choices = choices
+        rendered = super().render(name, value, attrs, renderer)
+        # Restaura as opções originais para evitar efeitos colaterais
+        self.choices = original_choices
+        return rendered
 
 
 class ClienteForm(forms.ModelForm):
@@ -248,7 +276,7 @@ class ProdutoVendaForm(forms.ModelForm):
             },
         )
     )
-            
+
     class Meta:
         model = ProdutoVenda
         fields = '__all__'
@@ -264,7 +292,7 @@ class ProdutoVendaForm(forms.ModelForm):
             'quantidade': 'Quantidade*', 
             'produto': 'Produto*',
         }
-
+    
     def __init__(self, *args, **kwargs):
         loja = kwargs.pop('loja', None)
         super().__init__(*args, **kwargs)
@@ -278,6 +306,78 @@ class ProdutoVendaForm(forms.ModelForm):
             )
         ).filter(loja=loja)
         self.fields['imei'].queryset = EstoqueImei.objects.filter(vendido=False).filter(produto__loja=loja)
+        
+        
+class ProdutoVendaEditForm(forms.ModelForm):
+    valor_total = forms.DecimalField(
+        label='Valor Total',
+        disabled=True,
+        required=False,
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'readonly': 'readonly'})
+    )
+    produto = forms.ModelChoiceField(
+        queryset=Produto.objects.all(),
+        label="Produto",
+        widget=ProdutoSelectWidget(
+            attrs={
+                'class': 'form-control',
+                'data-minimum-input-length': '0',
+                'data-placeholder': 'Selecione um produto',
+                'data-allow-clear': 'true',
+            },
+        )
+    )
+
+    class Meta:
+        model = ProdutoVenda
+        fields = '__all__'
+        exclude = ['loja', 'venda']
+        widgets = {
+            'valor_unitario': forms.NumberInput(attrs={'class': 'form-control'}),
+            'quantidade': forms.NumberInput(attrs={'class': 'form-control'}),
+            'valor_desconto': forms.NumberInput(attrs={'class': 'form-control'}),
+            'imei': EstoqueImeiSelectWidgetEdit(
+                max_results=10,
+                attrs={
+                    'class': 'form-control',
+                    'data-minimum-input-length': '0',
+                    'data-placeholder': 'Selecione um IMEI',
+                    'data-allow-clear': 'true',
+                }
+            )
+        }
+        labels = {
+            'valor_unitario': 'Valor*',
+            'valor_desconto': 'Desconto*',
+            'quantidade': 'Quantidade*', 
+            'produto': 'Produto*',
+        }
+    
+    def __init__(self, *args, **kwargs):
+        loja = kwargs.pop('loja', None)
+        super().__init__(*args, **kwargs)
+        self.fields['produto'].queryset = Produto.objects.filter(
+            Exists(
+                Estoque.objects.filter(
+                    produto=OuterRef('pk'),
+                    quantidade_disponivel__gt=0
+                )
+            )
+        ).filter(loja=loja)
+        qs = EstoqueImei.objects.filter(vendido=False, produto__loja=loja)
+        if self.instance.pk and self.instance.imei:
+            if not hasattr(self.instance.imei, 'pk'):
+                try:
+                    imei_obj = EstoqueImei.objects.get(imei=self.instance.imei)
+                    print(imei_obj)
+                except EstoqueImei.DoesNotExist:
+                    imei_obj = None
+            else:
+                imei_obj = self.instance.imei  # Correção aqui!
+            if imei_obj:
+                qs = qs | EstoqueImei.objects.filter(imei=imei_obj.imei)
+        self.fields['imei'].queryset = qs.distinct()
+
 
 class PagamentoForm(forms.ModelForm):
     valor_parcela = forms.DecimalField(label='Valor Parcela', disabled=True, required=False, widget=forms.NumberInput(attrs={'class': 'form-control', 'readonly': 'readonly'}))
@@ -357,7 +457,7 @@ FormaPagamentoFormSet = forms.inlineformset_factory(Venda, Pagamento, form=Pagam
 ProdutoVendaFormSet = forms.inlineformset_factory(Venda, ProdutoVenda, form=ProdutoVendaForm, extra=1, can_delete=False)
 
 FormaPagamentoEditFormSet = forms.inlineformset_factory(Venda, Pagamento, form=PagamentoForm, extra=0, can_delete=True)
-ProdutoVendaEditFormSet = forms.inlineformset_factory(Venda, ProdutoVenda, form=ProdutoVendaForm, extra=0, can_delete=True)
+ProdutoVendaEditFormSet = forms.inlineformset_factory(Venda, ProdutoVenda, form=ProdutoVendaEditForm, extra=0, can_delete=True)
 
 
 class UsuarioSelectWidget(ModelSelect2MultipleWidget):
