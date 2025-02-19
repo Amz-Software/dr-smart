@@ -15,6 +15,7 @@ from vendas.models import Loja
 from .forms import EntradaEstoqueForm, EstoqueImeiForm, ProdutoEntradaForm, ProdutoEntradaFormSet, ProdutoEntradaEditFormSet
 from vendas.views import BaseView
 from vendas.models import Venda
+from produtos.models import TipoProduto
 
 class EstoqueListView(BaseView, PermissionRequiredMixin, ListView):
     model = Estoque
@@ -26,7 +27,9 @@ class EstoqueListView(BaseView, PermissionRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         loja_id = self.request.session.get('loja_id')
+        tipos_produtos = TipoProduto.objects.all()
         context['loja_id'] = loja_id
+        context['tipos'] = tipos_produtos
         return context
     
     def get_queryset(self):
@@ -247,9 +250,42 @@ class EstoqueImeiSearchView(View):
             })
         return JsonResponse({'results': results})
     
+class EstoqueImeiSearchEditView(View):
+    def get(self, request, *args, **kwargs):
+        term = request.GET.get('term', '')
+        produto_id = request.GET.get('produto_id', None)
+        loja_id = self.request.session.get('loja_id')
+        venda_id = self.request.session.get('venda_id')
+        loja = get_object_or_404(Loja, pk=loja_id)
+        queryset = EstoqueImei.objects.filter(
+            Q(imei__icontains=term) | Q(produto__nome__icontains=term)
+        ).filter(produto__loja=loja).filter(vendido=False)
+        if produto_id:
+            queryset = queryset.filter(produto_id=produto_id)
+        results = []
+        for imei in queryset:
+            results.append({
+                'id': imei.imei,
+                'text': f'{imei.imei} - {imei.produto.nome}'
+            })
+
+        if venda_id:
+            venda = get_object_or_404(Venda, pk=venda_id)
+            for item in venda.itens_venda.all():
+                if item.imei:
+                    results.append({
+                        'id': item.imei,
+                        'text': f'{item.imei} - {item.produto.nome}'
+                    })
+        return JsonResponse({'results': results})
+    
 def inventario_estoque_pdf (request):
     loja = get_object_or_404(Loja, pk=request.session.get('loja_id'))
+    tipo = request.GET.get('tipo', None)
     produtos = Estoque.objects.filter(loja=loja).filter(quantidade_disponivel__gt=0)
+
+    if tipo:
+        produtos = produtos.filter(produto__tipo_id=tipo)
     
     context = {
         'produtos': produtos,

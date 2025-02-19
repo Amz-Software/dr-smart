@@ -32,5 +32,6 @@ urlpatterns = [
     path('fornecedor/deletar/<int:pk>/', forneViews['delete_view'].as_view(), name='fornecedor_delete'),
     
     path('estoque-imei-search/', EstoqueImeiSearchView.as_view(), name='estoque-imei-search'),
+    path('estoque-imei-search-edit/', EstoqueImeiSearchEditView.as_view(), name='estoque-imei-search-edit'),
 
 ]

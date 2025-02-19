@@ -3,7 +3,7 @@ from django.dispatch import receiver
 from django.core.exceptions import ValidationError
 from .models import Estoque, EntradaEstoque, ProdutoEntrada, EstoqueImei
 from vendas.models import ProdutoVenda, Venda
-
+from django.db import transaction
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 
@@ -33,31 +33,6 @@ def atualizar_estoque_entrada(instance, created, **kwargs):
         elif quantidade_nova < quantidade_antiga:
             estoque.remover_estoque(quantidade_antiga - quantidade_nova)
 
-
-
-# @receiver(post_delete, sender=EntradaEstoque)
-# def atualizar_estoque_deletar_entrada(sender, instance, **kwargs):
-#     estoque = Estoque.objects.get(produto=instance.produto)
-#     try:
-#         estoque.remover_estoque(instance.quantidade)
-#     except ValueError:
-#         estoque.quantidade_disponivel = 0
-#         estoque.save()
-
-
-# # ATUALIZAR ESTOQUE APÓS VENDA
-# @receiver(post_save, sender=ProdutoVenda)
-# def atualizar_estoque_venda(sender, instance, created, **kwargs):
-#     if created:
-#         print('Pos - signal', instance)
-#         print('Pos - signal', instance.produto)
-#         print('Pos - signal', instance.loja)
-#         estoque = Estoque.objects.filter(produto=instance.produto, loja=instance.loja).first()
-#         print(estoque)
-#         try:
-#             estoque.remover_estoque(instance.quantidade)
-#         except ValueError:
-#             raise ValidationError(f"Estoque insuficiente para o produto {instance.produto.nome}.")
 
 @receiver(post_delete, sender=ProdutoEntrada)
 def atualizar_estoque_deletar_entrada(sender, instance, **kwargs):
@@ -95,3 +70,66 @@ def atualizar_estoque_apos_cancelar_venda(sender, instance, **kwargs):
                 estoque.save()
             except Estoque.DoesNotExist:
                 raise Exception(f"Estoque não encontrado para o produto {item.produto.nome} na loja {item.loja}.")
+
+@receiver(pre_save, sender=ProdutoVenda)
+def salvar_quantidade_antiga(instance, **kwargs):
+    if instance.pk:
+        try:
+            produto_venda_antigo = ProdutoVenda.objects.get(pk=instance.pk)
+            instance._quantidade_antiga = produto_venda_antigo.quantidade
+            instance._produto_antigo = produto_venda_antigo
+        except ProdutoVenda.DoesNotExist:
+            instance._quantidade_antiga = 0
+            instance._produto_antigo = None
+    else:
+        instance._quantidade_antiga = 0
+        instance._produto_antigo = None
+
+@receiver(post_save, sender=ProdutoVenda)
+def atualizar_estoque_apos_editar_venda(sender, created, instance, **kwargs):
+    if not created:
+        with transaction.atomic():
+            # Atualização de IMEI se houver mudança
+            if getattr(instance._produto_antigo, 'imei', None) and instance.imei and instance._produto_antigo.imei != instance.imei:
+                estoque_imei_antigo = EstoqueImei.objects.filter(imei=instance._produto_antigo.imei, loja=instance.loja).select_for_update().first()
+                if estoque_imei_antigo:
+                    estoque_imei_antigo.vendido = False
+                    estoque_imei_antigo.save()
+                else:
+                    raise Exception(f"Estoque IMEI não encontrado para o IMEI {instance._produto_antigo.imei}.")
+                
+                estoque_imei_novo = EstoqueImei.objects.filter(imei=instance.imei, loja=instance.loja).select_for_update().first()
+                if estoque_imei_novo:
+                    estoque_imei_novo.vendido = True
+                    estoque_imei_novo.save()
+                else:
+                    raise Exception(f"Estoque IMEI não encontrado para o IMEI {instance.imei}.")
+
+            try:
+                estoque_novo = Estoque.objects.select_for_update().get(produto=instance.produto, loja=instance.loja)
+                quantidade_antiga = instance._quantidade_antiga
+                quantidade_nova = instance.quantidade
+
+                if instance._produto_antigo and instance._produto_antigo.produto != instance.produto:
+                    if getattr(instance._produto_antigo, 'imei', None):
+                        estoque_imei_antigo = EstoqueImei.objects.filter(imei=instance._produto_antigo.imei, loja=instance.loja).select_for_update().first()
+                        if estoque_imei_antigo:
+                            estoque_imei_antigo.vendido = False
+                            estoque_imei_antigo.save()
+                        else:
+                            raise Exception(f"Estoque IMEI não encontrado para o IMEI {instance._produto_antigo.imei}.")
+                    
+                    estoque_antigo = Estoque.objects.select_for_update().get(produto=instance._produto_antigo.produto, loja=instance.loja)
+                    estoque_antigo.quantidade = estoque_antigo.quantidade + quantidade_antiga
+                    estoque_antigo.save()
+                    
+                    estoque_novo.quantidade = estoque_novo.quantidade - quantidade_nova
+                else:
+                    if quantidade_nova > quantidade_antiga:
+                        estoque_novo.quantidade = estoque_novo.quantidade - (quantidade_nova - quantidade_antiga)
+                    elif quantidade_nova < quantidade_antiga:
+                        estoque_novo.quantidade = estoque_novo.quantidade + (quantidade_antiga - quantidade_nova)
+                
+                estoque_novo.save()
+            except Estoque.DoesNotExist:
+                raise Exception(f"Estoque não encontrado para o produto {instance.produto.nome} na loja {instance.loja}.")
