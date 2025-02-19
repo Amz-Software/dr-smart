@@ -27,7 +27,8 @@ class EstoqueListView(BaseView, PermissionRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         loja_id = self.request.session.get('loja_id')
-        tipos_produtos = TipoProduto.objects.all()
+        loja = get_object_or_404(Loja, pk=loja_id)
+        tipos_produtos = TipoProduto.objects.all().filter(produtos_tipo__loja=loja).distinct()
         context['loja_id'] = loja_id
         context['tipos'] = tipos_produtos
         return context
