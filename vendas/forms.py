@@ -315,17 +315,10 @@ class ProdutoVendaEditForm(forms.ModelForm):
         required=False,
         widget=forms.NumberInput(attrs={'class': 'form-control', 'readonly': 'readonly'})
     )
+    # quero apenas o produto que está na venda
     produto = forms.ModelChoiceField(
-        queryset=Produto.objects.all(),
+        queryset=None,
         label="Produto",
-        widget=ProdutoSelectWidget(
-            attrs={
-                'class': 'form-control',
-                'data-minimum-input-length': '0',
-                'data-placeholder': 'Selecione um produto',
-                'data-allow-clear': 'true',
-            },
-        )
     )
 
     class Meta:
@@ -356,27 +349,8 @@ class ProdutoVendaEditForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         loja = kwargs.pop('loja', None)
         super().__init__(*args, **kwargs)
-        self.fields['produto'].queryset = Produto.objects.filter(
-            Exists(
-                Estoque.objects.filter(
-                    produto=OuterRef('pk'),
-                    quantidade_disponivel__gt=0
-                )
-            )
-        ).filter(loja=loja)
-        qs = EstoqueImei.objects.filter(vendido=False, produto__loja=loja)
-        if self.instance.pk and self.instance.imei:
-            if not hasattr(self.instance.imei, 'pk'):
-                try:
-                    imei_obj = EstoqueImei.objects.get(imei=self.instance.imei)
-                    print(imei_obj)
-                except EstoqueImei.DoesNotExist:
-                    imei_obj = None
-            else:
-                imei_obj = self.instance.imei  # Correção aqui!
-            if imei_obj:
-                qs = qs | EstoqueImei.objects.filter(imei=imei_obj.imei)
-        self.fields['imei'].queryset = qs.distinct()
+        self.fields['produto'].queryset = Produto.objects.filter(loja=loja).filter(id=self.instance.produto.id)
+
 
 
 class PagamentoForm(forms.ModelForm):

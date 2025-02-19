@@ -255,19 +255,28 @@ class EstoqueImeiSearchEditView(View):
         term = request.GET.get('term', '')
         produto_id = request.GET.get('produto_id', None)
         loja_id = self.request.session.get('loja_id')
+        venda_id = self.request.session.get('venda_id')
         loja = get_object_or_404(Loja, pk=loja_id)
         queryset = EstoqueImei.objects.filter(
             Q(imei__icontains=term) | Q(produto__nome__icontains=term)
-        ).filter(produto__loja=loja)
+        ).filter(produto__loja=loja).filter(vendido=False)
         if produto_id:
             queryset = queryset.filter(produto_id=produto_id)
-        
         results = []
         for imei in queryset:
             results.append({
                 'id': imei.imei,
-                'text': f'{imei.imei} - {imei.produto.nome} (Vendido: {imei.vendido})'
+                'text': f'{imei.imei} - {imei.produto.nome}'
             })
+
+        if venda_id:
+            venda = get_object_or_404(Venda, pk=venda_id)
+            for item in venda.itens_venda.all():
+                if item.imei:
+                    results.append({
+                        'id': item.imei,
+                        'text': f'{item.imei} - {item.produto.nome}'
+                    })
         return JsonResponse({'results': results})
     
 def inventario_estoque_pdf (request):

@@ -402,6 +402,7 @@ class VendaUpdateView(PermissionRequiredMixin, UpdateView):
         """Carrega os formsets de produtos e pagamentos."""
         context = super().get_context_data(**kwargs)
         loja_id = self.request.session.get('loja_id')
+        self.request.session['venda_id'] = self.object.id # Guarda o ID da venda na sessão
 
         if self.request.POST:
             context['produto_venda_formset'] = ProdutoVendaEditFormSet(
@@ -497,6 +498,7 @@ class VendaUpdateView(PermissionRequiredMixin, UpdateView):
 
             self._validar_estoque(produto, quantidade, loja)
             if produto.tipo.numero_serial:
+                print(produto, imei)
                 self._validar_imei(produto, imei)
                 
             #LÓGICA DE ATUALIZAR ESTOQUE ESTÁ NOS SIGNALS
@@ -536,15 +538,16 @@ class VendaUpdateView(PermissionRequiredMixin, UpdateView):
         
     def _validar_imei(self, produto, imei):
         try:
-            print(produto)
-            print(imei)
             produto_imei = EstoqueImei.objects.get(imei=imei)
-            if produto_imei.vendido:
-                error_message = f"IMEI {imei} já vendido"
-                logger.error("IMEI já vendido para o produto %s: %s", produto, imei)
-                raise ValueError(error_message)
-            produto_imei.vendido = True
-            produto_imei.save()
+            novo_imei = EstoqueImei.objects.filter(imei=imei, produto=produto).first()
+            imei_antigo = ProdutoVenda.objects.filter(imei=imei).first()
+            if novo_imei and novo_imei != imei_antigo:
+                if produto_imei.vendido:
+                    error_message = f"IMEI {imei} já vendido"
+                    logger.error("IMEI já vendido para o produto %s: %s", produto, imei)
+                    raise ValueError(error_message)
+                produto_imei.vendido = True
+                produto_imei.save()
         except EstoqueImei.DoesNotExist:
             error_message = f"IMEI {imei} não encontrado"
             logger.error("IMEI não encontrado para o produto %s: %s", produto, imei)

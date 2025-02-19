@@ -48,8 +48,8 @@
                       <table class="table table-bordered">
                         <thead>
                           <tr>
-                            <th>Produto</th>
-                            <th>IMEI</th>
+                            <th style="width: 20%;">Produto</th>
+                            <th style="width: 25%;">IMEI</th>
                             <th>Quantidade</th>
                             <th>Valor Unitário</th>
                             <th>Desconto</th>
@@ -150,6 +150,10 @@
     }
     imeiField.required = false;
     quantidadeField.readOnly = false;
+
+    verificarProduto();
+    atualizarValorTotal();
+
 
     // Destruir Select2 existente do produto se houver
     if ($(produtoSelect).data('select2')) {
