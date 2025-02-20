@@ -11,6 +11,7 @@ forneViews = generate_views(Fornecedor, FornecedorForm, 10, 'fornecedor')
 
 urlpatterns = [
     path('estoque/', EstoqueListView.as_view(), name='estoque_list'),
+    path('estoque/editar/<int:pk>/', EstoqueUpdateView.as_view(), name='estoque_update'),
     path('estoque/entrada/criar', AdicionarEntradaEstoqueView.as_view() , name='estoque_entrada'),
     path('estoque/entrada/', EntradaListView.as_view(), name='entrada_list'),
     path('estoque/entrada/<int:pk>/', EntradaDetailView.as_view(), name='entrada_detail'),

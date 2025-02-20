@@ -18,7 +18,7 @@ Estoque
                 <select name="tipo" id="tipo_estoque" class="form-select d-inline-block me-2" style="width: auto;">
                   <option value="">Selecione o tipo</option>
                   {% for tipo in tipos %}
-                    <option value="{{ tipo.id }}">{{ tipo.nome }}</option>
+                  <option value="{{ tipo.id }}">{{ tipo.nome }}</option>
                   {% endfor %}
                 </select>
                 <button type="submit" class="btn btn-primary">
@@ -28,23 +28,26 @@ Estoque
             </div>
 
             <form action="" method="get" class="d-inline-block me-2" id="searchForm">
-              <input type="text" name="search" class="form-control d-inline-block me-2" style="width: auto;" placeholder="Pesquisar..." onchange="document.getElementById('searchForm').submit();">
+              <input type="text" name="search" class="form-control d-inline-block me-2" style="width: auto;"
+                placeholder="Pesquisar..." onchange="document.getElementById('searchForm').submit();">
             </form>
-            
+
             {% if user|has_perm:"estoque.add_entradaestoque" %}
             <a type="button" class="btn btn-primary" href={% url "estoque:estoque_entrada" %}>
-                <i class="bx bx-plus me-1"></i>
-                Adicionar Entrada
-              </a>
+              <i class="bx bx-plus me-1"></i>
+              Adicionar Entrada
+            </a>
             {% endif %}
             <!-- Button trigger modal -->
-            {% comment %} <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#confirmModal">
+            {% comment %} <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+              data-bs-target="#confirmModal">
               <i class="bx bx-plus me-1"></i>
               Adicionar Entrada
             </button>
 
             <!-- Modal -->
-            <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+            <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel"
+              aria-hidden="true">
               <div class="modal-dialog">
                 <div class="modal-content">
                   <div class="modal-header">
@@ -84,48 +87,57 @@ Estoque
                   <th scope="col" class="text-center">Qtd. Vendas</th>
                   <th scope="col" class="text-center">Custo médio</th>
                   <th scope="col" class="text-center">Preço médio</th>
-                  <th scope="col" class="text-center">Última Entrada</th>
-                  <!-- <th scope="col" class="text-center">Ações</th> -->
+                  <th scope="col" class="text-center">Última entrada</th>
+                  <th scope="col" class="text-center">Última modificação</th>
+                  <th scope="col" class="text-center">Ações</th>
                 </tr>
               </thead>
               <tbody>
                 {% if produtos %}
-                  {% for produto in produtos %}
-                    <tr>
-                        <td>{{ produto.produto|title }}</td>
-                        <td class="text-center">{{ produto.quantidade_disponivel }}</td>
-                        <td class="text-center">
-                          {{ produto|total_vendas:loja_id }}
-                        </td>
-                        <td class="text-center">R$ {{ produto.preco_medio_custo|floatformat:2 }}</td>
-                        <td class="text-center">R$ {{ produto.preco_medio|floatformat:2 }}</td>
-                        <td class="text-center">
-                          <a>
-                            {{ produto.ultima_entrada.entrada.id }}
-                          </a>
-                        </td>
-                        <!-- <td class="text-center">
-                            <div class="dropdown">
-                                <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                                  <i class="bx bx-dots-vertical-rounded"></i>
-                                </button>
-                                <div class="dropdown-menu">
-                                    <a class="dropdown-item" href="">
-                                    <i class="bx bx-show me-1"></i> Detalhes
-                                    </a>
-                                    <a class="dropdown-item" href="">
-                                    <i class="bx bx-edit me-1"></i>
-                                    Editar
-                                    </a>
-                                </div>
-                            </div>
-                        </td> -->
-                    </tr>
-                  {% endfor %}
+                {% for produto in produtos %}
+                <tr>
+                  <td>{{ produto.produto|title }}</td>
+                  <td class="text-center">{{ produto.quantidade_disponivel }}</td>
+                  <td class="text-center">
+                    {{ produto|total_vendas:loja_id }}
+                  </td>
+                  <td class="text-center">R$ {{ produto.preco_medio_custo|floatformat:2 }}</td>
+                  <td class="text-center">R$ {{ produto.preco_medio|floatformat:2 }}</td>
+                  <td class="text-center">
+                    {% if produto.ultima_entrada.entrada.id %}
+                    <a href="{% url 'estoque:entrada_update' produto.ultima_entrada.entrada.pk %}">
+                      {{ produto.ultima_entrada.entrada.id }}
+                    </a>
+                    {% else %}
+                    <span>Sem entrada registrada</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-center">
+                    <a>
+                      {{ produto.modificado_por|default:"" }}
+                    </a>
+                  </td>
+                  <td class="text-center">
+                    <div class="dropdown">
+                      <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+                        <i class="bx bx-dots-vertical-rounded"></i>
+                      </button>
+                      <div class="dropdown-menu">
+                        {% if user|has_perm:"estoque.change_estoque" %}
+                        <a class="dropdown-item" href="{% url 'estoque:estoque_update' produto.id %}">
+                          <i class="bx bx-edit me-1"></i>
+                          Editar
+                        </a>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
                 {% else %}
-                  <tr>
-                    <td colspan="4" class="text-center">Nenhum produto encontrado</td>
-                  </tr>
+                <tr>
+                  <td colspan="4" class="text-center">Nenhum produto encontrado</td>
+                </tr>
                 {% endif %}
               </tbody>
             </table>

@@ -43,6 +43,25 @@ class EstoqueListView(BaseView, PermissionRequiredMixin, ListView):
             
         return query
 
+class EstoqueUpdateView(PermissionRequiredMixin, UpdateView):
+    model = Estoque
+    fields = ['quantidade_disponivel']
+    template_name = 'estoque/estoque_edit.html'
+    success_url = reverse_lazy('estoque:estoque_list')
+    permission_required = 'estoque.change_estoque'
+
+    def form_valid(self, form):
+        estoque = form.save(commit=False)
+        estoque.save(user=self.request.user)
+        messages.success(self.request, 'Estoque atualizado com sucesso!')
+        return redirect(self.success_url)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        produto = self.object.produto
+        context['produto'] = produto
+        return context
+
 class EntradaListView(BaseView, PermissionRequiredMixin, ListView):
     model = EntradaEstoque
     template_name = 'estoque/estoque_entrada_list.html'
