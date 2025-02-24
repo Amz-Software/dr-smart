@@ -3,7 +3,7 @@ from django.urls import path
 
 from produtos.forms import *
 from produtos.models import *
-from .views import generate_views
+from .views import generate_views, ProdutoListView
 
 app_name = 'produtos'
 
@@ -16,7 +16,7 @@ memoriaViews = generate_views(MemoriaProduto, MemoriaForms, 10, 'memoria')
 
 
 urlpatterns = [
-    path('produto/', produtoViews['list_view'].as_view(), name='produtos'),
+    path('produto/', ProdutoListView.as_view(), name='produtos'),
     path('produtos/novo/', produtoViews['create_view'].as_view(), name='produto_create'),
     path('produtos/detalhe/<int:pk>/', produtoViews['detail_view'].as_view(), name='produto_detail'),
     path('produtos/editar/<int:pk>/', produtoViews['update_view'].as_view(), name='produto_update'),

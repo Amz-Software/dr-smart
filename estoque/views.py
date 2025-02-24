@@ -12,10 +12,12 @@ from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.auth.decorators import login_required
 from produtos.models import Produto
 from vendas.models import Loja
-from .forms import EntradaEstoqueForm, EstoqueImeiForm, ProdutoEntradaForm, ProdutoEntradaFormSet, ProdutoEntradaEditFormSet
+from .forms import EntradaEstoqueForm, EstoqueImeiForm, ProdutoEntradaForm, ProdutoEntradaFormSet, ProdutoEntradaEditFormSet, EstoqueImeiEditForm
 from vendas.views import BaseView
 from vendas.models import Venda
 from produtos.models import TipoProduto
+from .models import Fornecedor
+
 
 class EstoqueListView(BaseView, PermissionRequiredMixin, ListView):
     model = Estoque
@@ -216,30 +218,30 @@ class EstoqueImeiListView(BaseView, PermissionRequiredMixin, ListView):
 
 class EstoqueImeiUpdateView(PermissionRequiredMixin, UpdateView):
     model = EstoqueImei
-    form_class = EstoqueImeiForm
-    template_name = 'estoque/estoque_imei_form.html'
+    form_class = EstoqueImeiEditForm
+    template_name = 'estoque/estoque_imei_form_edit.html'
     success_url = reverse_lazy('estoque:estoque_imei_list')
     permission_required = 'estoque.change_estoqueimei'
 
-    def get_context_data(self, **kwargs):
-        data = super().get_context_data(**kwargs)
-        if self.request.POST:
-            data['produtoentrada_formset'] = ProdutoEntradaFormSet(self.request.POST, queryset=ProdutoEntrada.objects.filter(entrada=self.object.produto_entrada.entrada))
-        else:
-            data['produtoentrada_formset'] = ProdutoEntradaFormSet(queryset=ProdutoEntrada.objects.filter(entrada=self.object.produto_entrada.entrada))
-        return data
-
     def form_valid(self, form):
-        context = self.get_context_data()
-        produtoentrada_formset = context['produtoentrada_formset']
-        if form.is_valid() and produtoentrada_formset.is_valid():
-            self.object = form.save()
-            produtoentrada_formset.save()
-            messages.success(self.request, 'Estoque IMEI e Produto Entrada atualizados com sucesso!')
-            return redirect(self.success_url)
-        else:
-            messages.error(self.request, 'Erro ao atualizar Estoque IMEI ou Produto Entrada')
-            return self.form_invalid(form)
+        estoque = form.save(commit=False)
+        estoque.save(user=self.request.user)
+        messages.success(self.request, 'Estoque atualizado com sucesso!')
+        return redirect(self.success_url)
+
+class FornecedorListView(PermissionRequiredMixin, ListView):
+    model = Fornecedor
+    template_name = 'fornecedor/fornecedor_list.html'
+    permission_required = 'estoque.view_fornecedor'
+    context_object_name = 'items'
+    paginate_by = 10
+
+    def get_queryset(self):
+        query = super().get_queryset()
+        search = self.request.GET.get('search', None)
+        if search:
+            query = query.filter(nome__icontains=search)
+        return query
 
 @login_required
 def check_produtos(request, produto_id):
