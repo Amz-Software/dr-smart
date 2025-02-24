@@ -4,6 +4,22 @@ from django.urls import reverse_lazy
 from django.views.generic import ListView, CreateView, DetailView, UpdateView, DeleteView
 from vendas.models import Loja
 from vendas.views import BaseView
+from .models import Produto
+
+class ProdutoListView(PermissionRequiredMixin, ListView):
+    model = Produto
+    template_name = 'produtos/produto_list.html'
+    paginate_by = 10
+    context_object_name = 'items'
+    permission_required = 'produtos.view_produto'
+
+    def get_queryset(self):
+        loja_id = self.request.session.get('loja_id')
+        loja = get_object_or_404(Loja, pk=loja_id)
+        search = self.request.GET.get('search')
+        if search:
+            return Produto.objects.filter(nome__icontains=search).filter(loja=loja)
+        return Produto.objects.filter(loja=loja)
 
 def generate_views(modelo, form=None, paginacao=10, template_dir=''):
     """
@@ -28,8 +44,8 @@ def generate_views(modelo, form=None, paginacao=10, template_dir=''):
             loja = get_object_or_404(Loja, pk=loja_id)
             search = self.request.GET.get('search')
             if search:
-                return modelo.objects.filter(nome__icontains=search).filter(loja=loja)
-            return modelo.objects.filter(loja=loja)
+                return modelo.objects.filter(nome__icontains=search)
+            return modelo.objects.all()
 
     class GeneratedCreateView(PermissionRequiredMixin, CreateView):
         model = modelo

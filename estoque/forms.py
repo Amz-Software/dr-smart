@@ -72,6 +72,11 @@ class EstoqueImeiForm(forms.ModelForm):
         self.fields['vendido'].widget.attrs.update({
             'class': 'form-check-input',  # Classe Bootstrap para o toggle switch
             })
+        
+class EstoqueImeiEditForm(forms.ModelForm):
+    class Meta:
+        model = EstoqueImei
+        fields = ['imei',]
     
 ProdutoEntradaFormSet = modelformset_factory(
     ProdutoEntrada,

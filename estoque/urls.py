@@ -26,7 +26,7 @@ urlpatterns = [
     path('produto/details/<int:produto_id>/', check_produtos, name='produto_details'),
 
     #fornecedor
-    path('fornecedor/', forneViews['list_view'].as_view(), name='fornecedores'),
+    path('fornecedor/', FornecedorListView.as_view(), name='fornecedores'),
     path('fornecedor/novo/', forneViews['create_view'].as_view(), name='fornecedor_create'),
     path('fornecedor/detalhe/<int:pk>/', forneViews['detail_view'].as_view(), name='fornecedor_detail'),
     path('fornecedor/editar/<int:pk>/', forneViews['update_view'].as_view(), name='fornecedor_update'),
