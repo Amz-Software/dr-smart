@@ -48,7 +48,10 @@ class CaixaAdmin(AdminBase):
     
 @admin.register(ProdutoVenda)
 class ProdutoVendaAdmin(admin.ModelAdmin):
-    list_display = ('produto', 'quantidade', 'venda')
+    list_display = ('produto', 'quantidade', 'venda', 'loja')
+    list_filter = ('loja',)
+    search_fields = ('produto__nome',)
+
 
 @admin.register(Cliente)
 class ClienteAdmin(AdminBase):

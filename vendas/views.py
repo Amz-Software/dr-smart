@@ -499,7 +499,7 @@ class VendaUpdateView(PermissionRequiredMixin, UpdateView):
             self._validar_estoque(produto, quantidade, loja)
             if produto.tipo.numero_serial:
                 print(produto, imei)
-                self._validar_imei(produto, imei)
+                # self._validar_imei(produto, imei)
                 
             #LÓGICA DE ATUALIZAR ESTOQUE ESTÁ NOS SIGNALS
 
