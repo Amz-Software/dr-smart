@@ -53,7 +53,29 @@ Caixa Mensal - {{ caixa_mensal.loja }} - {{ caixa_mensal.mes|date:"F Y" }}
                         {% endif %}
                     </p>
                 </div>
-            </div>
+                <div class="col-md-4">
+                    <p class="mb-1"><strong>Estoque Custo:</strong></p>
+                    <p class="text-muted text-uppercase">R$ {{total_custo}}</p>
+                </div>
+                <div class="col-md-4">
+                    <p class="mb-1"><strong>Estoque Lucro:</strong></p>
+                    <p class="text-muted text-uppercase">R$ {{total_lucro}}
+                </div>
+                <div class="col-md-4">
+                    <p class="mb-1"><strong>Total Vendas:</strong></p>
+                    <p class="text-muted text-uppercase">R$ {{valor_por_tipo_pagamento_total}}</p>
+                </div>
+                <div class="col-md-4">
+                    <p class="mb-1"><strong>Lucro Total:</strong></p>
+                    <p class="text-muted text-uppercase">R$ {{lucro_total}}</p>
+                </div>
+                {% for nome, valor in valor_venda_por_tipo_pagamento %}
+                <div class="col-md-4">
+                    <p class="mb-1"><strong>{{ nome }}:</strong></p>
+                    <p class="text-muted text-uppercase">R$ {{ valor }}</p>
+                </div>
+                {% endfor %}
+            </div>    
 
             <form method="POST" class="mb-4">
                 {% csrf_token %}

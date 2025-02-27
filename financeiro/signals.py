@@ -9,13 +9,16 @@ def associar_gasto_fixo_a_caixas_mensais_abertos(sender, instance, created, **kw
         caixas_mensais_abertos = CaixaMensal.objects.filter(data_fechamento=None)
         for caixa_mensal in caixas_mensais_abertos:
             # Verificar se já existe associação para evitar duplicação
-            if not CaixaMensalGastoFixo.objects.filter(caixa_mensal=caixa_mensal, gasto_fixo=instance).exists():
-                CaixaMensalGastoFixo.objects.create(
-                    caixa_mensal=caixa_mensal,
-                    gasto_fixo=instance,
-                    valor=0.00,  # Valor padrão
-                    observacao=""
-                )
+            # verificar loja do
+            gasto_fixo_loja = instance.loja
+            if gasto_fixo_loja == caixa_mensal.loja:
+                if not CaixaMensalGastoFixo.objects.filter(caixa_mensal=caixa_mensal, gasto_fixo=instance).exists():
+                    CaixaMensalGastoFixo.objects.create(
+                        caixa_mensal=caixa_mensal,
+                        gasto_fixo=instance,
+                        valor=0.00,  # Valor padrão
+                        observacao=""
+                    )
 
 # ao excluir deve apgar as associações
 @receiver(post_delete, sender=GastoFixo)

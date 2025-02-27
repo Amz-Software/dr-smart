@@ -26,7 +26,7 @@ class Caixa(Base):
     @property
     def saldo_total(self):
         return sum(venda.pagamentos_valor_total for venda in self.vendas.filter(is_deleted=False).filter(loja=self.loja).filter(caixa=self))
-
+    
     @property
     def saldo_total_dinheiro(self):
         total = sum(venda.pagamentos_valor_total_dinheiro for venda in self.vendas.filter(is_deleted=False, pagamentos__tipo_pagamento__caixa=True).filter(loja=self.loja).filter(caixa=self))
@@ -193,6 +193,12 @@ class Venda(Base):
     
     def calcular_valor_total(self):
         return sum(produto.calcular_valor_total() for produto in self.itens_venda.all())
+    
+    def custo_total(self):
+        return sum(produto.custo() for produto in self.itens_venda.all())
+    
+    def lucro_total(self):
+        return sum(produto.lucro() for produto in self.itens_venda.all())
     
     def __str__(self):
         return f"{self.cliente} - {self.data_venda.strftime('%d/%m/%Y')}"

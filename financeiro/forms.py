@@ -67,10 +67,14 @@ class CaixaMensalGastoFixoForm(forms.ModelForm):
         model = CaixaMensalGastoFixo
         fields = ['gasto_fixo', 'observacao', 'valor']
         widgets = {
-            'gasto_fixo': forms.Select(attrs={'class': 'form-control'}),
+            'gasto_fixo': forms.Select(attrs={'class': 'form-select'}),
             'observacao': forms.Textarea(attrs={'rows': 1, 'class': 'form-control'}),
             'valor': forms.NumberInput(attrs={'step': '0.01', 'class': 'form-control'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super(CaixaMensalGastoFixoForm, self).__init__(*args, **kwargs)
+        self.fields['gasto_fixo'].queryset = GastoFixo.objects.filter(loja=self.instance.caixa_mensal.loja)
 
 
 class CaixaMensalFuncionarioForm(forms.ModelForm):
