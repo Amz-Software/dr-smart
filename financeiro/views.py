@@ -75,14 +75,15 @@ def caixa_mensal_create(request):
                 comissao=0.00,
             )
         
-        gastos_fixos = GastoFixo.objects.all()
-        for gasto in gastos_fixos:
-            CaixaMensalGastoFixo.objects.create(
-                caixa_mensal=caixa_mensal,
-                gasto_fixo=gasto,
-                valor=0.00,  # Inicializa com valores zero para edição posterior
-                observacao="",
-            )
+        gastos_fixos = GastoFixo.objects.filter(loja=loja)
+        if gastos_fixos:
+            for gasto in gastos_fixos:
+                CaixaMensalGastoFixo.objects.create(
+                    caixa_mensal=caixa_mensal,
+                    gasto_fixo=gasto,
+                    valor=0.00,  # Inicializa com valores zero para edição posterior
+                    observacao="",
+                )
         
         # Redirecionar para a página de detalhes do caixa mensal recém-criado
         messages.success(request, "Caixa mensal criado com sucesso.")
@@ -218,12 +219,52 @@ class CaixaMensalDetailView(PermissionRequiredMixin, DetailView):
             prefix='gastos_aleatorios'
         )
 
+        caixas_mes = Caixa.objects.filter(loja_id=loja_id).filter(data_abertura__month=caixa_mensal.mes.month)
+        vendas = []
+
+        total_gastos = 0
+
+        for caixa in caixas_mes:
+            vendas += caixa.vendas.all()
+            total_gastos += caixa.saidas
+
+        total_custo = 0
+        total_lucro = 0
+        valor_venda_por_tipo_pagamento = {}
+
+        for venda in vendas:
+            total_custo += venda.custo_total()
+            total_lucro += venda.lucro_total()
+            #filtrar pagamentos para o mes atual
+            for pagamento in venda.pagamentos.all().filter(data_primeira_parcela__month=caixa_mensal.mes.month):
+                if not pagamento.tipo_pagamento.nao_contabilizar:
+                    if pagamento.tipo_pagamento.nome not in valor_venda_por_tipo_pagamento:
+                        valor_venda_por_tipo_pagamento[pagamento.tipo_pagamento.nome] = 0
+                    valor_venda_por_tipo_pagamento[pagamento.tipo_pagamento.nome] += pagamento.valor 
+        valor_por_tipo_pagamento_total = sum(valor_venda_por_tipo_pagamento.values())
+
+        lucro_total = (valor_por_tipo_pagamento_total - total_custo)
+
+        context = {
+            'total_vendas': valor_por_tipo_pagamento_total,
+            'valor_venda_por_tipo_pagamento': valor_venda_por_tipo_pagamento.items(),
+            'valor_por_tipo_pagamento_total': valor_por_tipo_pagamento_total,
+            'total_custo': total_custo,
+            'total_lucro': total_lucro,
+            'lucro_total': lucro_total,
+            'total_gastos': total_gastos,
+            'formset_gastos_fixos': context['formset_gastos_fixos'],
+            'formset_funcionarios': context['formset_funcionarios'],
+            'formset_gastos_aleatorios': context['formset_gastos_aleatorios'],
+            'caixa_mensal': caixa_mensal
+        }
+
         return context
 
     def _pre_configurar_gastos_fixos(self, caixa_mensal):
         """Cria associações de Gastos Fixos ao Caixa Mensal, caso não existam."""
         if not CaixaMensalGastoFixo.objects.filter(caixa_mensal=caixa_mensal).exists():
-            gastos_fixos_disponiveis = GastoFixo.objects.all()
+            gastos_fixos_disponiveis = GastoFixo.objects.all().filter(loja=caixa_mensal.loja)
             for gasto_fixo in gastos_fixos_disponiveis:
                 CaixaMensalGastoFixo.objects.create(
                     caixa_mensal=caixa_mensal,
