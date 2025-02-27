@@ -25,6 +25,10 @@ class ParcelaForm(forms.ModelForm):
             'desconto': forms.NumberInput(attrs={'step': '0.01', 'class': 'form-control'}),
         }
 
+    def __init__(self, *args, **kwargs):
+        super(ParcelaForm, self).__init__(*args, **kwargs)
+        self.fields['tipo_pagamento'].queryset = TipoPagamento.objects.filter(loja=self.instance.pagamento.loja)
+
 class GastosAleatoriosForm(forms.ModelForm):
     class Meta:
         model = GastosAleatorios
