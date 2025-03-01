@@ -335,7 +335,7 @@ class VendaCreateView(PermissionRequiredMixin, CreateView):
         form.instance.loja = loja
         form.instance.criado_por = self.request.user
         form.instance.modificado_por = self.request.user
-        form.instance.caixa = Caixa.objects.get(data_abertura=localtime(now()).date(), loja=loja)
+        form.instance.caixa = Caixa.objects.filter(data_abertura=localtime(now()).date(), loja=loja).order_by('-criado_em').first()
         form.instance.data_venda = localtime(now())
         self.object = form.save()
 
