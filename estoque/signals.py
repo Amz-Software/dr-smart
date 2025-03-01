@@ -109,6 +109,10 @@ def atualizar_estoque_apos_editar_venda(sender, created, instance, **kwargs):
                 estoque_novo = Estoque.objects.select_for_update().get(produto=instance.produto, loja=instance.loja)
                 quantidade_antiga = instance._quantidade_antiga
                 quantidade_nova = instance.quantidade
+                
+                print('ESTOQUE NOVO', estoque_novo)
+                print('QUANTIDADE ANTIGA', quantidade_antiga)
+                print('QUANTIDADE NOVA', quantidade_nova)
 
                 if instance._produto_antigo and instance._produto_antigo.produto != instance.produto:
                     if getattr(instance._produto_antigo, 'imei', None):
@@ -120,15 +124,19 @@ def atualizar_estoque_apos_editar_venda(sender, created, instance, **kwargs):
                             raise Exception(f"Estoque IMEI não encontrado para o IMEI {instance._produto_antigo.imei}.")
                     
                     estoque_antigo = Estoque.objects.select_for_update().get(produto=instance._produto_antigo.produto, loja=instance.loja)
-                    estoque_antigo.quantidade = estoque_antigo.quantidade + quantidade_antiga
+                    estoque_antigo.quantidade_disponivel = estoque_antigo.quantidade_disponivel + quantidade_antiga
                     estoque_antigo.save()
                     
-                    estoque_novo.quantidade = estoque_novo.quantidade - quantidade_nova
+                    estoque_novo.quantidade_disponivel = estoque_novo.quantidade_disponivel - quantidade_nova
                 else:
                     if quantidade_nova > quantidade_antiga:
-                        estoque_novo.quantidade = estoque_novo.quantidade - (quantidade_nova - quantidade_antiga)
+                        # estoque_novo.quantidade_disponivel = estoque_novo.quantidade_disponivel - (quantidade_nova - quantidade_antiga)
+                        diferenca = quantidade_nova - quantidade_antiga
+                        estoque_novo.remover_estoque(diferenca)
                     elif quantidade_nova < quantidade_antiga:
-                        estoque_novo.quantidade = estoque_novo.quantidade + (quantidade_antiga - quantidade_nova)
+                        # estoque_novo.quantidade_disponivel = estoque_novo.quantidade_disponivel + (quantidade_antiga - quantidade_nova)
+                        diferenca = quantidade_antiga - quantidade_nova
+                        estoque_novo.adicionar_estoque(diferenca)
                 
                 estoque_novo.save()
             except Estoque.DoesNotExist:
