@@ -90,6 +90,15 @@ Contas a Receber
 
 {% block extra_scripts %}
 <script>
+function obterValorSemMascara(seletor) {
+    const valor = $(seletor).cleanVal();
+    if (valor === "") return; // se estiver vazio, pula
+    // Converte para número considerando os dois últimos dígitos como decimais
+    var numericValue = parseInt(valor, 10) / 100;
+    // Garante duas casas decimais no valor final
+        $(this).val(numericValue.toFixed(2));
+    return numericValue
+}
 
 $(document).ready(function() {
     $('.valor-restante').each(function() {
@@ -101,8 +110,8 @@ $(document).ready(function() {
 
         if (valorInput && valorPagoInput && valorDescontoInput && valorRestanteInput) {
             const valor = parseFloat(valorInput.val());
-            let valorPago = parseInt(valorPagoInput.val().replace(',', ''), 10) / 100
-            let desconto = parseInt(valorDescontoInput.val().replace(',', ''), 10) / 100
+            let valorPago = obterValorSemMascara(valorPagoInput)
+            let desconto = obterValorSemMascara(valorDescontoInput)
 
             const valorRestante = valor - valorPago - desconto;
             valorRestanteInput.val(valorRestante.toFixed(2))
@@ -118,8 +127,8 @@ $(document).ready(function() {
 
         if (valorInput && valorPagoInput && valorDescontoInput) {
             const valor = parseFloat(valorInput.val());
-            let valorPago = parseInt(valorPagoInput.val().replace(',', ''), 10) / 100
-            let desconto = parseInt(valorDescontoInput.val().replace(',', ''), 10) / 100
+            let valorPago = obterValorSemMascara(valorPagoInput)
+            let desconto = obterValorSemMascara(valorDescontoInput)
 
             const valorRestante = valor - valorPago - desconto;
             valorRestanteInput.val(valorRestante.toFixed(2))

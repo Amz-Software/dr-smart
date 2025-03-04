@@ -355,7 +355,7 @@ class ProdutoVendaEditForm(forms.ModelForm):
 
 
 class PagamentoForm(forms.ModelForm):
-    valor_parcela = forms.DecimalField(label='Valor Parcela', disabled=True, required=False, widget=forms.TextInput(attrs={'class': 'form-control money', 'readonly': 'readonly'}))
+    valor_parcela = forms.DecimalField(label='Valor Parcela', disabled=True, required=False, widget=forms.NumberInput(attrs={'class': 'form-control', 'readonly': 'readonly'}))
     class Meta:
         model = Pagamento
         fields = '__all__'

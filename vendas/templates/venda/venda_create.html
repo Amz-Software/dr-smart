@@ -195,20 +195,29 @@ Criar Venda
 {% block extra_scripts %}
 {{ produto_venda_formset.media.js }}
 <script>
+    function obterValorSemMascara(seletor) {
+    const valor = $(seletor).cleanVal();
+    if (valor === "") return; // se estiver vazio, pula
+    // Converte para número considerando os dois últimos dígitos como decimais
+    var numericValue = parseInt(valor, 10) / 100;
+    // Garante duas casas decimais no valor final
+          $(this).val(numericValue.toFixed(2));
+    return numericValue
+  }
 // Função de configuração do produto
 function configurarProdutoForm(form) {
   const produtoSelect = form.querySelector('select[name$="-produto"]');
   const imeiField = form.querySelector('select[name$="-imei"]');
-  const valorField = form.querySelector('input[name$="-valor_unitario"]');
+  const valorFieldProduto = form.querySelector('input[name$="-valor_unitario"]');
   const quantidadeField = form.querySelector('input[name$="-quantidade"]');
   const valorTotalField = form.querySelector('input[name$="-valor_total"]');
   const valorDescontoField = form.querySelector('input[name$="-valor_desconto"]');
 
-  if (!produtoSelect || !imeiField || !valorField) return;
+  if (!produtoSelect || !imeiField || !valorFieldProduto) return;
 
   // Inicializa valores
   valorDescontoField.value = "0.00";
-  valorField.value = "";
+  valorFieldProduto.value = "";
   quantidadeField.value = "";
   valorTotalField.value = "";
   
@@ -238,9 +247,9 @@ function configurarProdutoForm(form) {
 
     
   // Converte os valores monetários removendo vírgulas e convertendo para número
-  const valorUnitario = parseInt(valorField.value.replace(',', ''), 10) / 100 || 0;
+  const valorUnitario = obterValorSemMascara(valorFieldProduto);
   const quantidade = parseInt(quantidadeField.value) || 0;
-  const valorDesconto = parseInt(valorDescontoField.value.replace(',', ''), 10) / 100 || 0;
+  const valorDesconto = obterValorSemMascara(valorDescontoField);
 
   const valorTotalSemDesconto = (valorUnitario * quantidade);
   let valorTotal = valorTotalSemDesconto - valorDesconto;
@@ -271,7 +280,7 @@ function configurarProdutoForm(form) {
     const produtoId = e.params.data.id;
     
     // Limpa os campos relevantes
-    valorField.value = "";
+    valorFieldProduto.value = "";
     quantidadeField.value = "";
     valorTotalField.value = "";
     imeiField.value = "";
@@ -332,11 +341,11 @@ function configurarProdutoForm(form) {
                   if (info.status === "success") {
                     // o campo usa mascara $('.money').mask('000.000.000,00', {reverse: true}); adapte conforme necessidade
                     const valorUnitario = info.price;
-                    valorField.value = valorUnitario.replace('.', ',');
+                    valorFieldProduto.value = valorUnitario.replace('.', ',');
                     atualizarValorTotal();
                   } else {
                     alert(info.message);
-                    valorField.value = "";
+                    valorFieldProduto.value = "";
                     $(imeiField).val(null).trigger('change'); // Reseta o campo IMEI no Select2
                   }
                 });
@@ -356,11 +365,11 @@ function configurarProdutoForm(form) {
               if (info.status === "success") {
                 // o campo usa mascara $('.money').mask('000.000.000,00', {reverse: true}); adapte conforme necessidade
                 const valorUnitario = info.price;
-                valorField.value = valorUnitario.replace('.', ',');
+                valorFieldProduto.value = valorUnitario.replace('.', ',');
                 atualizarValorTotal();
               } else {
                 alert(info.message);
-                valorField.value = "";
+                valorFieldProduto.value = "";
               }
             });
         }
@@ -368,7 +377,7 @@ function configurarProdutoForm(form) {
   });
 
   // Adicionar eventos para recalcular o valor total
-  valorField.addEventListener('input', atualizarValorTotal);
+  valorFieldProduto.addEventListener('input', atualizarValorTotal);
   quantidadeField.addEventListener('input', atualizarValorTotal);
   valorDescontoField.addEventListener('input', atualizarValorTotal);
 }
@@ -487,10 +496,10 @@ async function abrirModalParaValidacao(valorDescontoField) {
 function configurarPagamentoForm(form) {
   const tipoPagamentoSelect = form.querySelector('select[name$="-tipo_pagamento"]');
   const parcelasField = form.querySelector('input[name$="-parcelas"]');
-  const valorField = form.querySelector('input[name$="-valor"]');
+  const valorFieldPagamento = form.querySelector('input[name$="-valor"]');
   const valorParcelaField = form.querySelector('input[name$="-valor_parcela"]');
 
-  if (!tipoPagamentoSelect || !parcelasField || !valorField || !valorParcelaField) return;
+  if (!tipoPagamentoSelect || !parcelasField || !valorFieldPagamento || !valorParcelaField) return;
 
   // Função para verificar e configurar parcelas com base no tipo de pagamento
   function atualizarParcelas() {
@@ -527,14 +536,27 @@ function configurarPagamentoForm(form) {
 
   // Função para atualizar o campo valor_parcela
   function atualizarValorParcela() {
-    const valor = parseInt(valorField.value.replace(',', ''), 10) / 100 || 0;
-    const parcelas = parseInt(parcelasField.value) || 1;
-    valorParcelaField.value = (valor / parcelas).toFixed(2);
-  }
+    const valor = obterValorSemMascara(valorFieldPagamento);
+    let parcelas = parseInt(parcelasField.value) || 1;
+    
+    // Evita divisão por zero
+    if (parcelas < 1) {
+        parcelas = 1;
+        parcelasField.value = 1; // Ajusta para evitar erro
+    }
+
+    console.log('Valor:', valor);
+    console.log('Parcelas:', parcelas);
+
+    let valorParcela = valor / parcelas;
+
+    // Formata o número com duas casas decimais e substitui '.' por ','
+    valorParcelaField.value = valorParcela.toFixed(2)
+}
 
   // Adicionar eventos para recalcular o valor_parcela
   parcelasField.addEventListener('input', atualizarValorParcela);
-  valorField.addEventListener('input', atualizarValorParcela);
+  valorFieldPagamento.addEventListener('input', atualizarValorParcela);
 
   // Adicionar evento de change ao select de tipo de pagamento
   tipoPagamentoSelect.addEventListener('change', atualizarParcelas);
