@@ -80,6 +80,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
             const imeiInput = newForm.querySelector("input[id*='imei']");
             imeiInput.focus();
+
+            $('.money').mask('000.000.000,00', {reverse: true});
         }
     }
 

@@ -17,12 +17,12 @@ class ParcelaForm(forms.ModelForm):
         fields = '__all__'
         widgets = {
             'data_vencimento': forms.DateInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),
-            'valor': forms.NumberInput(attrs={'step': '0.01', 'class': 'form-control', 'readonly': 'readonly'}),
-            'valor_pago': forms.NumberInput(attrs={'step': '0.01', 'class': 'form-control'}),
+            'valor': forms.TextInput(attrs={ 'class': 'form-control', 'readonly': 'readonly'}),
+            'valor_pago': forms.TextInput(attrs={'class': 'form-control money'}),
             'tipo_pagamento': forms.Select(attrs={'class': 'form-select'}),
             'pago': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'numero_parcela': forms.NumberInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),
-            'desconto': forms.NumberInput(attrs={'step': '0.01', 'class': 'form-control'}),
+            'desconto': forms.TextInput(attrs={'class': 'form-control money'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -36,7 +36,7 @@ class GastosAleatoriosForm(forms.ModelForm):
         widgets = {
             'descricao': forms.TextInput(attrs={'class': 'form-control'}),
             'observacao': forms.Textarea(attrs={'rows': 1, 'class': 'form-control'}),
-            'valor': forms.NumberInput(attrs={'step': '0.01', 'class': 'form-control'}),
+            'valor': forms.TextInput(attrs={'class': 'form-control money'}),
         }
 class GastoFixoForm(forms.ModelForm):
     class Meta:
@@ -73,7 +73,7 @@ class CaixaMensalGastoFixoForm(forms.ModelForm):
         widgets = {
             'gasto_fixo': forms.Select(attrs={'class': 'form-select'}),
             'observacao': forms.Textarea(attrs={'rows': 1, 'class': 'form-control'}),
-            'valor': forms.NumberInput(attrs={'step': '0.01', 'class': 'form-control'}),
+            'valor': forms.TextInput(attrs={'class': 'form-control money'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -88,8 +88,8 @@ class CaixaMensalFuncionarioForm(forms.ModelForm):
         model = CaixaMensalFuncionario
         fields = ['comissao', 'salario']
         widgets = {
-            'comissao': forms.NumberInput(attrs={'step': '0.01', 'class': 'form-control'}),
-            'salario': forms.NumberInput(attrs={'step': '0.01', 'class': 'form-control'}),
+            'comissao': forms.TextInput(attrs={'class': 'form-control money'}),
+            'salario': forms.TextInput(attrs={'class': 'form-control money'}),
         }
         labels = {
             'comissao': 'Comissão',

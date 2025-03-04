@@ -90,43 +90,41 @@ Contas a Receber
 
 {% block extra_scripts %}
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-    function calcularValorRestante(row) {
-        // Seleciona os campos de valor e valor pago
-        const valorInput = row.querySelector('[name$="-valor"]');
-        const valorPagoInput = row.querySelector('[name$="-valor_pago"]');
-        const valorDescontoInput = row.querySelector('[name$="-desconto"]');
-        const valorRestanteInput = row.querySelector('.valor-restante');
 
-        if (valorInput && valorPagoInput && valorRestanteInput) {
-            // Converte os valores para números, tratando entradas vazias como 0
-            const valor = parseFloat(valorInput.value) || 0;
-            const valorPago = parseFloat(valorPagoInput.value) || 0;
-            const valorDesconto = parseFloat(valorDescontoInput.value) || 0;
+$(document).ready(function() {
+    $('.valor-restante').each(function() {
+        const row = $(this).closest('tr');
+        const valorInput = row.find('[name$="-valor"]');
+        const valorPagoInput = row.find('[name$="-valor_pago"]');
+        const valorDescontoInput = row.find('[name$="-desconto"]');
+        const valorRestanteInput = $(this);
 
-            // Calcula o valor restante e preenche o campo
-            const valorRestante = (valor - valorDesconto) - valorPago;
-            valorRestanteInput.value = valorRestante.toFixed(2);
+        if (valorInput && valorPagoInput && valorDescontoInput && valorRestanteInput) {
+            const valor = parseFloat(valorInput.val());
+            let valorPago = parseInt(valorPagoInput.val().replace(',', ''), 10) / 100
+            let desconto = parseInt(valorDescontoInput.val().replace(',', ''), 10) / 100
+
+            const valorRestante = valor - valorPago - desconto;
+            valorRestanteInput.val(valorRestante.toFixed(2))
         }
-    }
+    });
 
-    // Itera sobre todas as linhas da tabela e adiciona eventos de input
-    document.querySelectorAll('tbody tr').forEach(row => {
-        const valorInput = row.querySelector('[name$="-valor"]');
-        const valorPagoInput = row.querySelector('[name$="-valor_pago"]');
-        const valorDescontoInput = row.querySelector('[name$="-desconto"]');
+    $('input[name$="-valor"], input[name$="-valor_pago"], input[name$="-desconto"]').on('input', function() {
+        const row = $(this).closest('tr');
+        const valorInput = row.find('[name$="-valor"]');
+        const valorPagoInput = row.find('[name$="-valor_pago"]');
+        const valorDescontoInput = row.find('[name$="-desconto"]');
+        const valorRestanteInput = row.find('.valor-restante');
 
-        if (valorInput && valorPagoInput) {
-            // Adiciona eventos para recalcular o valor restante em tempo real
-            valorInput.addEventListener('input', () => calcularValorRestante(row));
-            valorPagoInput.addEventListener('input', () => calcularValorRestante(row));
-            valorDescontoInput.addEventListener('input', () => calcularValorRestante(row));
+        if (valorInput && valorPagoInput && valorDescontoInput) {
+            const valor = parseFloat(valorInput.val());
+            let valorPago = parseInt(valorPagoInput.val().replace(',', ''), 10) / 100
+            let desconto = parseInt(valorDescontoInput.val().replace(',', ''), 10) / 100
+
+            const valorRestante = valor - valorPago - desconto;
+            valorRestanteInput.val(valorRestante.toFixed(2))
         }
-
-        // Calcula o valor restante inicialmente ao carregar a página
-        calcularValorRestante(row);
     });
 });
-
 </script>
 {% endblock %}

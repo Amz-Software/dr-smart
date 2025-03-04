@@ -6,6 +6,7 @@ from produtos.models import Produto
 from .models import *
 from django_select2.forms import Select2Widget, ModelSelect2Widget
 from django_select2.forms import ModelSelect2MultipleWidget, HeavySelect2Widget
+from decimal import Decimal
 
 class EstoqueImeiSelectWidgetEdit(HeavySelect2Widget):
     data_view = 'estoque:estoque-imei-search-edit'
@@ -248,7 +249,7 @@ class ProdutoSelectWidget(HeavySelect2Widget):
 
 
 class ProdutoVendaForm(forms.ModelForm):
-    valor_total = forms.DecimalField(label='Valor Total', disabled=True, required=False, widget=forms.NumberInput(attrs={'class': 'form-control', 'readonly': 'readonly'}))
+    valor_total = forms.DecimalField(label='Valor Total', disabled=True, required=False, widget=forms.NumberInput(attrs={'class': 'form-control', 'readonly': 'readonly', 'width': '100%'}))
     imei = forms.ModelChoiceField(
         queryset=EstoqueImei.objects.filter(vendido=False),
         label='imei',
@@ -282,9 +283,9 @@ class ProdutoVendaForm(forms.ModelForm):
         fields = '__all__'
         exclude = ['loja', 'venda']
         widgets = {
-            'valor_unitario': forms.NumberInput(attrs={'class': 'form-control'}),
+            'valor_unitario': forms.TextInput(attrs={'class': 'form-control money'}),
             'quantidade': forms.NumberInput(attrs={'class': 'form-control'}),
-            'valor_desconto': forms.NumberInput(attrs={'class': 'form-control'}),
+            'valor_desconto': forms.TextInput(attrs={'class': 'form-control money'}),
         }
         labels = {
             'valor_unitario': 'Valor*',
@@ -313,7 +314,7 @@ class ProdutoVendaEditForm(forms.ModelForm):
         label='Valor Total',
         disabled=True,
         required=False,
-        widget=forms.NumberInput(attrs={'class': 'form-control', 'readonly': 'readonly'})
+        widget=forms.TextInput(attrs={'class': 'form-control money', 'readonly': 'readonly'})
     )
     # quero apenas o produto que está na venda
     produto = forms.ModelChoiceField(
@@ -326,9 +327,9 @@ class ProdutoVendaEditForm(forms.ModelForm):
         fields = '__all__'
         exclude = ['loja', 'venda']
         widgets = {
-            'valor_unitario': forms.NumberInput(attrs={'class': 'form-control'}),
+            'valor_unitario': forms.TextInput(attrs={'class': 'form-control money'}),
             'quantidade': forms.NumberInput(attrs={'class': 'form-control'}),
-            'valor_desconto': forms.NumberInput(attrs={'class': 'form-control'}),
+            'valor_desconto': forms.TextInput(attrs={'class': 'form-control money'}),
             'imei': EstoqueImeiSelectWidgetEdit(
                 max_results=10,
                 attrs={
@@ -354,14 +355,14 @@ class ProdutoVendaEditForm(forms.ModelForm):
 
 
 class PagamentoForm(forms.ModelForm):
-    valor_parcela = forms.DecimalField(label='Valor Parcela', disabled=True, required=False, widget=forms.NumberInput(attrs={'class': 'form-control', 'readonly': 'readonly'}))
+    valor_parcela = forms.DecimalField(label='Valor Parcela', disabled=True, required=False, widget=forms.TextInput(attrs={'class': 'form-control money', 'readonly': 'readonly'}))
     class Meta:
         model = Pagamento
         fields = '__all__'
         exclude = ['venda', 'loja']
         widgets = {
             'tipo_pagamento': forms.Select(attrs={'class': 'form-control'}),
-            'valor': forms.NumberInput(attrs={'class': 'form-control'}),
+            'valor': forms.TextInput(attrs={'class': 'form-control money'}),
             'parcelas': forms.NumberInput(attrs={'class': 'form-control'}),
             'data_primeira_parcela': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'date'}),
         }
@@ -386,7 +387,7 @@ class LancamentoForm(forms.ModelForm):
         widgets = {
             'motivo': forms.TextInput(attrs={'class': 'form-control'}),
             'tipo_lancamento': forms.Select(attrs={'class': 'form-control'}),
-            'valor': forms.NumberInput(attrs={'class': 'form-control'}),
+            'valor': forms.TextInput(attrs={'class': 'form-control money'}),
         }
         labels = {
             'motivo': 'Motivo*',
@@ -419,7 +420,7 @@ class LancamentoCaixaTotalForm(forms.ModelForm):
         widgets = {
             'motivo': forms.TextInput(attrs={'class': 'form-control'}),
             'tipo_lancamento': forms.Select(attrs={'class': 'form-control'}),
-            'valor': forms.NumberInput(attrs={'class': 'form-control'}),
+            'valor': forms.TextInput(attrs={'class': 'form-control money'}),
         }
         labels = {
             'motivo': 'Motivo*',

@@ -236,6 +236,9 @@ Caixa Mensal - {{ caixa_mensal.loja }} - {{ caixa_mensal.mes|date:"F Y" }}
         newRow.classList.add("gasto-form");
         newRow.innerHTML = newFormHtml;
         gastosBody.appendChild(newRow);
+
+        // adicionar mascara com jquery $('.money').mask('000.000.000,00', {reverse: true});
+        $('.money').mask('000.000.000,00', {reverse: true});
     }
 
     function apagarGasto() {
