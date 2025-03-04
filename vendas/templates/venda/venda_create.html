@@ -470,6 +470,10 @@ async function abrirModalParaValidacao(valorDescontoField) {
 
     const cancelarDescontoButton = document.getElementById('cancelarDesconto');
     cancelarDescontoButton.onclick = function () {
+      const backdrop = document.querySelector('.modal-backdrop');
+      if (backdrop) {
+        backdrop.remove();
+      }
       descontoModal.hide();
       limparCampos();
       resolve(false);
