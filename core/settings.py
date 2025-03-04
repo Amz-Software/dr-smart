@@ -99,7 +99,6 @@ CACHES = {
     }
 }
 
-SELECT2_CACHE_BACKEND = "select2"
 
 
 # Database
@@ -199,6 +198,7 @@ LOGGING = {
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
 LANGUAGE_CODE = 'pt-br'
+USE_L10N = True
 TIME_ZONE = 'America/Belem'
 
 USE_I18N = True
