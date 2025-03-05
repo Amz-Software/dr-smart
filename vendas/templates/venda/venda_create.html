@@ -195,6 +195,8 @@ Criar Venda
 {% block extra_scripts %}
 {{ produto_venda_formset.media.js }}
 <script>
+  $('.money').mask('000.000.000,00', {reverse: true});
+
     function obterValorSemMascara(seletor) {
     const valor = $(seletor).cleanVal();
     if (valor === "") return; // se estiver vazio, pula
