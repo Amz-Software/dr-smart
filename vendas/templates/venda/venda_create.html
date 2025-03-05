@@ -68,16 +68,16 @@ Criar Venda
                   </template>
 
                     <div class="table-responsive mb-3">
-                      <table class="table table-bordered">
+                      <table class="table table-bordered" style="table-layout: fixed;">
                         <thead>
                           <tr>
-                            <th>Produto</th>
-                            <th style="width: 25%">IMEI</th>
-                            <th>Quantidade</th>
-                            <th style="width: 25%">Valor Unitário</th>
-                            <th style="width: 15%">Desconto</th>
-                            <th style="width: 25%">Valor Total</th>
-                            <th>Ações</th>
+                            <th style="width: 300px;">Produto</th>
+                            <th style="width: 300px;">IMEI</th>
+                            <th style="width: 200px;">Quantidade</th>
+                            <th style="width: 200px;">Valor Unitário</th>
+                            <th style="width: 200px;">Desconto</th>
+                            <th style="width: 200px;">Valor Total</th>
+                            <th style="width: 200px;">Ações</th>
                           </tr>
                         </thead>
                         <tbody id="produtos">
@@ -118,15 +118,15 @@ Criar Venda
                   </template>
 
                   <div class="table-responsive mb-3">
-                    <table class="table table-bordered">
+                    <table class="table table-bordered" style="table-layout: fixed;">
                       <thead>
                         <tr>
-                          <th>Tipo de Pagamento</th>
-                          <th>Valor</th>
-                          <th>Parcelas</th>
-                          <th>Valor Parcela</th>
-                          <th>Data Primeira Parcela</th>
-                          <th>Ações</th>
+                          <th style="width: 200px;">Tipo de Pagamento</th>
+                          <th style="width: 200px;">Valor</th>
+                          <th style="width: 200px;">Parcelas</th>
+                          <th style="width: 200px;">Valor Parcela</th>
+                          <th style="width: 200px;">Data Primeira Parcela</th>
+                          <th style="width: 200px;">Ações</th>
                         </tr>
                       </thead>
                       <tbody id="pagamentos">
@@ -195,20 +195,29 @@ Criar Venda
 {% block extra_scripts %}
 {{ produto_venda_formset.media.js }}
 <script>
+    function obterValorSemMascara(seletor) {
+    const valor = $(seletor).cleanVal();
+    if (valor === "") return; // se estiver vazio, pula
+    // Converte para número considerando os dois últimos dígitos como decimais
+    var numericValue = parseInt(valor, 10) / 100;
+    // Garante duas casas decimais no valor final
+          $(this).val(numericValue.toFixed(2));
+    return numericValue
+  }
 // Função de configuração do produto
 function configurarProdutoForm(form) {
   const produtoSelect = form.querySelector('select[name$="-produto"]');
   const imeiField = form.querySelector('select[name$="-imei"]');
-  const valorField = form.querySelector('input[name$="-valor_unitario"]');
+  const valorFieldProduto = form.querySelector('input[name$="-valor_unitario"]');
   const quantidadeField = form.querySelector('input[name$="-quantidade"]');
   const valorTotalField = form.querySelector('input[name$="-valor_total"]');
   const valorDescontoField = form.querySelector('input[name$="-valor_desconto"]');
 
-  if (!produtoSelect || !imeiField || !valorField) return;
+  if (!produtoSelect || !imeiField || !valorFieldProduto) return;
 
   // Inicializa valores
   valorDescontoField.value = "0.00";
-  valorField.value = "";
+  valorFieldProduto.value = "";
   quantidadeField.value = "";
   valorTotalField.value = "";
   
@@ -235,33 +244,43 @@ function configurarProdutoForm(form) {
 
   // Função para atualizar o valor total
   async function atualizarValorTotal() {
-    const valorUnitario = parseFloat(valorField.value) || 0;
-    const quantidade = parseInt(quantidadeField.value) || 0;
-    const valorDesconto = parseFloat(valorDescontoField.value) || 0;
 
-    const valorTotal = (valorUnitario * quantidade) - valorDesconto;
-    const valorTotalSemDesconto = (valorUnitario * quantidade);
-    valorTotalField.value = valorTotal.toFixed(2);
+    
+  // Converte os valores monetários removendo vírgulas e convertendo para número
+  const valorUnitario = obterValorSemMascara(valorFieldProduto);
+  const quantidade = parseInt(quantidadeField.value) || 0;
+  const valorDesconto = obterValorSemMascara(valorDescontoField);
 
-    const porcentagemDesconto = (valorDesconto / (valorUnitario * quantidade)) * 100;
-    if (porcentagemDesconto > 15) {
+  const valorTotalSemDesconto = (valorUnitario * quantidade);
+  let valorTotal = valorTotalSemDesconto - valorDesconto;
+
+  const porcentagemDesconto = (valorDesconto / (valorUnitario * quantidade)) * 100;
+
+  // Se desconto for maior que 15%, abre o modal para autorização
+  if (porcentagemDesconto > 15) {
+    valorTotalField.value = valorTotalSemDesconto.toFixed(2);
+
+    const result = await abrirModalParaValidacao(valorDescontoField);
+    if (!result) {
+      valorDescontoField.value = "0.00";
       valorTotalField.value = valorTotalSemDesconto.toFixed(2);
-      const result = await abrirModalParaValidacao(valorDescontoField);
-      if (!result) {
-        valorDescontoField.value = "0.00";
-        valorTotalField.value = valorTotalSemDesconto.toFixed(2);
-      } else {
-        valorTotalField.value = valorTotal.toFixed(2);
-      }
+      return;
+    } else {
+      valorTotalField.value = valorTotal.toFixed(2);
+      return;
     }
   }
+
+  // Caso contrário, atualiza normalmente
+  valorTotalField.value = valorTotal.toFixed(2);
+}
 
   // Evento de mudança no campo produto
   $(produtoSelect).on('select2:select', function (e) {
     const produtoId = e.params.data.id;
     
     // Limpa os campos relevantes
-    valorField.value = "";
+    valorFieldProduto.value = "";
     quantidadeField.value = "";
     valorTotalField.value = "";
     imeiField.value = "";
@@ -320,11 +339,13 @@ function configurarProdutoForm(form) {
                   console.log('Info products API response:', info);
 
                   if (info.status === "success") {
-                    valorField.value = info.price;
+                    // o campo usa mascara $('.money').mask('000.000.000,00', {reverse: true}); adapte conforme necessidade
+                    const valorUnitario = info.price;
+                    valorFieldProduto.value = valorUnitario.replace('.', ',');
                     atualizarValorTotal();
                   } else {
                     alert(info.message);
-                    valorField.value = "";
+                    valorFieldProduto.value = "";
                     $(imeiField).val(null).trigger('change'); // Reseta o campo IMEI no Select2
                   }
                 });
@@ -342,11 +363,13 @@ function configurarProdutoForm(form) {
               console.log('Info products API response for non-serialized:', info);
 
               if (info.status === "success") {
-                valorField.value = info.price;
+                // o campo usa mascara $('.money').mask('000.000.000,00', {reverse: true}); adapte conforme necessidade
+                const valorUnitario = info.price;
+                valorFieldProduto.value = valorUnitario.replace('.', ',');
                 atualizarValorTotal();
               } else {
                 alert(info.message);
-                valorField.value = "";
+                valorFieldProduto.value = "";
               }
             });
         }
@@ -354,7 +377,7 @@ function configurarProdutoForm(form) {
   });
 
   // Adicionar eventos para recalcular o valor total
-  valorField.addEventListener('input', atualizarValorTotal);
+  valorFieldProduto.addEventListener('input', atualizarValorTotal);
   quantidadeField.addEventListener('input', atualizarValorTotal);
   valorDescontoField.addEventListener('input', atualizarValorTotal);
 }
@@ -400,6 +423,7 @@ function adicionarProduto() {
 
   document.getElementById("produtos").appendChild(newForm);
   configurarProdutoForm(newForm);
+  $('.money').mask('000.000.000,00', {reverse: true});
 }
 
 // Função para abrir o modal de validação
@@ -455,6 +479,10 @@ async function abrirModalParaValidacao(valorDescontoField) {
 
     const cancelarDescontoButton = document.getElementById('cancelarDesconto');
     cancelarDescontoButton.onclick = function () {
+      const backdrop = document.querySelector('.modal-backdrop');
+      if (backdrop) {
+        backdrop.remove();
+      }
       descontoModal.hide();
       limparCampos();
       resolve(false);
@@ -468,10 +496,10 @@ async function abrirModalParaValidacao(valorDescontoField) {
 function configurarPagamentoForm(form) {
   const tipoPagamentoSelect = form.querySelector('select[name$="-tipo_pagamento"]');
   const parcelasField = form.querySelector('input[name$="-parcelas"]');
-  const valorField = form.querySelector('input[name$="-valor"]');
+  const valorFieldPagamento = form.querySelector('input[name$="-valor"]');
   const valorParcelaField = form.querySelector('input[name$="-valor_parcela"]');
 
-  if (!tipoPagamentoSelect || !parcelasField || !valorField || !valorParcelaField) return;
+  if (!tipoPagamentoSelect || !parcelasField || !valorFieldPagamento || !valorParcelaField) return;
 
   // Função para verificar e configurar parcelas com base no tipo de pagamento
   function atualizarParcelas() {
@@ -508,14 +536,27 @@ function configurarPagamentoForm(form) {
 
   // Função para atualizar o campo valor_parcela
   function atualizarValorParcela() {
-    const valor = parseFloat(valorField.value) || 0;
-    const parcelas = parseInt(parcelasField.value) || 1;
-    valorParcelaField.value = (valor / parcelas).toFixed(2);
-  }
+    const valor = obterValorSemMascara(valorFieldPagamento);
+    let parcelas = parseInt(parcelasField.value) || 1;
+    
+    // Evita divisão por zero
+    if (parcelas < 1) {
+        parcelas = 1;
+        parcelasField.value = 1; // Ajusta para evitar erro
+    }
+
+    console.log('Valor:', valor);
+    console.log('Parcelas:', parcelas);
+
+    let valorParcela = valor / parcelas;
+
+    // Formata o número com duas casas decimais e substitui '.' por ','
+    valorParcelaField.value = valorParcela.toFixed(2)
+}
 
   // Adicionar eventos para recalcular o valor_parcela
   parcelasField.addEventListener('input', atualizarValorParcela);
-  valorField.addEventListener('input', atualizarValorParcela);
+  valorFieldPagamento.addEventListener('input', atualizarValorParcela);
 
   // Adicionar evento de change ao select de tipo de pagamento
   tipoPagamentoSelect.addEventListener('change', atualizarParcelas);
@@ -552,6 +593,7 @@ function adicionarPagamento() {
 
   document.getElementById("pagamentos").appendChild(newForm);
   configurarPagamentoForm(newForm);
+  $('.money').mask('000.000.000,00', {reverse: true});
 }
 
 // Configuração inicial

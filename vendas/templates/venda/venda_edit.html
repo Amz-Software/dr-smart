@@ -123,11 +123,48 @@
     </div>
   </div>
 </div>
+
+<div class="modal fade" id="descontoModal" tabindex="-1" aria-labelledby="descontoModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="descontoModalLabel">Validação de Desconto</h5>
+      </div>
+      <div class="modal-body">
+        <form id="formPermissaoGerente" autocomplete="off">
+          <div class="mb-3">
+            <label for="username" class="form-label">Usuário</label>
+            <input type="text" class="form-control" id="username" placeholder="Usuário" required>
+          </div>
+          <div class="mb-3">
+            <label for="password" class="form-label">Senha</label>
+            <input type="password" class="form-control" id="password" placeholder="Senha" required autocomplete="new-password">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cancelarDesconto">Cancelar</button>
+        <button type="button" class="btn btn-primary" id="confirmarDesconto">Confirmar</button>
+      </div>
+    </div>
+  </div>
+  </div>
 {% endblock %}
 
 {% block extra_scripts %}
 {{ produto_venda_formset.media.js }}
 <script>
+  $('.money').mask('000.000.000,00', {reverse: true});
+
+   function obterValorSemMascara(seletor) {
+    const valor = $(seletor).cleanVal();
+    if (valor === "") return; // se estiver vazio, pula
+    // Converte para número considerando os dois últimos dígitos como decimais
+    var numericValue = parseInt(valor, 10) / 100;
+    // Garante duas casas decimais no valor final
+          $(this).val(numericValue.toFixed(2));
+    return numericValue
+  }
   // -------------------------------------------------------------------------
   // Configuração do formulário de produto
   // -------------------------------------------------------------------------
@@ -195,9 +232,9 @@
 
     // Função para atualizar o valor total (inclui lógica de desconto e modal de autorização)
     async function atualizarValorTotal() {
-      const valorUnitario = parseFloat(valorField.value) || 0;
+      const valorUnitario = obterValorSemMascara(valorField) || 0;
       const quantidade = parseInt(quantidadeField.value) || 0;
-      const valorDesconto = parseFloat(valorDescontoField.value) || 0;
+      const valorDesconto = obterValorSemMascara(valorDescontoField) || 0;
 
       const valorTotalSemDesconto = (valorUnitario * quantidade);
       let valorTotal = valorTotalSemDesconto - valorDesconto;
@@ -546,7 +583,7 @@
     }
 
     function atualizarValorParcela() {
-      const valor = parseFloat(valorField.value) || 0;
+      const valor = obterValorSemMascara(valorField) || 0;
       const parcelas = parseInt(parcelasField.value) || 1;
       valorParcelaField.value = (valor / parcelas).toFixed(2);
     }

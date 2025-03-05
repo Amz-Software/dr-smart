@@ -55,6 +55,14 @@ class ProdutoEntradaForm(forms.ModelForm):
         model = ProdutoEntrada
         exclude = ['loja', 'entrada', 'id']
 
+        widgets = {
+            'produto': forms.Select(attrs={'class': 'form-control'}),
+            'imei': forms.TextInput(attrs={'class': 'form-control'}),
+            'quantidade': forms.NumberInput(attrs={'class': 'form-control'}),
+            'custo_unitario': forms.TextInput(attrs={'class': 'form-control money'}),
+            'venda_unitaria': forms.TextInput(attrs={'class': 'form-control money'}),
+        }
+
     def __init__(self, *args, **kwargs):
         loja = kwargs.pop('loja', None)
         super().__init__(*args, **kwargs)
