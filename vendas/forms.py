@@ -378,6 +378,8 @@ class PagamentoForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if loja:
             self.fields['tipo_pagamento'].queryset = TipoPagamento.objects.filter(loja=loja)
+            # ajustar data da primeira parcela para o padrao yyyy-MM-dd
+            self.fields['data_primeira_parcela'].widget.format = '%Y-%m-%d'
 
 class LancamentoForm(forms.ModelForm):
     class Meta:
