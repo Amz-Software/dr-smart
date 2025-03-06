@@ -308,11 +308,7 @@
     {%endif%}
 
     <script>
-      $(document).ready(function(){
-        // retorna o valor do campo sem a máscara
-        $('.money').mask('000.000.000,00', {reverse: true});
-      });
-
+      $('.money').mask('000.000.000,00', {reverse: true});
       // ao enviar o formulário, remove a máscara para enviar o valor sem formatação apenas com as casas decimais
       $('form').submit(function(){
         $('.money').each(function(){
