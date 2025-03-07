@@ -617,15 +617,6 @@
     if (addPagamentoBtn) {
       addPagamentoBtn.addEventListener('click', adicionarPagamento);
     }
-
-    // Exemplo de configuração inicial da data nos pagamentos
-    const form = document.querySelector('.pagamento-form');
-    if (form) {
-      const data_primeira_parcela = form.querySelector('input[name$=\"-data_primeira_parcela\"]');
-      if (data_primeira_parcela) {
-        data_primeira_parcela.value = new Date().toISOString().split('T')[0];
-      }
-    }
   });
 </script>
 {% endblock %}
