@@ -536,6 +536,7 @@ function configurarPagamentoForm(form) {
 
   // Função para atualizar o campo valor_parcela
   function atualizarValorParcela() {
+    $('.money').mask('000.000.000,00', {reverse: true});
     const valor = obterValorSemMascara(valorFieldPagamento);
     let parcelas = parseInt(parcelasField.value) || 1;
     
