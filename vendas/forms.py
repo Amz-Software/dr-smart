@@ -4,7 +4,7 @@ from accounts.models import User
 from estoque.models import Estoque, EstoqueImei
 from produtos.models import Produto
 from .models import *
-from django_select2.forms import Select2Widget, ModelSelect2Widget
+from django_select2.forms import Select2Widget, ModelSelect2Widget, Select2MultipleWidget
 from django_select2.forms import ModelSelect2MultipleWidget, HeavySelect2Widget
 from decimal import Decimal
 
@@ -480,3 +480,34 @@ class LojaForm(forms.ModelForm):
             instance.save()
             self.save_m2m()
         return instance
+    
+    
+class RelatorioVendasForm(forms.Form):
+    data_inicial = forms.DateField(
+        label='Data Inicial',
+        required=False,
+        widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'})
+    )
+    data_final = forms.DateField(
+        label='Data Final',
+        required=False,
+        widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'})
+    )
+    produtos = forms.ModelMultipleChoiceField(
+        queryset=Produto.objects.all(),
+        label='Produtos',
+        required=False,
+        widget=Select2MultipleWidget(attrs={'class': 'form-control'})
+    )
+    cliente = forms.ModelMultipleChoiceField(
+        queryset=Cliente.objects.all(),
+        label='Clientes',
+        required=False,
+        widget=Select2MultipleWidget(attrs={'class': 'form-control'})
+    )
+    vendedores = forms.ModelMultipleChoiceField(
+        queryset=User.objects.all(),
+        label='Vendedores',
+        required=False,
+        widget=Select2MultipleWidget(attrs={'class': 'form-control'})
+    )

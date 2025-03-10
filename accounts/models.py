@@ -17,7 +17,7 @@ class User(AbstractUser):
         super().save(*args, **kwargs)
     
     def __str__(self):
-        return self.username
+        return self.get_full_name() if self.first_name else self.username
     
     class Meta:
         verbose_name = 'Usuário'
