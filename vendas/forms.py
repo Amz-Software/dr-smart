@@ -511,3 +511,15 @@ class RelatorioVendasForm(forms.Form):
         required=False,
         widget=Select2MultipleWidget(attrs={'class': 'form-control'})
     )
+    lojas = forms.ModelMultipleChoiceField(
+        queryset=Loja.objects.all(),
+        label='Lojas',
+        required=False,
+        widget=Select2MultipleWidget(attrs={'class': 'form-control'})
+    )
+    tipos_venda = forms.ModelMultipleChoiceField(
+        queryset=TipoVenda.objects.all(),
+        label='Tipos de Venda',
+        required=False,
+        widget=Select2MultipleWidget(attrs={'class': 'form-control'})
+    )

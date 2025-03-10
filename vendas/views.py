@@ -961,7 +961,7 @@ def folha_carne_view(request, pk, tipo):
 class RelatorioVendasView(PermissionRequiredMixin, FormView):
     template_name = 'relatorios/relatorio_vendas.html'
     form_class = RelatorioVendasForm
-    permission_required = 'vendas.gerar_relatorio_vendas'
+    permission_required = 'vendas.can_generate_report_sale'
 
     def form_valid(self, form):
         print("Dados do formulário: %s" % form.cleaned_data)
@@ -970,12 +970,16 @@ class RelatorioVendasView(PermissionRequiredMixin, FormView):
         data_final = form.cleaned_data.get('data_final')
         produtos = form.cleaned_data.get('produtos')
         vendedores = form.cleaned_data.get('vendedores')
+        lojas = form.cleaned_data.get('lojas')
+        tipos_venda = form.cleaned_data.get('tipos_venda')
         
-        loja_id = self.request.session.get('loja_id')
-        loja = Loja.objects.get(id=loja_id)
-
-        # Cria um dicionário de filtros para a query
-        filtros = {'loja': loja}
+        # Se nenhuma loja for selecionada, utiliza a loja da sessão
+        if not lojas:
+            loja_id = self.request.session.get('loja_id')
+            loja = Loja.objects.get(id=loja_id)
+            lojas = [loja]
+        
+        filtros = {}
 
         # Adiciona filtros para datas, se informadas
         if data_inicial and data_final:
@@ -990,6 +994,11 @@ class RelatorioVendasView(PermissionRequiredMixin, FormView):
 
         if produtos:
             filtros['produtos__in'] = produtos
+            
+        if tipos_venda:
+            filtros['tipo_venda__in'] = tipos_venda
+
+        filtros['loja__in'] = lojas
 
         vendas = Venda.objects.filter(**filtros).distinct()
         
@@ -1007,11 +1016,11 @@ class RelatorioVendasView(PermissionRequiredMixin, FormView):
             'total_valor': total_valor,
             'data_inicial': data_inicial,
             'data_final': data_final,
-            'loja': loja,
+            'lojas': lojas,
         }
         return render(self.request, self.template_name, context)
 
     def form_invalid(self, form):
-        # Exibe os erros do formulário para depuração
-        print("Erros no formulário: %s" % form.errors)
+        messages.error(self.request, 'Erro ao gerar relatório')
         return super().form_invalid(form)
+    

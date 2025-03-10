@@ -207,6 +207,7 @@ class Venda(Base):
         verbose_name_plural = 'Vendas'
         permissions = (
             ('can_more_desconto', 'Pode dar mais desconto'),
+            ('can_generate_report_sale', 'Pode gerar relatório de vendas'),
         )
 
 class ProdutoVenda(Base):
