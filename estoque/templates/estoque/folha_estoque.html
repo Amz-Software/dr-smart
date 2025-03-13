@@ -114,6 +114,12 @@
                         <td class="text-right">R$ {{ produto.preco_medio|floatformat:2 }}</td>
                     </tr>
                 {% endfor %}
+                <tr>
+                    <td></td>
+                    <td>Totais de produtos: {{ quantidade_total }}</td>
+                    <td>Custo médio total: R$ {{ custo_medio_total }}</td>
+                    <td>Preço médio total: R$ {{ preco_medio_total }}</td>
+                </tr>
             </tbody>
         </table>
     </div>
