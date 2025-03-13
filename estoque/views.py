@@ -17,6 +17,7 @@ from vendas.views import BaseView
 from vendas.models import Venda
 from produtos.models import TipoProduto
 from .models import Fornecedor
+from django.db.models import Sum
 
 
 class EstoqueListView(BaseView, PermissionRequiredMixin, ListView):
@@ -309,9 +310,20 @@ def inventario_estoque_pdf (request):
     if tipo:
         produtos = produtos.filter(produto__tipo_id=tipo)
     
+    quantidade_total = produtos.aggregate(total=Sum('quantidade_disponivel'))['total']
+    custo_medio_total = 0
+    preco_medio_total = 0
+
+    for produto in produtos:
+        preco_medio_total += float(produto.preco_medio())
+        custo_medio_total  += float(produto.preco_medio_custo())
+
     context = {
         'produtos': produtos,
-        'loja': loja
+        'loja': loja,
+        'quantidade_total': quantidade_total,
+        'custo_medio_total': f'{custo_medio_total:.2f}',
+        'preco_medio_total': f'{preco_medio_total:.2f}',
     }
 
     return render(request, "estoque/folha_estoque.html", context)
