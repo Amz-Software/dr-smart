@@ -315,8 +315,8 @@ def inventario_estoque_pdf (request):
     preco_medio_total = 0
 
     for produto in produtos:
-        preco_medio_total += float(produto.preco_medio())
-        custo_medio_total  += float(produto.preco_medio_custo())
+        preco_medio_total += float(produto.preco_medio()) * produto.quantidade_disponivel
+        custo_medio_total  += float(produto.preco_medio_custo()) * produto.quantidade_disponivel
 
     context = {
         'produtos': produtos,
