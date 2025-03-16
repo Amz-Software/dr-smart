@@ -107,6 +107,11 @@ def menu_items(request):
                     "permission": "vendas.view_venda"
                 },
                 {
+                    "label": "Produtos Vendidos",
+                    "url_name": "vendas:produto_vendido_list",
+                    "permission": "vendas.view_venda"
+                },
+                {
                     "label": "Clientes",
                     "url_name": "vendas:cliente_list",
                     "permission": "vendas.view_cliente"
