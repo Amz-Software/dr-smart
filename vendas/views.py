@@ -1024,3 +1024,35 @@ class RelatorioVendasView(PermissionRequiredMixin, FormView):
         messages.error(self.request, 'Erro ao gerar relatório')
         return super().form_invalid(form)
     
+class ProdutoVendidoListView(PermissionRequiredMixin, ListView):
+    model = ProdutoVenda
+    template_name = 'produto_vendido/produto_vendido_list.html'
+    context_object_name = 'produtos_vendidos'
+    permission_required = 'vendas.view_produtovenda'
+    paginate_by = 10
+    
+    def get_queryset(self):
+        query = super().get_queryset()
+        nome = self.request.GET.get('nome')
+        imei = self.request.GET.get('imei')
+        data = self.request.GET.get('data')
+        data_fim = self.request.GET.get('data_fim')
+        loja_id = self.request.session.get('loja_id')
+        loja = Loja.objects.get(id=loja_id)
+
+        if nome:
+            query = query.filter(produto__nome__icontains=nome)
+        if imei:
+            query = query.filter(imei__icontains=imei)
+        if data and data_fim:
+            query = query.filter(venda__data_venda__range=[data, data_fim])
+        
+        return query.filter(venda__loja=loja).order_by('-venda__data_venda')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['nome'] = self.request.GET.get('nome')
+        context['imei'] = self.request.GET.get('imei')
+        context['data'] = self.request.GET.get('data')
+        context['data_fim'] = self.request.GET.get('data_fim')
+        return context

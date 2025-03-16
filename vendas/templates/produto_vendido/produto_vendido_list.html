@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% load static iam_tags %}
+{% block title %}
+Produtos Vendidos
+{% endblock title %}
+
+{% block content %}
+<div class="container-xxl mt-4">
+    <div class="row">
+        <div class="col-12"></div>
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="card-title">Produtos Vendidos</h4>
+                </div>
+                <div class="card-body">
+                    <form action="" method="get" class="mb-4" id="searchForm">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="nome" class="form-label">Nome do Produto</label>
+                                <input type="text" name="nome" id="nome" class="form-control" value="{{ request.GET.nome }}" placeholder="Nome do Produto">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="imei" class="form-label">Imei</label>
+                                <input type="text" name="imei" id="imei" class="form-control" value="{{ request.GET.imei }}" placeholder="Imei">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="data" class="form-label">Data Início</label>
+                                <input type="date" name="data" id="data" class="form-control" value="{{ request.GET.data }}" placeholder="Data Venda">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="data_fim" class="form-label">Data Fim</label>
+                                <input type="date" name="data_fim" id="data_fim" class="form-control" value="{{ request.GET.data_fim }}" placeholder="Data Venda">
+                            </div>
+                        </div>
+                        <div class="row g-3 mt-3">
+                            <div class="col-md-6 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary me-2">Buscar</button>
+                                <a href="{% url 'vendas:produto_vendido_list' %}" class="btn btn-secondary">Limpar</a>
+                            </div>
+                        </div>
+                    </form>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th scope="col">ID</th>
+                                    <th scope="col">Produto</th>
+                                    <th scope="col">Imei</th>
+                                    <th scope="col">Venda</th>
+                                    <th scope="col">Vendedor</th>
+                                    <th scope="col">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in produtos_vendidos %}
+                                <tr>
+                                    <td>{{ item.pk }}</td>
+                                    <td>{{ item.produto|title }}</td>
+                                    <td>{{ item.imei|default:"-" }}</td>
+                                    <td>{{ item.venda }}</td>
+                                    <td>{{ item.venda.vendedor }}</td>
+                                    <td>
+                                        <div class="dropdown">
+                                            <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+                                                <i class="bx bx-dots-vertical-rounded"></i>
+                                            </button>
+                                            <div class="dropdown-menu">
+                                                <a class="dropdown-item" href="{% url 'vendas:venda_detail' item.venda.pk %}" target="_blank">Ir para venda</a>
+                                                {% if user|has_perm:"vendas.change_venda" %}
+                                                <a class="dropdown-item" href="{% url 'vendas:venda_update' item.venda.pk %}" target="_blank">Editar venda</a>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center">Nenhum registro encontrado</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        {% include "snippets/pagination.html" %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
