@@ -67,36 +67,48 @@ Criar Venda
                     </tr>
                   </template>
 
-                    <div class="table-responsive mb-3">
-                      <table class="table table-bordered" style="table-layout: fixed;">
-                        <thead>
-                          <tr>
-                            <th style="width: 300px;">Produto</th>
-                            <th style="width: 300px;">IMEI</th>
-                            <th style="width: 200px;">Quantidade</th>
-                            <th style="width: 200px;">Valor Unitário</th>
-                            <th style="width: 200px;">Desconto</th>
-                            <th style="width: 200px;">Valor Total</th>
-                            <th style="width: 200px;">Ações</th>
-                          </tr>
-                        </thead>
-                        <tbody id="produtos">
-                          {% for form in produto_venda_formset %}
-                          <tr class="produto-form">
-                            <td>{{ form.produto }}</td>
-                            <td>{{ form.imei }}</td>
-                            <td>{{ form.quantidade }}</td>
-                            <td>{{ form.valor_unitario }}</td>
-                            <td>{{ form.valor_desconto }}</td>
-                            <td>{{ form.valor_total }}</td>
-                            <td>
-                              <button type="button" class="btn btn-danger btn-sm remove-produto" onclick="removerProduto(this)">Remover</button>
-                            </td>
-                          </tr>
-                          {% endfor %}
-                        </tbody>
-                      </table>
-                    </div>
+                  <div class="table-responsive mb-3">
+                    <table class="table table-bordered" style="table-layout: fixed;">
+                      <thead>
+                        <tr>
+                          <th style="width: 300px;">Produto</th>
+                          <th style="width: 300px;">IMEI</th>
+                          <th style="width: 200px;">Quantidade</th>
+                          <th style="width: 200px;">Valor Unitário</th>
+                          <th style="width: 200px;">Desconto</th>
+                          <th style="width: 200px;">Valor Total</th>
+                          <th style="width: 200px;">Ações</th>
+                        </tr>
+                      </thead>
+                      <tbody id="produtos">
+                        {% for form in produto_venda_formset %}
+                        <tr class="produto-form">
+                          <td>{{ form.produto }}</td>
+                          <td>{{ form.imei }}</td>
+                          <td>{{ form.quantidade }}</td>
+                          <td>{{ form.valor_unitario }}</td>
+                          <td>{{ form.valor_desconto }}</td>
+                          <td>{{ form.valor_total }}</td>
+                          <td>
+                            <button type="button" class="btn btn-danger btn-sm remove-produto" onclick="removerProduto(this)">Remover</button>
+                          </td>
+                        </tr>
+                        {% endfor %}
+                      </tbody>
+                      <!-- Linha de totalização -->
+                      <tfoot>
+                        <tr>
+                          <td colspan="2"><strong>Total:</strong></td>
+                          <td id="total-quantidade">0</td>
+                          <td></td>
+                          <td></td>
+                          <td id="total-valor">0,00</td>
+                          <td></td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                  
                     <div class="acao mb-3">
                       <button type="button" id="add-produto" class="btn btn-primary">Adicionar Produto</button>
                     </div>
@@ -143,8 +155,20 @@ Criar Venda
                         </tr>
                         {% endfor %}
                       </tbody>
+                      <!-- Linha de totalização para pagamentos -->
+                      <tfoot>
+                        <tr>
+                          <td><strong>Total:</strong></td>
+                          <td id="total-valor-pagamento">0,00</td>
+                          <td id="total-parcelas">0</td>
+                          <td></td>
+                          <td></td>
+                          <td></td>
+                        </tr>
+                      </tfoot>
                     </table>
                   </div>
+                  
                   <div class="acao mb-3">
                     <button type="button" id="add-pagamento" class="btn btn-primary">Adicionar Pagamento</button>
                   </div>
@@ -195,435 +219,470 @@ Criar Venda
 {% block extra_scripts %}
 {{ produto_venda_formset.media.js }}
 <script>
-    function obterValorSemMascara(seletor) {
+  // Função para obter o valor numérico sem máscara
+  function obterValorSemMascara(seletor) {
     const valor = $(seletor).cleanVal();
-    if (valor === "") return; // se estiver vazio, pula
+    if (!valor) return 0; // se estiver vazio, retorna 0
     // Converte para número considerando os dois últimos dígitos como decimais
-    var numericValue = parseInt(valor, 10) / 100;
-    // Garante duas casas decimais no valor final
-          $(this).val(numericValue.toFixed(2));
-    return numericValue
-  }
-// Função de configuração do produto
-function configurarProdutoForm(form) {
-  const produtoSelect = form.querySelector('select[name$="-produto"]');
-  const imeiField = form.querySelector('select[name$="-imei"]');
-  const valorFieldProduto = form.querySelector('input[name$="-valor_unitario"]');
-  const quantidadeField = form.querySelector('input[name$="-quantidade"]');
-  const valorTotalField = form.querySelector('input[name$="-valor_total"]');
-  const valorDescontoField = form.querySelector('input[name$="-valor_desconto"]');
-
-  if (!produtoSelect || !imeiField || !valorFieldProduto) return;
-
-  // Inicializa valores
-  valorDescontoField.value = "0.00";
-  valorFieldProduto.value = "";
-  quantidadeField.value = "";
-  valorTotalField.value = "";
-  
-  // Destruir Select2 existente se houver
-  if ($(imeiField).data('select2')) {
-    $(imeiField).select2('destroy');
-  }
-  imeiField.value = "";
-  imeiField.disabled = true;
-  imeiField.required = false;
-  quantidadeField.readOnly = false;
-
-  // Destruir Select2 existente do produto se houver
-  if ($(produtoSelect).data('select2')) {
-    $(produtoSelect).select2('destroy');
+    return parseInt(valor, 10) / 100;
   }
 
-  // Configura o campo Select2 para o produto
-  $(produtoSelect).select2({
-    placeholder: "Selecione um produto",
-    allowClear: true,
-    width: '100%'
-  });
-
-  // Função para atualizar o valor total
-  async function atualizarValorTotal() {
-
+  // Função para atualizar os totais dos produtos (quantidade e valor total)
+  function atualizarTotais() {
+    let totalQuantidade = 0;
+    let totalValor = 0;
     
-  // Converte os valores monetários removendo vírgulas e convertendo para número
-  const valorUnitario = obterValorSemMascara(valorFieldProduto);
-  const quantidade = parseInt(quantidadeField.value) || 0;
-  const valorDesconto = obterValorSemMascara(valorDescontoField);
-
-  const valorTotalSemDesconto = (valorUnitario * quantidade);
-  let valorTotal = valorTotalSemDesconto - valorDesconto;
-
-  const porcentagemDesconto = (valorDesconto / (valorUnitario * quantidade)) * 100;
-
-  // Se desconto for maior que 15%, abre o modal para autorização
-  if (porcentagemDesconto > 15) {
-    valorTotalField.value = valorTotalSemDesconto.toFixed(2);
-
-    const result = await abrirModalParaValidacao(valorDescontoField);
-    if (!result) {
-      valorDescontoField.value = "0.00";
-      valorTotalField.value = valorTotalSemDesconto.toFixed(2);
-      return;
-    } else {
-      valorTotalField.value = valorTotal.toFixed(2);
-      return;
-    }
+    document.querySelectorAll(".produto-form").forEach(function(row) {
+      const quantidadeField = row.querySelector('input[name$="-quantidade"]');
+      const valorTotalField = row.querySelector('input[name$="-valor_total"]');
+      
+      if (quantidadeField && valorTotalField) {
+        // Converte a quantidade para número
+        const quantidade = parseFloat(quantidadeField.value) || 0;
+        // Converte o valor total para número (trocando vírgula por ponto)
+        const valorTotal = parseFloat(valorTotalField.value.replace(",", ".")) || 0;
+        totalQuantidade += quantidade;
+        totalValor += valorTotal;
+      }
+    });
+    
+    // Atualiza os elementos de totalização, formatando o valor com duas casas decimais e vírgula
+    document.getElementById("total-quantidade").innerText = totalQuantidade;
+    document.getElementById("total-valor").innerText = totalValor.toFixed(2).replace(".", ",");
   }
 
-  // Caso contrário, atualiza normalmente
-  valorTotalField.value = valorTotal.toFixed(2);
-}
-
-  // Evento de mudança no campo produto
-  $(produtoSelect).on('select2:select', function (e) {
-    const produtoId = e.params.data.id;
+  // Função para atualizar os totais dos pagamentos (valor e parcelas)
+  function atualizarTotaisPagamento() {
+    let totalValorPagamento = 0;
+    let totalParcelas = 0;
     
-    // Limpa os campos relevantes
+    document.querySelectorAll(".pagamento-form").forEach(function(row) {
+      const valorField = row.querySelector('input[name$="-valor"]');
+      const parcelasField = row.querySelector('input[name$="-parcelas"]');
+      if (valorField && parcelasField) {
+        const valor = parseFloat(valorField.value.replace(",", ".")) || 0;
+        const parcelas = parseInt(parcelasField.value) || 0;
+        totalValorPagamento += valor;
+        totalParcelas += parcelas;
+      }
+    });
+    
+    document.getElementById("total-valor-pagamento").innerText = totalValorPagamento.toFixed(2).replace(".", ",");
+    document.getElementById("total-parcelas").innerText = totalParcelas;
+  }
+
+  // Função de configuração do formulário de produto
+  function configurarProdutoForm(form) {
+    const produtoSelect = form.querySelector('select[name$="-produto"]');
+    const imeiField = form.querySelector('select[name$="-imei"]');
+    const valorFieldProduto = form.querySelector('input[name$="-valor_unitario"]');
+    const quantidadeField = form.querySelector('input[name$="-quantidade"]');
+    const valorTotalField = form.querySelector('input[name$="-valor_total"]');
+    const valorDescontoField = form.querySelector('input[name$="-valor_desconto"]');
+
+    if (!produtoSelect || !imeiField || !valorFieldProduto) return;
+
+    // Inicializa valores
+    valorDescontoField.value = "0.00";
     valorFieldProduto.value = "";
     quantidadeField.value = "";
     valorTotalField.value = "";
+    
+    // Destruir Select2 existente se houver (IMEI)
+    if ($(imeiField).data('select2')) {
+      $(imeiField).select2('destroy');
+    }
     imeiField.value = "";
     imeiField.disabled = true;
     imeiField.required = false;
-    quantidadeField.readOnly = true;
+    quantidadeField.readOnly = false;
 
-    if (!produtoId) {
-      return;
+    // Destruir Select2 existente se houver (Produto)
+    if ($(produtoSelect).data('select2')) {
+      $(produtoSelect).select2('destroy');
     }
 
-    // Fetch para buscar detalhes do produto
-    fetch(`/produto/details/${produtoId}/`)
-      .then(response => response.json())
-      .then(data => {
-        console.log('Produto details API response:', data);
+    // Configura o campo Select2 para o produto
+    $(produtoSelect).select2({
+      placeholder: "Selecione um produto",
+      allowClear: true,
+      width: '100%'
+    });
 
-        if (data.serializado) {
-          imeiField.disabled = false;
-          imeiField.required = true;
-          quantidadeField.value = 1;
-          quantidadeField.readOnly = true;
+    // Função para atualizar o valor total do produto
+    async function atualizarValorTotal() {
+      const valorUnitario = obterValorSemMascara(valorFieldProduto);
+      const quantidade = parseInt(quantidadeField.value) || 0;
+      const valorDesconto = obterValorSemMascara(valorDescontoField);
 
-          // Configurando Select2 para o campo IMEI
-          $(imeiField).select2({
-            ajax: {
-              url: `/info-products/imei/${produtoId}/`,
-              dataType: 'json',
-              delay: 250,
-              data: function (params) {
-                return {
-                  term: params.term,
-                  produto_id: produtoId
-                };
-              },
-              processResults: function (data) {
-                return {
-                  results: data.results
-                };
-              },
-              cache: true
-            },
-            placeholder: "Selecione o IMEI",
-            allowClear: true,
-          });
+      const valorTotalSemDesconto = (valorUnitario * quantidade);
+      let valorTotal = valorTotalSemDesconto - valorDesconto;
 
-          // Evento de seleção no campo IMEI
-          $(imeiField).on('select2:select', function (e) {
-            const imeiValue = e.params.data.id;
-            console.log('IMEI selecionado:', imeiValue);
+      const porcentagemDesconto = (valorDesconto / (valorUnitario * quantidade)) * 100;
 
-            if (imeiValue) {
-              fetch(`/info-products/?product_id=${produtoId}&imei=${imeiValue}`)
-                .then(response => response.json())
-                .then(info => {
-                  console.log('Info products API response:', info);
-
-                  if (info.status === "success") {
-                    // o campo usa mascara $('.money').mask('000.000.000,00', {reverse: true}); adapte conforme necessidade
-                    const valorUnitario = info.price;
-                    valorFieldProduto.value = valorUnitario.replace('.', ',');
-                    atualizarValorTotal();
-                  } else {
-                    alert(info.message);
-                    valorFieldProduto.value = "";
-                    $(imeiField).val(null).trigger('change'); // Reseta o campo IMEI no Select2
-                  }
-                });
-            }
-          });
+      // Se desconto for maior que 15%, abre o modal para autorização
+      if (porcentagemDesconto > 15) {
+        valorTotalField.value = valorTotalSemDesconto.toFixed(2);
+        const result = await abrirModalParaValidacao(valorDescontoField);
+        if (!result) {
+          valorDescontoField.value = "0.00";
+          valorTotalField.value = valorTotalSemDesconto.toFixed(2);
+          atualizarTotais();
+          return;
         } else {
-          imeiField.disabled = true;
-          imeiField.value = "";
-          imeiField.required = false;
-          quantidadeField.readOnly = false;
+          valorTotalField.value = valorTotal.toFixed(2);
+          atualizarTotais();
+          return;
+        }
+      }
 
-          fetch(`/info-products/?product_id=${produtoId}`)
-            .then(response => response.json())
-            .then(info => {
-              console.log('Info products API response for non-serialized:', info);
+      // Atualiza normalmente
+      valorTotalField.value = valorTotal.toFixed(2);
+      atualizarTotais();
+    }
 
-              if (info.status === "success") {
-                // o campo usa mascara $('.money').mask('000.000.000,00', {reverse: true}); adapte conforme necessidade
-                const valorUnitario = info.price;
-                valorFieldProduto.value = valorUnitario.replace('.', ',');
-                atualizarValorTotal();
-              } else {
-                alert(info.message);
-                valorFieldProduto.value = "";
+    // Evento de mudança no campo produto
+    $(produtoSelect).on('select2:select', function (e) {
+      const produtoId = e.params.data.id;
+      
+      // Limpa os campos relevantes
+      valorFieldProduto.value = "";
+      quantidadeField.value = "";
+      valorTotalField.value = "";
+      imeiField.value = "";
+      imeiField.disabled = true;
+      imeiField.required = false;
+      quantidadeField.readOnly = true;
+
+      if (!produtoId) {
+        return;
+      }
+
+      // Busca os detalhes do produto
+      fetch(`/produto/details/${produtoId}/`)
+        .then(response => response.json())
+        .then(data => {
+          console.log('Produto details API response:', data);
+
+          if (data.serializado) {
+            imeiField.disabled = false;
+            imeiField.required = true;
+            quantidadeField.value = 1;
+            quantidadeField.readOnly = true;
+
+            // Configura o Select2 para o campo IMEI
+            $(imeiField).select2({
+              ajax: {
+                url: `/info-products/imei/${produtoId}/`,
+                dataType: 'json',
+                delay: 250,
+                data: function (params) {
+                  return {
+                    term: params.term,
+                    produto_id: produtoId
+                  };
+                },
+                processResults: function (data) {
+                  return {
+                    results: data.results
+                  };
+                },
+                cache: true
+              },
+              placeholder: "Selecione o IMEI",
+              allowClear: true,
+            });
+
+            // Evento de seleção no campo IMEI
+            $(imeiField).on('select2:select', function (e) {
+              const imeiValue = e.params.data.id;
+              console.log('IMEI selecionado:', imeiValue);
+
+              if (imeiValue) {
+                fetch(`/info-products/?product_id=${produtoId}&imei=${imeiValue}`)
+                  .then(response => response.json())
+                  .then(info => {
+                    console.log('Info products API response:', info);
+
+                    if (info.status === "success") {
+                      const valorUnitario = info.price;
+                      valorFieldProduto.value = valorUnitario.replace('.', ',');
+                      atualizarValorTotal();
+                    } else {
+                      alert(info.message);
+                      valorFieldProduto.value = "";
+                      $(imeiField).val(null).trigger('change');
+                    }
+                  });
               }
             });
-        }
-      });
-  });
-
-  // Adicionar eventos para recalcular o valor total
-  valorFieldProduto.addEventListener('input', atualizarValorTotal);
-  quantidadeField.addEventListener('input', atualizarValorTotal);
-  valorDescontoField.addEventListener('input', atualizarValorTotal);
-}
-
-// Funções de remoção
-function removerProduto(button) {
-  const produtoForm = button.closest('tr');
-  produtoForm.remove();
-
-  const totalForms = document.getElementById("id_itens_venda-TOTAL_FORMS");
-  totalForms.value = document.querySelectorAll(".produto-form").length;
-}
-
-function removerPagamento(button) {
-  const pagamentoForm = button.closest('tr');
-  pagamentoForm.remove();
-
-  const totalForms = document.getElementById("id_pagamentos-TOTAL_FORMS");
-  totalForms.value = document.querySelectorAll(".pagamento-form").length;
-}
-
-// Funções de adição
-function adicionarProduto() {
-  const template = document.querySelector("#produto-empty-form");
-  if (!template) {
-    console.error("Template de produto não encontrado");
-    return;
-  }
-  
-  let newForm = template.content.querySelector('tr').cloneNode(true);
-  const produtoForms = document.querySelectorAll(".produto-form");
-  let totalForms = document.getElementById("id_itens_venda-TOTAL_FORMS");
-  let formIndex = produtoForms.length;
-
-  newForm.innerHTML = newForm.innerHTML.replace(/__prefix__/g, formIndex);
-  
-  let formInputs = newForm.querySelectorAll('input, select, textarea');
-  formInputs.forEach(input => {
-    input.value = '';
-  });
-
-  totalForms.value = formIndex + 1;
-
-  document.getElementById("produtos").appendChild(newForm);
-  configurarProdutoForm(newForm);
-  $('.money').mask('000.000.000,00', {reverse: true});
-}
-
-// Função para abrir o modal de validação
-async function abrirModalParaValidacao(valorDescontoField) {
-  const descontoModal = new bootstrap.Modal(document.getElementById('descontoModal'), {
-    keyboard: false,
-    backdrop: 'static'
-  });
-
-  function limparCampos() {
-    document.getElementById('username').value = '';
-    document.getElementById('password').value = '';
-  }
-
-  return new Promise((resolve) => {
-    const confirmarDescontoButton = document.getElementById('confirmarDesconto');
-    confirmarDescontoButton.onclick = function () {
-      const username = document.getElementById('username').value;
-      const password = document.getElementById('password').value;
-
-      fetch('/autorizacao/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': '{{ csrf_token }}'
-        },
-        body: JSON.stringify({
-          username: username,
-          password: password
-        })
-      })
-        .then(response => {
-          if (!response.ok) {
-            return response.json().then(data => {
-              throw new Error(data.message || 'Erro desconhecido');
-            });
-          }
-          return response.json();
-        })
-        .then(data => {
-          if (data.success) {
-            descontoModal.hide();
-            limparCampos();
-            resolve(true);
           } else {
-            alert('Erro na autorização: ' + data.message);
+            imeiField.disabled = true;
+            imeiField.value = "";
+            imeiField.required = false;
+            quantidadeField.readOnly = false;
+
+            fetch(`/info-products/?product_id=${produtoId}`)
+              .then(response => response.json())
+              .then(info => {
+                console.log('Info products API response for non-serialized:', info);
+
+                if (info.status === "success") {
+                  const valorUnitario = info.price;
+                  valorFieldProduto.value = valorUnitario.replace('.', ',');
+                  atualizarValorTotal();
+                } else {
+                  alert(info.message);
+                  valorFieldProduto.value = "";
+                }
+              });
+          }
+        });
+    });
+
+    // Atualiza o valor total quando os campos de valor, quantidade ou desconto sofrem alterações
+    valorFieldProduto.addEventListener('input', atualizarValorTotal);
+    quantidadeField.addEventListener('input', atualizarValorTotal);
+    valorDescontoField.addEventListener('input', atualizarValorTotal);
+  }
+
+  // Função para remover um produto da lista
+  function removerProduto(button) {
+    const produtoForm = button.closest('tr');
+    produtoForm.remove();
+
+    const totalForms = document.getElementById("id_itens_venda-TOTAL_FORMS");
+    totalForms.value = document.querySelectorAll(".produto-form").length;
+    
+    atualizarTotais();
+  }
+
+  // Função para adicionar um novo produto
+  function adicionarProduto() {
+    const template = document.querySelector("#produto-empty-form");
+    if (!template) {
+      console.error("Template de produto não encontrado");
+      return;
+    }
+    
+    let newForm = template.content.querySelector('tr').cloneNode(true);
+    const produtoForms = document.querySelectorAll(".produto-form");
+    let totalForms = document.getElementById("id_itens_venda-TOTAL_FORMS");
+    let formIndex = produtoForms.length;
+
+    newForm.innerHTML = newForm.innerHTML.replace(/__prefix__/g, formIndex);
+    
+    let formInputs = newForm.querySelectorAll('input, select, textarea');
+    formInputs.forEach(input => {
+      input.value = '';
+    });
+
+    totalForms.value = formIndex + 1;
+
+    document.getElementById("produtos").appendChild(newForm);
+    configurarProdutoForm(newForm);
+    $('.money').mask('000.000.000,00', {reverse: true});
+  }
+
+  // Função para abrir o modal de validação de desconto
+  async function abrirModalParaValidacao(valorDescontoField) {
+    const descontoModal = new bootstrap.Modal(document.getElementById('descontoModal'), {
+      keyboard: false,
+      backdrop: 'static'
+    });
+
+    function limparCampos() {
+      document.getElementById('username').value = '';
+      document.getElementById('password').value = '';
+    }
+
+    return new Promise((resolve) => {
+      const confirmarDescontoButton = document.getElementById('confirmarDesconto');
+      confirmarDescontoButton.onclick = function () {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
+        fetch('/autorizacao/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+          },
+          body: JSON.stringify({
+            username: username,
+            password: password
+          })
+        })
+          .then(response => {
+            if (!response.ok) {
+              return response.json().then(data => {
+                throw new Error(data.message || 'Erro desconhecido');
+              });
+            }
+            return response.json();
+          })
+          .then(data => {
+            if (data.success) {
+              descontoModal.hide();
+              limparCampos();
+              resolve(true);
+            } else {
+              alert('Erro na autorização: ' + data.message);
+            }
+          })
+          .catch(err => {
+            alert('Erro ao validar autorização: ' + err.message);
+          });
+      };
+
+      const cancelarDescontoButton = document.getElementById('cancelarDesconto');
+      cancelarDescontoButton.onclick = function () {
+        const backdrop = document.querySelector('.modal-backdrop');
+        if (backdrop) {
+          backdrop.remove();
+        }
+        descontoModal.hide();
+        limparCampos();
+        resolve(false);
+      };
+
+      descontoModal.show();
+    });
+  }
+
+  // Função de configuração do formulário de pagamento
+  function configurarPagamentoForm(form) {
+    const tipoPagamentoSelect = form.querySelector('select[name$="-tipo_pagamento"]');
+    const parcelasField = form.querySelector('input[name$="-parcelas"]');
+    const valorFieldPagamento = form.querySelector('input[name$="-valor"]');
+    const valorParcelaField = form.querySelector('input[name$="-valor_parcela"]');
+
+    if (!tipoPagamentoSelect || !parcelasField || !valorFieldPagamento || !valorParcelaField) return;
+
+    // Função para atualizar as configurações das parcelas
+    function atualizarParcelas() {
+      const paymentId = tipoPagamentoSelect.value;
+
+      if (!paymentId) {
+        parcelasField.disabled = true;
+        parcelasField.value = 1;
+        atualizarValorParcela();
+        return;
+      }
+
+      fetch(`/info-payment/?payment_id=${paymentId}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === "success") {
+            if (data.parcela) {
+              parcelasField.disabled = false;
+              parcelasField.value = parcelasField.value || 1;
+            } else {
+              parcelasField.disabled = true;
+              parcelasField.value = 1;
+            }
+            atualizarValorParcela();
+          } else {
+            alert("Erro ao buscar informações do tipo de pagamento.");
           }
         })
         .catch(err => {
-          alert('Erro ao validar autorização: ' + err.message);
+          console.error("Erro ao buscar informações de pagamento:", err);
         });
-    };
+    }
 
-    const cancelarDescontoButton = document.getElementById('cancelarDesconto');
-    cancelarDescontoButton.onclick = function () {
-      const backdrop = document.querySelector('.modal-backdrop');
-      if (backdrop) {
-        backdrop.remove();
+    // Função para atualizar o valor da parcela
+    function atualizarValorParcela() {
+      $('.money').mask('000.000.000,00', {reverse: true});
+      const valor = obterValorSemMascara(valorFieldPagamento);
+      let parcelas = parseInt(parcelasField.value) || 1;
+      
+      if (parcelas < 1) {
+        parcelas = 1;
+        parcelasField.value = 1;
       }
-      descontoModal.hide();
-      limparCampos();
-      resolve(false);
-    };
 
-    descontoModal.show();
-  });
-}
+      let valorParcela = valor / parcelas;
+      valorParcelaField.value = valorParcela.toFixed(2);
+      atualizarTotaisPagamento();
+    }
 
-// Função de configuração do pagamento
-function configurarPagamentoForm(form) {
-  const tipoPagamentoSelect = form.querySelector('select[name$="-tipo_pagamento"]');
-  const parcelasField = form.querySelector('input[name$="-parcelas"]');
-  const valorFieldPagamento = form.querySelector('input[name$="-valor"]');
-  const valorParcelaField = form.querySelector('input[name$="-valor_parcela"]');
+    parcelasField.addEventListener('input', atualizarValorParcela);
+    valorFieldPagamento.addEventListener('input', atualizarValorParcela);
+    // Eventos adicionais para garantir a atualização correta
+    valorFieldPagamento.addEventListener('blur', atualizarValorParcela);
+    valorFieldPagamento.addEventListener('change', atualizarValorParcela);
+    tipoPagamentoSelect.addEventListener('change', atualizarParcelas);
+    atualizarParcelas();
+  }
 
-  if (!tipoPagamentoSelect || !parcelasField || !valorFieldPagamento || !valorParcelaField) return;
-
-  // Função para verificar e configurar parcelas com base no tipo de pagamento
-  function atualizarParcelas() {
-    const paymentId = tipoPagamentoSelect.value;
-
-    if (!paymentId) {
-      parcelasField.disabled = true;
-      parcelasField.value = 1;
-      atualizarValorParcela();
+  // Função para adicionar um novo pagamento
+  function adicionarPagamento() {
+    const template = document.querySelector("#pagamento-empty-form");
+    if (!template) {
+      console.error("Template de pagamento não encontrado");
       return;
     }
+    
+    let newForm = template.content.querySelector('tr').cloneNode(true);
+    const pagamentoForms = document.querySelectorAll(".pagamento-form");
+    let totalForms = document.getElementById("id_pagamentos-TOTAL_FORMS");
+    let formIndex = pagamentoForms.length;
 
-    fetch(`/info-payment/?payment_id=${paymentId}`)
-      .then(response => response.json())
-      .then(data => {
-        if (data.status === "success") {
-          console.log('Informações de pagamento:', data);
-          if (data.parcela) {
-            parcelasField.disabled = false;
-            parcelasField.value = parcelasField.value || 1;
-          } else {
-            parcelasField.disabled = true;
-            parcelasField.value = 1;
-          }
-          atualizarValorParcela();
-        } else {
-          alert("Erro ao buscar informações do tipo de pagamento.");
-        }
-      })
-      .catch(err => {
-        console.error("Erro ao buscar informações de pagamento:", err);
-      });
+    newForm.innerHTML = newForm.innerHTML.replace(/__prefix__/g, formIndex);
+
+    let formInputs = newForm.querySelectorAll('input, select, textarea');
+    formInputs.forEach(input => {
+      if (input.type === 'date') {
+        input.value = new Date().toISOString().split('T')[0];
+      } else {
+        input.value = '';
+      }
+    });
+
+    totalForms.value = formIndex + 1;
+
+    document.getElementById("pagamentos").appendChild(newForm);
+    configurarPagamentoForm(newForm);
+    $('.money').mask('000.000.000,00', {reverse: true});
+    atualizarTotaisPagamento();
   }
 
-  // Função para atualizar o campo valor_parcela
-  function atualizarValorParcela() {
-    $('.money').mask('000.000.000,00', {reverse: true});
-    const valor = obterValorSemMascara(valorFieldPagamento);
-    let parcelas = parseInt(parcelasField.value) || 1;
+  // Função para remover um pagamento da lista
+  function removerPagamento(button) {
+    const pagamentoForm = button.closest('tr');
+    pagamentoForm.remove();
+
+    const totalForms = document.getElementById("id_pagamentos-TOTAL_FORMS");
+    totalForms.value = document.querySelectorAll(".pagamento-form").length;
     
-    // Evita divisão por zero
-    if (parcelas < 1) {
-        parcelas = 1;
-        parcelasField.value = 1; // Ajusta para evitar erro
+    atualizarTotaisPagamento();
+  }
+
+  // Configuração inicial dos formulários e botões ao carregar o DOM
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.produto-form').forEach(configurarProdutoForm);
+    document.querySelectorAll('.pagamento-form').forEach(configurarPagamentoForm);
+
+    const addProdutoBtn = document.getElementById('add-produto');
+    const addPagamentoBtn = document.getElementById('add-pagamento');
+
+    if (addProdutoBtn) {
+      addProdutoBtn.addEventListener('click', adicionarProduto);
     }
 
-    console.log('Valor:', valor);
-    console.log('Parcelas:', parcelas);
+    if (addPagamentoBtn) {
+      addPagamentoBtn.addEventListener('click', adicionarPagamento);
+    }
 
-    let valorParcela = valor / parcelas;
-
-    // Formata o número com duas casas decimais e substitui '.' por ','
-    valorParcelaField.value = valorParcela.toFixed(2)
-}
-
-  // Adicionar eventos para recalcular o valor_parcela
-  parcelasField.addEventListener('input', atualizarValorParcela);
-  valorFieldPagamento.addEventListener('input', atualizarValorParcela);
-
-  // Adicionar evento de change ao select de tipo de pagamento
-  tipoPagamentoSelect.addEventListener('change', atualizarParcelas);
-
-  // Atualizar parcelas e valor_parcela ao carregar o formulário
-  atualizarParcelas();
-}
-
-// Função para adicionar pagamento
-function adicionarPagamento() {
-  const template = document.querySelector("#pagamento-empty-form");
-  if (!template) {
-    console.error("Template de pagamento não encontrado");
-    return;
-  }
-  
-  let newForm = template.content.querySelector('tr').cloneNode(true);
-  const pagamentoForms = document.querySelectorAll(".pagamento-form");
-  let totalForms = document.getElementById("id_pagamentos-TOTAL_FORMS");
-  let formIndex = pagamentoForms.length;
-
-  newForm.innerHTML = newForm.innerHTML.replace(/__prefix__/g, formIndex);
-
-  let formInputs = newForm.querySelectorAll('input, select, textarea');
-  formInputs.forEach(input => {
-    if (input.type === 'date') {
-      input.value = new Date().toISOString().split('T')[0];
-    } else {
-      input.value = '';
+    const form = document.querySelector('.pagamento-form');
+    if (form) {
+      const data_primeira_parcela = form.querySelector('input[name$="-data_primeira_parcela"]');
+      if (data_primeira_parcela) {
+        data_primeira_parcela.value = new Date().toISOString().split('T')[0];
+      }
     }
   });
-
-  totalForms.value = formIndex + 1;
-
-  document.getElementById("pagamentos").appendChild(newForm);
-  configurarPagamentoForm(newForm);
-  $('.money').mask('000.000.000,00', {reverse: true});
-}
-
-// Configuração inicial
-document.addEventListener('DOMContentLoaded', function () {
-  // Configurar formulários existentes
-  document.querySelectorAll('.produto-form').forEach(configurarProdutoForm);
-  document.querySelectorAll('.pagamento-form').forEach(configurarPagamentoForm);
-
-  // Configurar botões de adicionar
-  const addProdutoBtn = document.getElementById('add-produto');
-  const addPagamentoBtn = document.getElementById('add-pagamento');
-
-  if (addProdutoBtn) {
-    addProdutoBtn.addEventListener('click', adicionarProduto);
-  }
-
-  if (addPagamentoBtn) {
-    addPagamentoBtn.addEventListener('click', adicionarPagamento);
-  }
-
-  // Definir valor inicial da data para formulários existentes
-  const form = document.querySelector('.pagamento-form');
-  if (form) {
-    const data_primeira_parcela = form.querySelector('input[name$="-data_primeira_parcela"]');
-    if (data_primeira_parcela) {
-      data_primeira_parcela.value = new Date().toISOString().split('T')[0];
-    }
-  }
-});
 </script>
 
 {% endblock %}

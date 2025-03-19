@@ -249,7 +249,16 @@ class ProdutoSelectWidget(HeavySelect2Widget):
 
 
 class ProdutoVendaForm(forms.ModelForm):
-    valor_total = forms.DecimalField(label='Valor Total', disabled=True, required=False, widget=forms.NumberInput(attrs={'class': 'form-control', 'readonly': 'readonly', 'width': '100%'}))
+    valor_total = forms.DecimalField(
+        label='Valor Total',
+        disabled=True,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control money',
+            'readonly': 'readonly',
+            'width': '100%'
+        })
+    )
     imei = forms.ModelChoiceField(
         queryset=EstoqueImei.objects.filter(vendido=False),
         label='imei',
@@ -290,14 +299,14 @@ class ProdutoVendaForm(forms.ModelForm):
         labels = {
             'valor_unitario': 'Valor*',
             'valor_desconto': 'Desconto*',
-            'quantidade': 'Quantidade*', 
+            'quantidade': 'Quantidade*',
             'produto': 'Produto*',
         }
-    
+
     def __init__(self, *args, **kwargs):
         loja = kwargs.pop('loja', None)
         super().__init__(*args, **kwargs)
-        # Filtra apenas os produtos que estão em estoque (quantidade >  0)
+        # Filtra apenas os produtos que estão em estoque (quantidade > 0)
         self.fields['produto'].queryset = Produto.objects.filter(
             Exists(
                 Estoque.objects.filter(

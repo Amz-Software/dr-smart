@@ -19,6 +19,10 @@ DEBUG = os.environ.get('DEBUG', False)
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS').split(',') if os.environ.get('CSRF_TRUSTED_ORIGINS') else []
 
+
+if DEBUG:
+    os.environ['DJANGO_SETTINGS_MODULE'] = 'core.settings'
+    os.environ['DJANGO_ALLOW_ASYNC_UNSAFE'] = 'true'
 # Application definition
 
 INSTALLED_APPS = [
