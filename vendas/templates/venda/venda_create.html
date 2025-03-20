@@ -102,7 +102,7 @@ Criar Venda
                           <td id="total-quantidade">0</td>
                           <td></td>
                           <td></td>
-                          <td id="total-valor">0,00</td>
+                          <td><input type="text" class="form-control money" id="total-valor" value="0,00" disabled></td>
                           <td></td>
                         </tr>
                       </tfoot>
@@ -159,7 +159,7 @@ Criar Venda
                       <tfoot>
                         <tr>
                           <td><strong>Total:</strong></td>
-                          <td id="total-valor-pagamento">0,00</td>
+                          <td><input type="text" class="form-control money" id="total-valor-pagamento" value="0,00" disabled></td>
                           <td id="total-parcelas">0</td>
                           <td></td>
                           <td></td>
@@ -234,13 +234,13 @@ Criar Venda
     
     document.querySelectorAll(".produto-form").forEach(function(row) {
       const quantidadeField = row.querySelector('input[name$="-quantidade"]');
-      const valorTotalField = row.querySelector('input[name$="-valor_total"]');
+      const valorTotalField = obterValorSemMascara(row.querySelector('input[name$="-valor_total"]'));
       
       if (quantidadeField && valorTotalField) {
         // Converte a quantidade para número
         const quantidade = parseFloat(quantidadeField.value) || 0;
         // Converte o valor total para número (trocando vírgula por ponto)
-        const valorTotal = parseFloat(valorTotalField.value.replace(",", ".")) || 0;
+        const valorTotal = parseFloat(valorTotalField) || 0;
         totalQuantidade += quantidade;
         totalValor += valorTotal;
       }
@@ -248,7 +248,7 @@ Criar Venda
     
     // Atualiza os elementos de totalização, formatando o valor com duas casas decimais e vírgula
     document.getElementById("total-quantidade").innerText = totalQuantidade;
-    document.getElementById("total-valor").innerText = totalValor.toFixed(2).replace(".", ",");
+    $('#total-valor').val(totalValor.toFixed(2)).trigger('input');
   }
 
   // Função para atualizar os totais dos pagamentos (valor e parcelas)
@@ -257,18 +257,19 @@ Criar Venda
     let totalParcelas = 0;
     
     document.querySelectorAll(".pagamento-form").forEach(function(row) {
-      const valorField = row.querySelector('input[name$="-valor"]');
+      const valorField = obterValorSemMascara(row.querySelector('input[name$="-valor"]'));
       const parcelasField = row.querySelector('input[name$="-parcelas"]');
       if (valorField && parcelasField) {
-        const valor = parseFloat(valorField.value.replace(",", ".")) || 0;
+        const valor = parseFloat(valorField) || 0;
         const parcelas = parseInt(parcelasField.value) || 0;
         totalValorPagamento += valor;
         totalParcelas += parcelas;
       }
     });
     
-    document.getElementById("total-valor-pagamento").innerText = totalValorPagamento.toFixed(2).replace(".", ",");
     document.getElementById("total-parcelas").innerText = totalParcelas;
+
+    $('#total-valor-pagamento').val(totalValorPagamento.toFixed(2)).trigger('input');
   }
 
   // Função de configuração do formulário de produto
