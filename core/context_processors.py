@@ -157,7 +157,7 @@ def menu_items(request):
                 {
                     "label": "Contas a Receber",
                     "url_name": "financeiro:contas_a_receber_list",
-                    "permission": "auth.view_group"
+                    "permission": "vendas.view_pagamento"
                 },
                 {
                     "label": "Fechamentos Mensais",
