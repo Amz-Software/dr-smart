@@ -198,6 +198,9 @@ class CaixaMensalDetailView(PermissionRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         loja_id = self.request.session.get('loja_id')
         caixa_mensal = self.get_object()
+        caixa_mensal_gastos_fixos = CaixaMensalGastoFixo.objects.filter(caixa_mensal=caixa_mensal)
+        caixa_mensal_funcionarios = CaixaMensalFuncionario.objects.filter(caixa_mensal=caixa_mensal)
+        caixa_mensal_gastos_aleatorios = GastosAleatorios.objects.filter(caixa_mensal=caixa_mensal)
 
         # Pré-configurar os Gastos Fixos associados ao Caixa Mensal
         self._pre_configurar_gastos_fixos(caixa_mensal)
@@ -222,11 +225,11 @@ class CaixaMensalDetailView(PermissionRequiredMixin, DetailView):
         caixas_mes = Caixa.objects.filter(loja_id=loja_id).filter(data_abertura__month=caixa_mensal.mes.month)
         vendas = []
 
-        total_gastos = 0
+        total_saidas = 0
 
         for caixa in caixas_mes:
             vendas += caixa.vendas.all()
-            total_gastos += caixa.saidas
+            total_saidas += caixa.saidas
 
         total_custo = 0
         total_lucro = 0
@@ -245,6 +248,13 @@ class CaixaMensalDetailView(PermissionRequiredMixin, DetailView):
 
         lucro_total = (valor_por_tipo_pagamento_total - total_custo)
 
+        total_gasto_fixos = sum(gasto.valor for gasto in caixa_mensal_gastos_fixos)
+        total_funcionarios = sum(funcionario.salario + funcionario.comissao for funcionario in caixa_mensal_funcionarios)
+        total_gastos_aleatorios = sum(gasto.valor for gasto in caixa_mensal_gastos_aleatorios)
+        total_gastos = total_gasto_fixos + total_funcionarios + total_gastos_aleatorios
+
+        saldo_final = (caixa_mensal.valor + lucro_total) - total_gastos - total_saidas
+
         context = {
             'total_vendas': valor_por_tipo_pagamento_total,
             'valor_venda_por_tipo_pagamento': valor_venda_por_tipo_pagamento.items(),
@@ -252,7 +262,11 @@ class CaixaMensalDetailView(PermissionRequiredMixin, DetailView):
             'total_custo': total_custo,
             'total_lucro': total_lucro,
             'lucro_total': lucro_total,
-            'total_gastos': total_gastos,
+            'total_saidas': total_saidas,
+            'total_gasto_fixos': total_gasto_fixos,
+            'total_funcionarios': total_funcionarios,
+            'total_gastos_aleatorios': total_gastos_aleatorios,
+            'saldo_final': saldo_final,
             'formset_gastos_fixos': context['formset_gastos_fixos'],
             'formset_funcionarios': context['formset_funcionarios'],
             'formset_gastos_aleatorios': context['formset_gastos_aleatorios'],

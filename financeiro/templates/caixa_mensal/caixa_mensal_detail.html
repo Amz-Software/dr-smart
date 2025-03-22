@@ -23,6 +23,7 @@ Caixa Mensal - {{ caixa_mensal.loja }} - {{ caixa_mensal.mes|date:"F Y" }}
         </div>
         <div class="card-body">
             <div class="row mb-4 gy-3">
+                <h2 class="text-center">Caixa</h2>
                 <div class="col-md-4">
                     <p class="mb-1"><strong>Caixa mensal:</strong></p>
                     <p class="text-muted">{{ caixa_mensal }}</p>
@@ -53,6 +54,24 @@ Caixa Mensal - {{ caixa_mensal.loja }} - {{ caixa_mensal.mes|date:"F Y" }}
                         {% endif %}
                     </p>
                 </div>
+            </div>       
+            <hr>
+            <div class="row mb-4 gy-3">
+                <h2 class="text-center">Vendas</h2>
+                {% for nome, valor in valor_venda_por_tipo_pagamento %}
+                <div class="col-md-4">
+                    <p class="mb-1"><strong>{{ nome }}:</strong></p>
+                    <p class="text-muted text-uppercase">R$ {{ valor }}</p>
+                </div>
+                {% endfor %}
+                <div class="col-md-4">
+                    <p class="mb-1"><strong>Total Vendas:</strong></p>
+                    <p class="text-muted text-uppercase">R$ {{valor_por_tipo_pagamento_total}}</p>
+                </div>
+            </div> 
+            <hr>
+            <div class="row mb-4 gy-3">
+                <h2 class="text-center">Resumo</h2>
                 <div class="col-md-4">
                     <p class="mb-1"><strong>Estoque Custo:</strong></p>
                     <p class="text-muted text-uppercase">R$ {{total_custo}}</p>
@@ -62,21 +81,32 @@ Caixa Mensal - {{ caixa_mensal.loja }} - {{ caixa_mensal.mes|date:"F Y" }}
                     <p class="text-muted text-uppercase">R$ {{total_lucro}}
                 </div>
                 <div class="col-md-4">
-                    <p class="mb-1"><strong>Total Vendas:</strong></p>
-                    <p class="text-muted text-uppercase">R$ {{valor_por_tipo_pagamento_total}}</p>
-                </div>
-                <div class="col-md-4">
-                    <p class="mb-1"><strong>Lucro Total:</strong></p>
+                    <p class="mb-1"><strong>Lucro Total Vendas:</strong></p>
                     <p class="text-muted text-uppercase">R$ {{lucro_total}}</p>
                 </div>
-                {% for nome, valor in valor_venda_por_tipo_pagamento %}
                 <div class="col-md-4">
-                    <p class="mb-1"><strong>{{ nome }}:</strong></p>
-                    <p class="text-muted text-uppercase">R$ {{ valor }}</p>
+                    <p class="mb-1"><strong>Total Saidas:</strong></p>
+                    <p class="text-muted text-uppercase">R$ {{total_saidas}}</p>
                 </div>
-                {% endfor %}
-            </div>    
-
+                <div class="col-md-4">
+                    <p class="mb-1"><strong>Total Gastos Fixos:</strong></p>
+                    <p class="text-muted text-uppercase">R$ {{total_gasto_fixos}}</p>
+                </div>
+                <div class="col-md-4">
+                    <p class="mb-1"><strong>Total Funcionários Gastos:</strong></p>
+                    <p class="text-muted text-uppercase">R$ {{total_funcionarios}}</p>
+                </div>
+                <div class="col-md-4">
+                    <p class="mb-1"><strong>Total Gastos Aleatórios:</strong></p>
+                    <p class="text-muted text-uppercase">R$ {{total_gastos_aleatorios}}</p>
+                </div>
+                <div class="col-md-4">
+                    <p class="mb-1"><strong>Saldo Final:</strong></p>
+                    <p class="text-muted text-uppercase">R$ {{saldo_final}}</p>
+                </div>
+            </div>   
+            <hr>
+            
             <form method="POST" class="mb-4">
                 {% csrf_token %}
         
