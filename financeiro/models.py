@@ -10,7 +10,7 @@ class CaixaMensal(Base):
     valor = models.DecimalField(max_digits=10, decimal_places=2)
     data_abertura = models.DateTimeField(auto_now_add=True)
     data_fechamento = models.DateTimeField(blank=True, null=True)
-    gasto_fixos = models.ManyToManyField('financeiro.GastoFixo', through='financeiro.CaixaMensalGastoFixo', related_name='caixas_mensais')
+    gasto_fixos = models.ManyToManyField('financeiro.GastoFixo', through='financeiro.CaixaMensalGastoFixo', related_name='gastos_fixos')
     funcionarios = models.ManyToManyField('self', through='financeiro.CaixaMensalFuncionario')
     
     def calcular_saldo(self):
@@ -56,7 +56,7 @@ class GastoFixo(Base):
 
 
 class CaixaMensalGastoFixo(Base):
-    caixa_mensal = models.ForeignKey('financeiro.CaixaMensal', on_delete=models.CASCADE)
+    caixa_mensal = models.ForeignKey('financeiro.CaixaMensal', on_delete=models.CASCADE, related_name='gastos_fixos_caixa_mensal')
     gasto_fixo = models.ForeignKey('financeiro.GastoFixo', on_delete=models.CASCADE)
     valor = models.DecimalField(max_digits=10, decimal_places=2)
     observacao = models.TextField(blank=True, null=True)
