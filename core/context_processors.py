@@ -172,6 +172,19 @@ def menu_items(request):
             ]
         },
         {
+            "label": "Assistência",
+            "icon": "bx bx-wrench",
+            "permission": "assistencia.view_assistencia",
+            "section": "Assistência",
+            "sub_items": [
+                {
+                    "label": "Caixa Assistência",
+                    "url_name": "assistencia:caixa_assistencia_list",
+                    "permission": "assistencia.view_assistencia"
+                },
+            ]
+        },
+        {
             "label": "Usuários",
             "icon": "bx bx-user",
             "permission": "auth.view_user",
