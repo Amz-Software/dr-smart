@@ -364,7 +364,7 @@ class ContasAReceberListView(BaseView, PermissionRequiredMixin, ListView):
     template_name = 'contas_a_receber/contas_a_receber_list.html'
     context_object_name = 'contas_a_receber'
     paginate_by = 10
-    permission_required = 'financeiro.view_pagamento'
+    permission_required = 'vendas.view_pagamento'
 
     def get_queryset(self):
         loja_id = self.request.session.get('loja_id')
@@ -393,7 +393,7 @@ class ContasAReceberDetailView(PermissionRequiredMixin, DetailView):
     model = Pagamento
     template_name = 'contas_a_receber/contas_a_receber_detail.html'
     context_object_name = 'conta_a_receber'
-    permission_required = 'financeiro.view_pagamento'
+    permission_required = 'vendas.view_pagamento'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
