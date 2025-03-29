@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'vendas.apps.VendasConfig',
     'produtos.apps.ProdutosConfig',
     'estoque.apps.EstoqueConfig',
+    'assistencia.apps.AssistenciaConfig',
     'django_select2',
     'redis',
 ]
@@ -126,7 +127,7 @@ DATABASES = {
     },
 }
 
-db_used = os.environ.get('DB_USED')
+db_used = 'sqlite'
 
 # Set the default database to the one selected by DB_USED
 DATABASES['default'] = DATABASES[db_used]

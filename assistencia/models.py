@@ -77,6 +77,7 @@ class OrdemServico(models.Model):
     data_entrada = models.DateTimeField(auto_now_add=True)
     aparelho = models.CharField(max_length=100)
     defeito_relato = models.TextField()
+    pecas = models.ManyToManyField('produtos.Produto', blank=True, related_name='pecas_os')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='AGUARDANDO_PECAS')
     mao_de_obra = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
     valor_servico = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
