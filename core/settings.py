@@ -127,7 +127,7 @@ DATABASES = {
     },
 }
 
-db_used = 'sqlite'
+db_used = os.environ.get('DB_USED')
 
 # Set the default database to the one selected by DB_USED
 DATABASES['default'] = DATABASES[db_used]
