@@ -164,6 +164,7 @@ Caixas - Loja
             <table class="table table-striped">
               <thead>
                 <tr>
+                  <th>Data</th>
                   <th>Motivo</th>
                   <th>Tipo lançamento</th>
                   <th>valor</th>
@@ -173,6 +174,7 @@ Caixas - Loja
               <tbody>
                 {% for lançamento in lancamentos %}
                 <tr>
+                  <td>{{ lançamento.criado_em }}</td>
                   <td>{{ lançamento.motivo }}</td>
                   <td>{{ lançamento.get_tipo_lancamento_display }}</td>
                   <td>{{ lançamento.valor }}</td>
