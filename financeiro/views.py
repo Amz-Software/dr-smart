@@ -239,7 +239,7 @@ class CaixaMensalDetailView(PermissionRequiredMixin, DetailView):
             total_custo += venda.custo_total()
             total_lucro += venda.lucro_total()
             #filtrar pagamentos para o mes atual
-            for pagamento in venda.pagamentos.all().filter(data_primeira_parcela__month=caixa_mensal.mes.month):
+            for pagamento in venda.pagamentos.all():
                 if not pagamento.tipo_pagamento.nao_contabilizar:
                     if pagamento.tipo_pagamento.nome not in valor_venda_por_tipo_pagamento:
                         valor_venda_por_tipo_pagamento[pagamento.tipo_pagamento.nome] = 0
