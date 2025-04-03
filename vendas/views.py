@@ -1000,14 +1000,16 @@ class RelatorioVendasView(PermissionRequiredMixin, FormView):
 
         filtros['loja__in'] = lojas
 
-        vendas = Venda.objects.filter(**filtros).distinct()
+        vendas = Venda.objects.filter(**filtros)
         
         if not vendas:
             messages.warning(self.request, 'Nenhuma venda encontrada com os filtros informados')
             return self.form_invalid(form)
 
         total_vendas = vendas.count()
-        total_valor = vendas.aggregate(Sum('pagamentos__valor'))['pagamentos__valor__sum']
+        total_valor = 0
+        for venda in vendas:
+            total_valor += venda.pagamentos_valor_total
 
         context = {
             'form': form,
