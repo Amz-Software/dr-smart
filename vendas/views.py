@@ -1012,7 +1012,15 @@ class RelatorioVendasView(PermissionRequiredMixin, FormView):
             return self.form_invalid(form)
 
         total_vendas = vendas.count()
-        total_valor = sum(venda.pagamentos_valor_total for venda in vendas)
+        total_valor = 0
+        
+        if tipos_venda:
+            for venda in vendas:
+                    for pagamento in venda.pagamentos.filter(tipo_pagamento__in=tipos_venda):
+                        if not pagamento.tipo_pagamento.nao_contabilizar:
+                            total_valor += pagamento.valor
+        else:
+            total_valor = sum(venda.pagamentos_valor_total for venda in vendas)
 
         context = {
             'form': form,
