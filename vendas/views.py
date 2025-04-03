@@ -1008,8 +1008,15 @@ class RelatorioVendasView(PermissionRequiredMixin, FormView):
 
         total_vendas = vendas.count()
         total_valor = 0
+        valor_venda_por_tipo_pagamento = {}
+
         for venda in vendas:
-            total_valor += venda.pagamentos_valor_total
+            for pagamento in venda.pagamentos.all().filter(data_primeira_parcela__month=data_inicial.month, data_primeira_parcela__year=data_inicial.year):
+                if not pagamento.tipo_pagamento.nao_contabilizar:
+                    if pagamento.tipo_pagamento.nome not in valor_venda_por_tipo_pagamento:
+                        valor_venda_por_tipo_pagamento[pagamento.tipo_pagamento.nome] = 0
+                    valor_venda_por_tipo_pagamento[pagamento.tipo_pagamento.nome] += pagamento.valor 
+        total_valor = sum(valor_venda_por_tipo_pagamento.values())
 
         context = {
             'form': form,
