@@ -963,6 +963,11 @@ class RelatorioVendasView(PermissionRequiredMixin, FormView):
     form_class = RelatorioVendasForm
     permission_required = 'vendas.can_generate_report_sale'
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['loja'] = self.request.session.get('loja_id')
+        return kwargs
+
     def form_valid(self, form):
         print("Dados do formulário: %s" % form.cleaned_data)
         
@@ -1008,7 +1013,7 @@ class RelatorioVendasView(PermissionRequiredMixin, FormView):
 
         total_vendas = vendas.count()
         total_valor = sum(venda.pagamentos_valor_total for venda in vendas)
-        
+
         context = {
             'form': form,
             'vendas': vendas,
