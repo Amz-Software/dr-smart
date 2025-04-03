@@ -58,7 +58,7 @@ Relatório de Vendas
                     {% endfor %}
                   </td>
                   <td>{{ venda.tipo_venda }}</td>
-                  <td>{{ venda.calcular_valor_total|floatformat:2 }}</td>
+                  <td>{{ venda.pagamentos_valor_total|floatformat:2 }}</td>
                 </tr>
                 {% endfor %}
               </tbody>
