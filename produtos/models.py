@@ -35,6 +35,7 @@ class Produto(Base):
 class TipoProduto(Base):
     nome = models.CharField(max_length=100)
     numero_serial = models.BooleanField(default=False)
+    assistencia = models.BooleanField(default=False)
 
     def __str__(self):
         return self.nome

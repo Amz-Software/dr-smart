@@ -996,7 +996,7 @@ class RelatorioVendasView(PermissionRequiredMixin, FormView):
             filtros['produtos__in'] = produtos
             
         if tipos_venda:
-            filtros['tipo_venda__in'] = tipos_venda
+            filtros['pagamentos__tipo_pagamento__in'] = tipos_venda
 
         filtros['loja__in'] = lojas
 

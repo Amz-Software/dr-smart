@@ -27,4 +27,5 @@ urlpatterns = [
     path('', include('estoque.urls')),
     path('', include('financeiro.urls')),
     path('', include('accounts.urls')),
+    path('', include('assistencia.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

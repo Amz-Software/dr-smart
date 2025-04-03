@@ -88,7 +88,13 @@ class TipoForms(forms.ModelForm):
 
     def __init__(self, *args, disabled=False, **kwargs):
         self.user = kwargs.pop('user', None)  # Pega o usuário que será passado pela view
+        # caso o usario tenha permissao mostrar o campo assistencia
         super().__init__(*args, **kwargs)
+        if self.user and self.user.has_perm('assistencia.view_assistencia'):
+            self.fields['assistencia'].widget.attrs['disabled'] = False
+        else:
+            self.fields['assistencia'].widget.attrs['disabled'] = True
+        # caso o usuario tenha permissao mostrar o campo assistencia
         if disabled:
             for field in self.fields.values():
                 field.widget.attrs['disabled'] = True

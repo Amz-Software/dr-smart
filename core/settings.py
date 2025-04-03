@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'vendas.apps.VendasConfig',
     'produtos.apps.ProdutosConfig',
     'estoque.apps.EstoqueConfig',
+    'assistencia.apps.AssistenciaConfig',
     'django_select2',
     'redis',
 ]
