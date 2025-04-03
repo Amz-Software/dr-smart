@@ -527,8 +527,8 @@ class RelatorioVendasForm(forms.Form):
         widget=Select2MultipleWidget(attrs={'class': 'form-control'})
     )
     tipos_venda = forms.ModelMultipleChoiceField(
-        queryset=TipoVenda.objects.all(),
-        label='Tipos de Venda',
+        queryset=TipoPagamento.objects.all().distinct(),
+        label='Tipos de Pagamento',
         required=False,
         widget=Select2MultipleWidget(attrs={'class': 'form-control'})
     )
