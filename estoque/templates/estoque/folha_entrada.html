@@ -12,13 +12,20 @@ Relatório de Vendas
         body {
             margin: 0;
         }
+
         .table {
             font-size: 12px;
         }
     }
 
     /* Evita quebra de página no meio das tabelas */
-    table, tr, td, th, tbody, thead, tfoot {
+    table,
+    tr,
+    td,
+    th,
+    tbody,
+    thead,
+    tfoot {
         page-break-inside: avoid !important;
     }
 
@@ -119,11 +126,20 @@ Relatório de Vendas
     document.getElementById('download-pdf').addEventListener('click', function () {
         const element = document.getElementById('report-content');
         const opt = {
-            margin: [10, 10, 10, 10],
+            margin: [10, 5, 10, 5], // Margens: top, left, bottom, right
             filename: 'relatorio_entrada_{{ entrada.id }}.pdf',
             image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 3 },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+            html2canvas: {
+                scale: 2, // Menor escala evita corte
+                useCORS: true,
+                scrollY: 0
+            },
+            jsPDF: {
+                unit: 'mm',
+                format: 'a4',
+                orientation: 'portrait'
+            },
+            pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
         };
         html2pdf().set(opt).from(element).save();
     });
