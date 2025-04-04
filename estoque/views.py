@@ -345,9 +345,6 @@ class FolhaNotaEntradaView(View):
         loja = get_object_or_404(Loja, pk=request.session.get('loja_id'))
         entrada = get_object_or_404(EntradaEstoque, pk=kwargs['pk'])
         produtos = ProdutoEntrada.objects.filter(entrada=entrada)
-
-        print(f'entrada: {entrada}')
-        print(f'produtos: {produtos}')
         
         context = {
             'produtos': produtos,
