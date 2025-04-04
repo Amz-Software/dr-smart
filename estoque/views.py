@@ -339,3 +339,21 @@ def inventario_estoque_imei_pdf (request):
     }
 
     return render(request, "estoque/folha_estoque_imei.html", context)
+
+class FolhaNotaEntradaView(View):
+    def get(self, request, *args, **kwargs):
+        loja = get_object_or_404(Loja, pk=request.session.get('loja_id'))
+        entrada = get_object_or_404(EntradaEstoque, pk=kwargs['pk'])
+        produtos = ProdutoEntrada.objects.filter(entrada=entrada)
+
+        print(f'entrada: {entrada}')
+        print(f'produtos: {produtos}')
+        
+        context = {
+            'produtos': produtos,
+            'loja': loja,
+            'entrada': entrada,
+            'data_hoje': datetime.datetime.now()
+        }
+
+        return render(request, "estoque/folha_entrada.html", context)

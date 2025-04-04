@@ -57,6 +57,11 @@ Estoque
                                     <i class="bx bx-show me-1"></i> Detalhes
                                     </a>
                                   {% endif %}
+                                  {% if user|has_perm:"estoque.view_entradaestoque" %}
+                                    <a class="dropdown-item" href="{% url "estoque:folha_entrada" entrada.pk %}">
+                                    <i class="bx bx-file me-1"></i> Folha de Entrada
+                                    </a>
+                                  {% endif %}
                                   {% if user|has_perm:"estoque.change_entradaestoque" %}
                                     <a class="dropdown-item" href="{% url "estoque:entrada_update" entrada.pk %}">
                                     <i class="bx bx-edit me-1"></i>
