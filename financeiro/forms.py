@@ -34,9 +34,9 @@ class GastosAleatoriosForm(forms.ModelForm):
         model = GastosAleatorios
         fields = ['descricao', 'observacao', 'valor']
         widgets = {
-            'descricao': forms.TextInput(attrs={'class': 'form-control'}),
+            'descricao': forms.TextInput(attrs={'class': 'form-control', 'style': 'background-color: #d4edda;'}),
             'observacao': forms.Textarea(attrs={'rows': 1, 'class': 'form-control'}),
-            'valor': forms.TextInput(attrs={'class': 'form-control money'}),
+            'valor': forms.TextInput(attrs={'class': 'form-control money', 'style': 'background-color: #d4edda;'}),
         }
 class GastoFixoForm(forms.ModelForm):
     class Meta:
@@ -73,7 +73,7 @@ class CaixaMensalGastoFixoForm(forms.ModelForm):
         widgets = {
             'gasto_fixo': forms.Select(attrs={'class': 'form-select'}),
             'observacao': forms.Textarea(attrs={'rows': 1, 'class': 'form-control'}),
-            'valor': forms.TextInput(attrs={'class': 'form-control money'}),
+            'valor': forms.TextInput(attrs={'class': 'form-control money', 'style': 'background-color: #d4edda;'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -89,7 +89,7 @@ class CaixaMensalFuncionarioForm(forms.ModelForm):
         fields = ['comissao', 'salario']
         widgets = {
             'comissao': forms.TextInput(attrs={'class': 'form-control money'}),
-            'salario': forms.TextInput(attrs={'class': 'form-control money'}),
+            'salario': forms.TextInput(attrs={'class': 'form-control money', 'style': 'background-color: #d4edda;'}),
         }
         labels = {
             'comissao': 'Comissão',

@@ -31,8 +31,16 @@ class CaixaMensalListView(BaseView, PermissionRequiredMixin, ListView):
     context_object_name = 'caixas_mensais'
     paginate_by = 10
     permission_required = 'financeiro.view_caixamensal'
-    # def get_queryset(self):
-    #     return CaixaMensal.objects.filter(loja__user=self.request.user)
+    def get_queryset(self):
+        loja_id = self.request.session.get('loja_id')
+        loja = Loja.objects.get(id=loja_id)
+        queryset = super().get_queryset()
+        search = self.request.GET.get('search', '')
+        if search:
+            data = search + "-01"
+            data = datetime.strptime(data, "%Y-%m-%d").date()
+            queryset = queryset.filter(mes__month=data.month, mes__year=data.year, loja=loja).order_by('-mes')
+        return queryset.filter(loja=loja).order_by('-mes')
 
 
 @login_required
@@ -41,6 +49,11 @@ def caixa_mensal_create(request):
     with transaction.atomic():
         
         loja_id = request.session.get('loja_id')
+        mes = request.POST.get('mes')
+
+        if mes:
+            mes = mes + "-01"
+            mes_atual = datetime.strptime(mes, "%Y-%m-%d").date()
         
         if not loja_id:
             messages.error(request, "Loja não selecionada. Selecione uma loja e faça login novamente.")
@@ -51,8 +64,6 @@ def caixa_mensal_create(request):
         except Loja.DoesNotExist:
             messages.error(request, "Loja não encontrada. Selecione uma loja e faça login novamente.")
             return logout_view(request)
-
-        mes_atual = timezone.now().date().replace(day=1)
 
         if CaixaMensal.objects.filter(loja=loja, mes=mes_atual).exists():
             messages.error(request, "Caixa mensal já criado para este mês.")

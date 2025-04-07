@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 from typing import Any
 from django.contrib import messages
@@ -988,6 +988,7 @@ class RelatorioVendasView(PermissionRequiredMixin, FormView):
 
         # Adiciona filtros para datas, se informadas
         if data_inicial and data_final:
+            data_final = data_final + timedelta(days=1)
             filtros['data_venda__range'] = [data_inicial, data_final]
         elif data_inicial:
             filtros['data_venda__gte'] = data_inicial
