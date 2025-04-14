@@ -66,15 +66,14 @@ class CaixaAssistencia(Base):
         verbose_name_plural = 'Caixas'
         permissions = [('view_assistencia', 'Pode visualizar assistência')]
 
-class OrdemServico(models.Model):
+class OrdemServico(Base):
     STATUS_CHOICES = [
-        ('AGUARDANDO_PECAS', 'Aguardando Peças'),
-        ('EM_TESTE', 'Em Teste'),
-        ('SEM_CONSERTO', 'Sem Conserto'),
-        ('FINALIZADA', 'Finalizada'),
+        ('Aguardando Peças', 'Aguardando Peças'),
+        ('Em Teste', 'Em Teste'),
+        ('Sem Conserto', 'Sem Conserto'),
+        ('Finalizada', 'Finalizada'),
     ]
 
-    data_entrada = models.DateTimeField(auto_now_add=True)
     aparelho = models.CharField(max_length=100)
     defeito_relato = models.TextField()
     pecas = models.ManyToManyField('produtos.Produto', blank=True, related_name='pecas_os')
@@ -83,9 +82,10 @@ class OrdemServico(models.Model):
     valor_servico = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
     observacoes = models.TextField(blank=True, null=True)
     data_finalizacao = models.DateTimeField(null=True, blank=True)
+    loja = models.ForeignKey('vendas.Loja', on_delete=models.PROTECT, related_name='ordem_servico_loja', null=True, blank=True)
 
     def __str__(self):
-        return f'OS #{self.id} - {self.cliente.nome}'
+        return f'OS #{self.id} - {self.aparelho} - {self.loja}'
 
     class Meta:
         verbose_name_plural = 'Ordens de Serviço'

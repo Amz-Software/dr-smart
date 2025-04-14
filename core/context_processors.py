@@ -187,6 +187,11 @@ def menu_items(request):
                     "url_name": "assistencia:caixa_assistencia_list",
                     "permission": "assistencia.view_assistencia"
                 },
+                {
+                    "label": "Ordens de Serviço",
+                    "url_name": "assistencia:ordem_servico_list",
+                    "permission": "assistencia.view_ordemservico"
+                }
             ]
         },
         {
