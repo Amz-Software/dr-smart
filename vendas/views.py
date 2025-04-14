@@ -17,6 +17,7 @@ from django.utils import timezone
 from django.db import transaction
 from django_select2.views import AutoResponseView
 from django.db.models import Sum
+from django.db.models import Q, BooleanField, Case, When
 
 logger = logging.getLogger(__name__)
 
@@ -278,12 +279,24 @@ class VendaListView(BaseView, PermissionRequiredMixin, ListView):
     permission_required = 'vendas.view_venda'
     
     def get_queryset(self):
-        query = super().get_queryset()
+        qs = super().get_queryset()
         data_filter = self.request.GET.get('search')
-        if data_filter:
-            return query.filter(data_venda=data_filter)
         
-        return query.order_by('-criado_em')
+        qs = qs.annotate(
+            carne=Case(
+                When(
+                    Q(pagamentos__tipo_pagamento__carne=True),
+                    then=True
+                ),
+                default=False,
+                output_field=BooleanField()
+            )
+        ).order_by('-criado_em').distinct()  # O distinct() pode ser necessário se houver junção (join) com pagamentos.
+        
+        if data_filter:
+            qs = qs.filter(data_venda__date=data_filter, is_deleted=False)
+
+        return qs
 
 class VendaCreateView(PermissionRequiredMixin, CreateView):
     model = Venda
@@ -932,7 +945,7 @@ def folha_carne_view(request, pk, tipo):
         return redirect('vendas:venda_list')
     
     quantidade_parcelas = pagamento_carne.parcelas
-    valor_parcela = pagamento_carne.valor_parcela
+    valor_parcela = f'{pagamento_carne.valor_parcela:.2f}'
     nome_cliente = venda.cliente.nome.title()
     tipo_pagamento = 'Carnê' if tipo == 'carne' else 'Promissória'
     endereco_cliente = venda.cliente.endereco
@@ -940,6 +953,19 @@ def folha_carne_view(request, pk, tipo):
 
     # Lista de parcelas (1 a quantidade_parcelas)
     parcelas = list(range(1, quantidade_parcelas + 1))
+    datas_vencimento = []
+
+    for i in range(quantidade_parcelas):
+        # somar 1 meses a data de vencimento
+        data_vencimento = pagamento_carne.data_primeira_parcela
+        mes = data_vencimento.month + i
+        ano = data_vencimento.year
+        if mes > 12:
+            mes -= 12
+            ano += 1
+        data_vencimento = data_vencimento.replace(month=mes, year=ano)
+        datas_vencimento.append(data_vencimento.strftime('%d/%m/%Y'))
+
 
     # Contexto para o template
     context = {
@@ -952,11 +978,59 @@ def folha_carne_view(request, pk, tipo):
         'endereco_cliente': endereco_cliente,
         'cpf': cpf,
         'parcelas': parcelas,  # Envia a lista de parcelas
+        'datas_vencimento': datas_vencimento,  # Envia as datas de vencimento
+        'data_atual': localtime(now()).date(),
     }
 
     return render(request, "venda/folha_carne.html", context)
 
+def contrato_view(request, pk):
+    
+    # Busca a venda
+    venda = Venda.objects.get(pk=pk)
+    valor_total = venda.pagamentos_valor_total
+    pagamento_carne = Pagamento.objects.filter(venda=venda, tipo_pagamento__carne=True).first()
+    aparelho = venda.itens_venda.first()
+    imei = aparelho.imei if aparelho else None
+    loja = Loja.objects.get(id=request.session.get('loja_id'))
+    cliente = venda.cliente
+    contrato = loja.contrato
+    contrato = json.dumps(contrato)
+    primeira_parcela = pagamento_carne.data_primeira_parcela if pagamento_carne else None
+    parcelas = pagamento_carne.parcelas if pagamento_carne else 0
+    parcelas_meses = []
 
+    for i in range(parcelas):
+        # somar 1 meses a data de vencimento
+        mes = primeira_parcela.month + i
+        ano = primeira_parcela.year
+        if mes > 12:
+            mes -= 12
+            ano += 1
+        data_vencimento = primeira_parcela.replace(month=mes, year=ano)
+        parcelas_meses.append(data_vencimento.strftime('%d/%m/%Y'))
+
+    ultima_parcela = parcelas_meses[-1] if parcelas_meses else None
+
+    context = {
+        'venda': venda,
+        'valor_total': valor_total,
+        'tipo_pagamento': 'Carnê' if pagamento_carne else 'À vista',
+        'cliente': cliente,
+        'data_atual': localtime(now()).date(),
+        'loja': loja,
+        'contrato': contrato,
+        'aparelho': aparelho,
+        'imei': imei,
+        'valor_parcela': pagamento_carne.valor_parcela if pagamento_carne else None,
+        'quantidade_parcelas': parcelas,
+        'parcelas_meses': parcelas_meses,
+        'primeira_parcela': primeira_parcela.strftime('%d/%m/%Y') if primeira_parcela else None,
+        'ultima_parcela': ultima_parcela,
+
+    }
+
+    return render(request, "venda/contrato.html", context)
 
 class RelatorioVendasView(PermissionRequiredMixin, FormView):
     template_name = 'relatorios/relatorio_vendas.html'
@@ -969,8 +1043,6 @@ class RelatorioVendasView(PermissionRequiredMixin, FormView):
         return kwargs
 
     def form_valid(self, form):
-        print("Dados do formulário: %s" % form.cleaned_data)
-        
         data_inicial = form.cleaned_data.get('data_inicial')
         data_final = form.cleaned_data.get('data_final')
         produtos = form.cleaned_data.get('produtos')
@@ -1014,14 +1086,17 @@ class RelatorioVendasView(PermissionRequiredMixin, FormView):
 
         total_vendas = vendas.count()
         total_valor = 0
+        total_lucro = 0
         
         if tipos_venda:
             for venda in vendas:
                     for pagamento in venda.pagamentos.filter(tipo_pagamento__in=tipos_venda):
                         if not pagamento.tipo_pagamento.nao_contabilizar:
                             total_valor += pagamento.valor
+                            total_lucro += venda.lucro_total()
         else:
             total_valor = sum(venda.pagamentos_valor_total for venda in vendas)
+            total_lucro = sum(venda.lucro_total() for venda in vendas)
 
         context = {
             'form': form,
@@ -1031,6 +1106,7 @@ class RelatorioVendasView(PermissionRequiredMixin, FormView):
             'data_inicial': data_inicial,
             'data_final': data_final,
             'lojas': lojas,
+            'lucro': total_lucro,
         }
         return render(self.request, self.template_name, context)
 

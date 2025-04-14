@@ -1,13 +1,16 @@
 from django.shortcuts import render
-from django.views.generic import ListView
+from django.urls import reverse_lazy
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.utils import timezone
 from django.http import Http404
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.shortcuts import get_object_or_404, redirect
-from assistencia.models import CaixaAssistencia
+from assistencia.models import CaixaAssistencia, OrdemServico
+from produtos.models import Produto
 from vendas.models import Loja
 from django.views import View
+from .forms import CaixaAssistenciaForm, OrdemServicoForm
 
 class BaseView(View):
     def get_loja(self):
@@ -74,3 +77,46 @@ class CaixaAssistenciaListView(BaseView, PermissionRequiredMixin, ListView):
                 return redirect('assistencia:caixa_assistencia_list')
         
         return self.get(request, *args, **kwargs)
+
+class OrdemServicoListView(BaseView, PermissionRequiredMixin, ListView):
+    model = OrdemServico
+    template_name = 'ordem-servico/ordem_servico_list.html'
+    context_object_name = 'ordens_servico'
+    permission_required = 'assistencia.view_ordemservico'
+    
+class OrdemServicoCreateView(BaseView, PermissionRequiredMixin, CreateView):
+    model = OrdemServico
+    form_class = OrdemServicoForm
+    template_name = 'ordem-servico/ordem_servico_create.html'
+    permission_required = 'assistencia.add_ordemservico'
+    success_url = reverse_lazy('assistencia:ordem_servico_list')
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        loja = self.get_loja()
+        if loja:
+            kwargs['loja'] = loja
+        return kwargs
+
+    def form_valid(self, form):
+        form.instance.loja = self.get_loja()
+        form.instance.criado_por = self.request.user
+        return super().form_valid(form)
+    
+class OrdemServicoUpdateView(BaseView, PermissionRequiredMixin, UpdateView):
+    model = OrdemServico
+    form_class = OrdemServicoForm
+    template_name = 'ordem-servico/ordem_servico_update.html'
+    permission_required = 'assistencia.change_ordemservico'
+    success_url = reverse_lazy('assistencia:ordem_servico_list')
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        loja = self.get_loja()
+        if loja:
+            kwargs['loja'] = loja
+        return kwargs
+
+    def form_valid(self, form):
+        form.instance.modificado_por = self.request.user
+        return super().form_valid(form)

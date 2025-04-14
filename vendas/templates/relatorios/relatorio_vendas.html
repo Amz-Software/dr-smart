@@ -42,6 +42,7 @@ Relatório de Vendas
                   <th>Produtos</th>
                   <th>Tipo de Venda</th>
                   <th>Valor Total</th>
+                  <th>Valor Total Lucro</th>
                 </tr>
               </thead>
               <tbody>
@@ -59,13 +60,15 @@ Relatório de Vendas
                   </td>
                   <td>{{ venda.tipo_venda }}</td>
                   <td>{{ venda.pagamentos_valor_total|floatformat:2 }}</td>
+                  <td>{{ venda.lucro_total|floatformat:2 }}</td>
                 </tr>
                 {% endfor %}
               </tbody>
               <tfoot>
                 <tr>
                   <td colspan="3"><strong>Total de Vendas: {{ total_vendas }}</strong></td>
-                  <td colspan="2"><strong>Total Valor: {{ total_valor|floatformat:2 }}</strong></td>
+                  <td colspan="2"><strong>Total Valor: R$ {{ total_valor|floatformat:2 }}</strong></td>
+                  <td colspan="2"><strong>Total Lucro: R$ {{ lucro|floatformat:2 }}</strong></td>
                 </tr>
               </tfoot>
             </table>

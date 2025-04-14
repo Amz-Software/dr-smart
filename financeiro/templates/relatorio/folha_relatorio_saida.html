@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório Saída</title>
+    <style>
+        @media print {
+            * {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            margin: 0;
+            padding: 0;
+            font-size: 12px;
+        }
+
+        h2, h3 {
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #4CAF50;
+            color: white;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        .header {
+            background-color: #4CAF50;
+            color: white;
+            font-weight: bold;
+        }
+
+        .footer {
+            font-weight: bold;
+            background-color: #f4f4f4;
+        }
+
+        .center {
+            text-align: center;
+        }
+
+        .left {
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Relatório de Saídas</h2>
+        <h3>Período: {{ data_inicio }} a {{ data_fim }}</h3>
+        <h3>Lojas: {{ lojas|join:", " }}</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Loja</th>
+                    <th>Data</th>
+                    <th>Criada por</th>
+                    <th>Motivo</th>
+                    <th>Valor</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for saida in saidas %}
+                    <tr>
+                        <td>{{ saida.caixa.loja }}</td>
+                        <td>{{ saida.caixa.data_abertura }}</td>
+                        <td>{{ saida.criado_por }}</td>
+                        <td>{{ saida.motivo }}</td>
+                        <td>R$ {{ saida.valor }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr class="footer">
+                    <td colspan="2">Quantidade</td>
+                    <td>{{ quantidade_saida }}</td>
+                    <td>Total</td>
+                    <td>R$ {{ total_saida }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js"></script>
+    <script>
+        const element = document.body;
+        const opt = {
+            margin: [10, 10, 10, 10],
+            filename: `relatorio_saidas.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 3 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        };
+        print();
+    </script>
+</body>
+</html>

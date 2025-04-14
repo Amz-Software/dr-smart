@@ -20,4 +20,7 @@ urlpatterns = [
     path('gasto-fixo/novo', gasto_fixo_views['create_view'].as_view(), name='gasto_fixo_create'),
     path('gasto-fixo/<int:pk>/detalhe', gasto_fixo_views['detail_view'].as_view(), name='gasto_fixo_detail'),
     path('gasto-fixo/<int:pk>', gasto_fixo_views['update_view'].as_view(), name='gasto_fixo_update'),
+
+    path('relatorio/saidas', RelatorioSaidaView.as_view(), name='relatorio_saidas'),
+    path('relatorio/folha-saida', FolhaRelatorioSaidaView.as_view(), name='relatorio_folha_saida'),
 ]

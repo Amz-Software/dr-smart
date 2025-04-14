@@ -150,8 +150,13 @@ def menu_items(request):
                     "permission": "vendas.view_caixa"
                 },
                 {
-                    "label": "Relatótio de Vendas",
+                    "label": "Relatório de Vendas",
                     "url_name": "vendas:venda_relatorio",
+                    "permission": "vendas.can_generate_report_sale"
+                },
+                {
+                    "label": "Relatório de Saidas",
+                    "url_name": "financeiro:relatorio_saidas",
                     "permission": "vendas.can_generate_report_sale"
                 },
                 {
@@ -182,6 +187,11 @@ def menu_items(request):
                     "url_name": "assistencia:caixa_assistencia_list",
                     "permission": "assistencia.view_assistencia"
                 },
+                {
+                    "label": "Ordens de Serviço",
+                    "url_name": "assistencia:ordem_servico_list",
+                    "permission": "assistencia.view_ordemservico"
+                }
             ]
         },
         {
