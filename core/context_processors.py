@@ -150,8 +150,13 @@ def menu_items(request):
                     "permission": "vendas.view_caixa"
                 },
                 {
-                    "label": "Relatótio de Vendas",
+                    "label": "Relatório de Vendas",
                     "url_name": "vendas:venda_relatorio",
+                    "permission": "vendas.can_generate_report_sale"
+                },
+                {
+                    "label": "Relatório de Saidas",
+                    "url_name": "financeiro:relatorio_saidas",
                     "permission": "vendas.can_generate_report_sale"
                 },
                 {

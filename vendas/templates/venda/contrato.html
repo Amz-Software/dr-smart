@@ -1,0 +1,117 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contrato de Locação</title>
+    <style>
+        @media print {
+            * {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            body {
+                margin: 0;
+                padding: 0;
+                font-size: 12px;
+                line-height: 1.5;
+            }
+            h2, p {
+                margin: 0;
+                padding: 5px 0;
+            }
+            table {
+                page-break-inside: avoid;
+            }
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            margin: 0;
+            padding: 0;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+        h2 {
+            text-align: center;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        p {
+            text-align: justify;
+            margin: 10px 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 90%;
+            margin: 20px auto;
+            page-break-inside: avoid;
+        }
+        td {
+            border: 1px solid #000;
+            vertical-align: top;
+            padding: 5px;
+        }
+        .header {
+            background-color: #fff000;
+            font-weight: bold;
+        }
+        .content {
+            background-color: #fef9c8;
+        }
+        .center {
+            text-align: center;
+        }
+        .left {
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+
+<h2>CONTRATO DE LOCAÇÃO DE CELULAR</h2>
+<p>Este Contrato de Locação de Celular ("Contrato") é celebrado entre: {{loja.nome}}, inscrito no CNPJ {{loja.cnpj}}, com endereço registrado em {{loja.endereco}} referido como "Locador", {{cliente.nome}}, inscrito no CPF {{cliente.cpf}}, REGISTRO GERAL {{cliente.rg}}, com endereço registrado em {{cliente.endereco}} referido como "Locatário".</p>
+<p><strong>1. Objeto do Contrato</strong></p>
+<p>O Locador concorda em alugar ao Locatário o seguinte celular:</p>
+<ul>
+    <li>Modelo de Celular: {{aparelho.produto.nome}}</li>
+    <li>Número de Série/IMEI: {{imei}}</li>
+</ul>
+<p><strong>2. Período de Locação</strong></p>
+<p>O período de locação começará em {{primeira_parcela}} e terminará em {{ultima_parcela}}.</p>
+<p><strong>3. Taxa de Locação</strong></p>
+<p>O Locatário concorda em pagar uma taxa de locação de R$ {{valor_parcela}} por {{quantidade_parcelas}} MESES durante o período de locação. O pagamento deverá ser efetuado no máximo com 5 dias de atraso de cada parcela para não ocorrer bloqueio.</p>
+<div id="texto_contrato" data-texto="{{contrato}}"></div>
+<p>Locador: {{loja.nome}}<br>
+CNPJ: {{loja.cnpj}}<br>
+Locatário: ____________________________________<br>
+CPF: ____________________________________<br>
+Vendedor: ____________________________________<br>
+CPF: ____________________________________<br>
+Testemunha: ____________________________________<br>
+CPF: ____________________________________</p>
+
+<script src="{% static 'js/formatarTextoEditor.js' %}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const divContrato = document.getElementById('texto_contrato');
+        const texto = divContrato.getAttribute('data-texto');
+        formatarTexto(texto, divContrato);
+    });
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js"></script>
+<script>
+    const element = document.body;
+    const opt = {
+        margin: [10, 10, 10, 10],
+        filename: `parcelas.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 3 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    };
+    print();
+</script>
+
+</body>
+</html>

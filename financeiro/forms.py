@@ -1,10 +1,9 @@
-# forms.py
-
 from django import forms
-
 from accounts.models import User
 from .models import *
 from vendas.models import *
+from django_select2.forms import Select2Widget, ModelSelect2Widget, Select2MultipleWidget
+from django_select2.forms import ModelSelect2MultipleWidget, HeavySelect2Widget
 
 class PagamentoForm(forms.ModelForm):
     class Meta:
@@ -131,3 +130,21 @@ ParcelaInlineFormSet = forms.inlineformset_factory(
     extra=0,
     can_delete=True
 )
+
+class RelatorioSaidaForm(forms.Form):
+    data_inicial = forms.DateField(
+        label='Data Inicial',
+        required=True,
+        widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'})
+    )
+    data_final = forms.DateField(
+        label='Data Final',
+        required=True,
+        widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'})
+    )
+    lojas = forms.ModelMultipleChoiceField(
+        queryset=Loja.objects.all(),
+        label='Lojas',
+        required=True,
+        widget=Select2MultipleWidget(attrs={'class': 'form-control'})
+    )

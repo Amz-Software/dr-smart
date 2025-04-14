@@ -1,4 +1,4 @@
-from django.views.generic import CreateView, UpdateView, ListView, DetailView
+from django.views.generic import CreateView, UpdateView, ListView, DetailView, TemplateView
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
@@ -11,13 +11,12 @@ from django.shortcuts import get_object_or_404
 from django.forms import modelformset_factory
 from django.http import HttpResponseRedirect
 from django.urls import reverse
-
 from vendas.views import BaseView
 from .models import CaixaMensal, CaixaMensalGastoFixo, CaixaMensalFuncionario, GastosAleatorios
-from financeiro.forms import GastosAleatoriosForm
+from financeiro.forms import RelatorioSaidaForm
 from vendas.models import Loja
 from .models import CaixaMensal, CaixaMensalFuncionario, CaixaMensalGastoFixo, GastoFixo, GastosAleatorios
-from datetime import datetime
+from datetime import datetime, timedelta
 from django.db import transaction
 from financeiro.forms import *
 from vendas.models import Pagamento, Parcela
@@ -425,5 +424,42 @@ class ContasAReceberDetailView(PermissionRequiredMixin, DetailView):
         messages.error(request, "Erro ao atualizar as parcelas.")
         return self.render_to_response(self.get_context_data(parcela_form=parcela_form))
     
+class RelatorioSaidaView(BaseView, PermissionRequiredMixin, TemplateView):
+    template_name = 'relatorio/relatorio_saida.html'
+    permission_required = 'financeiro.view_caixamensal'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form'] = RelatorioSaidaForm()
 
+        return context
+    
+class FolhaRelatorioSaidaView(BaseView, PermissionRequiredMixin, TemplateView):
+    template_name = 'relatorio/folha_relatorio_saida.html'
+    permission_required = 'financeiro.view_caixamensal'
+
+    def get_context_data(self, **kwargs):
+        data_inicio = self.request.GET.get('data_inicial')
+        data_fim = self.request.GET.get('data_final')
+        lojas = self.request.GET.getlist('lojas')
+        saidas = []
+
+        if data_inicio and data_fim:
+            lojas = Loja.objects.filter(id__in=lojas)
+            data_final = datetime.strptime(data_fim, "%Y-%m-%d").date() + timedelta(days=1)
+
+            for loja in lojas:
+                caixas = Caixa.objects.filter(loja=loja).filter(data_abertura__range=[data_inicio, data_final]).filter(data_fechamento__isnull=False)
+                for caixa in caixas:
+                    saidas += caixa.lancamentos_caixa.filter(tipo_lancamento='2')
+
+        context = super().get_context_data(**kwargs)
+        context['saidas'] = saidas
+        # retornar apenas os nomes das lojas
+        context['lojas'] = lojas.values_list('nome', flat=True)
+        context['data_inicio'] = datetime.strptime(data_inicio, "%Y-%m-%d").date() if data_inicio else None
+        context['data_fim'] = datetime.strptime(data_fim, "%Y-%m-%d").date() if data_fim else None
+        context['total_saida'] = sum(saida.valor for saida in saidas)
+        context['quantidade_saida'] = len(saidas)
+
+        return context
