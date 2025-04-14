@@ -56,10 +56,3 @@ class OrdemServicoForm(forms.ModelForm):
             ).distinct()
         else:
             self.fields['pecas'].queryset = Produto.objects.none()
-
-pecaInlineFormSet = forms.inlineformset_factory(
-    OrdemServico, 
-    Produto,
-    extra=0,
-    can_delete=False,
-)

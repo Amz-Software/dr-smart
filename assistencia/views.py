@@ -10,7 +10,7 @@ from assistencia.models import CaixaAssistencia, OrdemServico
 from produtos.models import Produto
 from vendas.models import Loja
 from django.views import View
-from .forms import CaixaAssistenciaForm, OrdemServicoForm, pecaInlineFormSet
+from .forms import CaixaAssistenciaForm, OrdemServicoForm
 
 class BaseView(View):
     def get_loja(self):
