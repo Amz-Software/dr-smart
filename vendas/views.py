@@ -1043,8 +1043,6 @@ class RelatorioVendasView(PermissionRequiredMixin, FormView):
         return kwargs
 
     def form_valid(self, form):
-        print("Dados do formulário: %s" % form.cleaned_data)
-        
         data_inicial = form.cleaned_data.get('data_inicial')
         data_final = form.cleaned_data.get('data_final')
         produtos = form.cleaned_data.get('produtos')
@@ -1088,14 +1086,17 @@ class RelatorioVendasView(PermissionRequiredMixin, FormView):
 
         total_vendas = vendas.count()
         total_valor = 0
+        total_lucro = 0
         
         if tipos_venda:
             for venda in vendas:
                     for pagamento in venda.pagamentos.filter(tipo_pagamento__in=tipos_venda):
                         if not pagamento.tipo_pagamento.nao_contabilizar:
                             total_valor += pagamento.valor
+                            total_lucro += venda.lucro_total()
         else:
             total_valor = sum(venda.pagamentos_valor_total for venda in vendas)
+            total_lucro = sum(venda.lucro_total() for venda in vendas)
 
         context = {
             'form': form,
@@ -1105,6 +1106,7 @@ class RelatorioVendasView(PermissionRequiredMixin, FormView):
             'data_inicial': data_inicial,
             'data_final': data_final,
             'lojas': lojas,
+            'lucro': total_lucro,
         }
         return render(self.request, self.template_name, context)
 
