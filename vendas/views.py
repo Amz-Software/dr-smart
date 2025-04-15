@@ -1042,13 +1042,17 @@ class RelatorioVendasView(PermissionRequiredMixin, FormView):
         kwargs['loja'] = self.request.session.get('loja_id')
         return kwargs
 
-    def form_valid(self, form):
-        data_inicial = form.cleaned_data.get('data_inicial')
-        data_final = form.cleaned_data.get('data_final')
-        produtos = form.cleaned_data.get('produtos')
-        vendedores = form.cleaned_data.get('vendedores')
-        lojas = form.cleaned_data.get('lojas')
-        tipos_venda = form.cleaned_data.get('tipos_venda')
+class FolhaRelatorioVendasView(PermissionRequiredMixin, TemplateView):
+    template_name = 'relatorios/folha_relatorio_vendas.html'
+    permission_required = 'vendas.can_generate_report_sale'
+
+    def get_context_data(self, **kwargs):
+        data_inicial = self.request.GET.get('data_inicial')
+        data_final = self.request.GET.get('data_final')
+        produtos = self.request.GET.get('produtos')
+        vendedores = self.request.GET.get('vendedores')
+        lojas = self.request.GET.get('lojas')
+        tipos_venda = self.request.GET.get('tipos_venda')
         
         # Se nenhuma loja for selecionada, utiliza a loja da sessão
         if not lojas:
@@ -1060,6 +1064,9 @@ class RelatorioVendasView(PermissionRequiredMixin, FormView):
 
         # Adiciona filtros para datas, se informadas
         if data_inicial and data_final:
+            data_final = datetime.strptime(data_final, '%Y-%m-%d')
+            data_inicial = datetime.strptime(data_inicial, '%Y-%m-%d')
+            
             data_final = data_final + timedelta(days=1)
             filtros['data_venda__range'] = [data_inicial, data_final]
         elif data_inicial:
@@ -1082,7 +1089,7 @@ class RelatorioVendasView(PermissionRequiredMixin, FormView):
         
         if not vendas:
             messages.warning(self.request, 'Nenhuma venda encontrada com os filtros informados')
-            return self.form_invalid(form)
+            return redirect('vendas:venda_relatorio')
 
         total_vendas = vendas.count()
         total_valor = 0
@@ -1098,22 +1105,21 @@ class RelatorioVendasView(PermissionRequiredMixin, FormView):
             total_valor = sum(venda.pagamentos_valor_total for venda in vendas)
             total_lucro = sum(venda.lucro_total() for venda in vendas)
 
-        context = {
-            'form': form,
-            'vendas': vendas,
-            'total_vendas': total_vendas,
-            'total_valor': total_valor,
-            'data_inicial': data_inicial,
-            'data_final': data_final,
-            'lojas': lojas,
-            'lucro': total_lucro,
-        }
-        return render(self.request, self.template_name, context)
+        context = super().get_context_data(**kwargs)
 
-    def form_invalid(self, form):
-        messages.error(self.request, 'Erro ao gerar relatório')
-        return super().form_invalid(form)
-    
+        context['vendas'] = vendas
+        context['total_vendas'] = total_vendas
+        context['total_valor'] = total_valor
+        context['data_inicial'] = data_inicial
+        context['data_final'] = data_final
+        context['lojas'] = lojas
+        context['lucro'] = total_lucro
+
+        return context
+
+        
+
+
 class ProdutoVendidoListView(PermissionRequiredMixin, ListView):
     model = ProdutoVenda
     template_name = 'produto_vendido/produto_vendido_list.html'

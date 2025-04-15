@@ -85,10 +85,9 @@ Relatório de Vendas
         <h3 class="card-title mb-0 text-secondary">Gerar Relatório de Vendas</h3>
       </div>
       <div class="card-body">
-        <form method="post" novalidate>
-          {% csrf_token %}
+        <form method="get" action="{% url 'vendas:folha_venda_relatorio' %}" target="_blank">
           {{ form|crispy }}
-          <button type="submit" class="btn btn-primary mt-3">Gerar Relatório</button>
+          <input type="submit" class="btn btn-primary" value="Gerar Relatório">
         </form>
       </div>
     </div>

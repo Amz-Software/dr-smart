@@ -544,3 +544,5 @@ class RelatorioVendasForm(forms.Form):
             self.fields['lojas'].queryset = Loja.objects.filter(id=loja)
             self.fields['tipos_venda'].queryset = TipoPagamento.objects.filter(loja=loja)
 
+            self.fields['lojas'].initial = loja
+
