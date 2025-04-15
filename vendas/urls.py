@@ -70,5 +70,6 @@ urlpatterns = [
     path('venda/contrato/<int:pk>/', contrato_view, name='gerar_contrato'),
     
     path('vendas/relatorio/', RelatorioVendasView.as_view(), name='venda_relatorio'),
+    path('vendas/relatorio/folha/', FolhaRelatorioVendasView.as_view(), name='folha_venda_relatorio'),
     path('prdutos-vendidos/', ProdutoVendidoListView.as_view(), name='produto_vendido_list'),
 ]

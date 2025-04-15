@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório Vendas</title>
+    <style>
+        @media print {
+            * {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            margin: 0;
+            padding: 0;
+            font-size: 12px;
+        }
+
+        h2, h3 {
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #4CAF50;
+            color: white;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        .header {
+            background-color: #4CAF50;
+            color: white;
+            font-weight: bold;
+        }
+
+        .footer {
+            font-weight: bold;
+            background-color: #f4f4f4;
+        }
+
+        .center {
+            text-align: center;
+        }
+
+        .left {
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Relatório de Saídas</h2>
+        <h3>Período: {{ data_inicio }} a {{ data_fim }}</h3>
+        <h3>Lojas: {{ lojas|join:", " }}</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Loja</th>
+                    <th>Data</th>
+                    <th>Vendedor</th>
+                    <th>Produtos</th>
+                    <th>Tipo de Venda</th>
+                    <th>Valor Total</th>
+                    <th>Valor Total Lucro</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for venda in vendas %}
+                <tr>
+                    <td>{{ venda.loja }}</td>
+                    <td>{{ venda.data_venda }}</td>
+                    <td>{{ venda.vendedor }}</td>
+                    <td>
+                        {% for produto in venda.produtos.all %}
+                        {{ produto.nome }}{% if not forloop.last %}, {% endif %}
+                        {% empty %}
+                        N/A
+                        {% endfor %}
+                    </td>
+                    <td>{{ venda.tipo_venda }}</td>
+                    <td>{{ venda.pagamentos_valor_total|floatformat:2 }}</td>
+                    <td>{{ venda.lucro_total|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                  <td colspan="3"><strong>Total de Vendas: {{ total_vendas }}</strong></td>
+                  <td colspan="2"><strong>Total Valor: R$ {{ total_valor|floatformat:2 }}</strong></td>
+                  <td colspan="2"><strong>Total Lucro: R$ {{ lucro|floatformat:2 }}</strong></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js"></script>
+    <script>
+        const element = document.body;
+        const opt = {
+            margin: [10, 10, 10, 10],
+            filename: `relatorio_saidas.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 3 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        };
+        print();
+    </script>
+</body>
+</html>
