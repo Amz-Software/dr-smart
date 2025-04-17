@@ -1053,13 +1053,7 @@ class FolhaRelatorioVendasView(PermissionRequiredMixin, TemplateView):
         vendedores = self.request.GET.get('vendedores')
         lojas = self.request.GET.get('lojas')
         tipos_venda = self.request.GET.get('tipos_venda')
-        
-        # Se nenhuma loja for selecionada, utiliza a loja da sessão
-        if not lojas:
-            loja_id = self.request.session.get('loja_id')
-            loja = Loja.objects.get(id=loja_id)
-            lojas = [loja]
-        
+
         filtros = {}
 
         # Adiciona filtros para datas, se informadas
@@ -1083,7 +1077,7 @@ class FolhaRelatorioVendasView(PermissionRequiredMixin, TemplateView):
         if tipos_venda:
             filtros['pagamentos__tipo_pagamento__in'] = tipos_venda
 
-        filtros['loja__in'] = lojas
+        filtros['loja__id'] = lojas
 
         vendas = Venda.objects.filter(**filtros).distinct()
         
