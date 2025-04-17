@@ -1077,7 +1077,8 @@ class FolhaRelatorioVendasView(PermissionRequiredMixin, TemplateView):
         if tipos_venda:
             filtros['pagamentos__tipo_pagamento__in'] = tipos_venda
 
-        filtros['loja__id'] = lojas
+        if lojas:
+            filtros['loja__id'] = lojas
 
         vendas = Venda.objects.filter(**filtros).distinct()
         
