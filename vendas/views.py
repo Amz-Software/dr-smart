@@ -1101,6 +1101,8 @@ class FolhaRelatorioVendasView(PermissionRequiredMixin, TemplateView):
             total_valor = sum(venda.pagamentos_valor_total for venda in vendas)
             total_lucro = sum(venda.lucro_total() for venda in vendas)
 
+        data_final = data_final - timedelta(days=1)
+
         context = super().get_context_data(**kwargs)
 
         context['vendas'] = vendas
