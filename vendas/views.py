@@ -1051,7 +1051,7 @@ class FolhaRelatorioVendasView(PermissionRequiredMixin, TemplateView):
         data_final = self.request.GET.get('data_final')
         produtos = self.request.GET.get('produtos')
         vendedores = self.request.GET.get('vendedores')
-        lojas = self.request.GET.get('lojas')
+        loja = self.request.GET.get('lojas')
         tipos_venda = self.request.GET.get('tipos_venda')
 
         filtros = {}
@@ -1077,8 +1077,9 @@ class FolhaRelatorioVendasView(PermissionRequiredMixin, TemplateView):
         if tipos_venda:
             filtros['pagamentos__tipo_pagamento__in'] = tipos_venda
 
-        if lojas:
-            filtros['loja__id'] = lojas
+        if loja:
+            filtros['loja__id'] = loja
+            loja = Loja.objects.filter(id=loja).first()
 
         vendas = Venda.objects.filter(**filtros).distinct()
         
@@ -1105,9 +1106,9 @@ class FolhaRelatorioVendasView(PermissionRequiredMixin, TemplateView):
         context['vendas'] = vendas
         context['total_vendas'] = total_vendas
         context['total_valor'] = total_valor
-        context['data_inicial'] = data_inicial
-        context['data_final'] = data_final
-        context['lojas'] = lojas
+        context['data_inicial'] = f'{data_inicial.strftime("%d/%m/%Y")}' if data_inicial else None
+        context['data_final'] = f'{data_final.strftime("%d/%m/%Y")}' if data_final else None
+        context['lojas'] = loja
         context['lucro'] = total_lucro
 
         return context
