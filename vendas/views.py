@@ -47,7 +47,7 @@ class IndexView(LoginRequiredMixin, TemplateView):
 
         loja = Loja.objects.get(id=self.request.session.get('loja_id'))
         caixa_diario_loja = Caixa.objects.filter(loja=loja).order_by('-data_abertura').first()
-        caixa_total = Caixa.objects.all().filter(loja=loja)
+        caixa_total = Caixa.objects.filter(data_fechamento__isnull=False, loja=loja).order_by('-data_abertura')
 
         valor_caixa_total = 0
         for caixa in caixa_total:
