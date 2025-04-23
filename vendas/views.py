@@ -281,6 +281,7 @@ class VendaListView(BaseView, PermissionRequiredMixin, ListView):
     def get_queryset(self):
         qs = super().get_queryset()
         data_filter = self.request.GET.get('search')
+        cliente_filter = self.request.GET.get('cliente')
         
         qs = qs.annotate(
             carne=Case(
@@ -295,6 +296,9 @@ class VendaListView(BaseView, PermissionRequiredMixin, ListView):
         
         if data_filter:
             qs = qs.filter(data_venda__date=data_filter, is_deleted=False)
+
+        if cliente_filter:
+            qs = qs.filter(cliente__nome__icontains=cliente_filter, is_deleted=False)
 
         return qs
 
