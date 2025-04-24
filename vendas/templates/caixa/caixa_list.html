@@ -76,7 +76,7 @@ Caixas
                   {% if caixa.data_fechamento %}
                   <td>
                     <span class="badge bg-danger">
-                      <i class="bx bx-x-circle"></i> Fechado - {{ caixa.data_fechamento|date:"d/m/Y" }}
+                      <i class="bx bx-x-circle"></i> Fechado - {{ caixa.data_abertura|date:"d/m/Y" }}
                     </span>
                   </td>
                   {% else %}
