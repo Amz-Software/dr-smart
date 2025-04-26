@@ -279,7 +279,7 @@ class VendaListView(BaseView, PermissionRequiredMixin, ListView):
     permission_required = 'vendas.view_venda'
     
     def get_queryset(self):
-        qs = super().get_queryset()
+        qs = super().get_queryset().select_related('cliente')
         data_filter = self.request.GET.get('search')
         cliente_filter = self.request.GET.get('cliente')
         
