@@ -1070,6 +1070,7 @@ class FolhaRelatorioVendasView(PermissionRequiredMixin, TemplateView):
         elif data_inicial:
             filtros['data_venda__gte'] = data_inicial
         elif data_final:
+            data_final = datetime.strptime(data_final, '%Y-%m-%d')  # Converte data_final para datetime
             filtros['data_venda__lte'] = data_final
         
         if vendedores:
@@ -1105,7 +1106,8 @@ class FolhaRelatorioVendasView(PermissionRequiredMixin, TemplateView):
             total_valor = sum(venda.pagamentos_valor_total for venda in vendas)
             total_lucro = sum(venda.lucro_total() for venda in vendas)
 
-        data_final = data_final - timedelta(days=1)
+        if data_final:
+            data_final = data_final - timedelta(days=1)  # Subtrai o timedelta apenas se data_final for datetime
 
         context = super().get_context_data(**kwargs)
 
@@ -1119,8 +1121,7 @@ class FolhaRelatorioVendasView(PermissionRequiredMixin, TemplateView):
 
         return context
 
-        
-
+     
 
 class ProdutoVendidoListView(PermissionRequiredMixin, ListView):
     model = ProdutoVenda
