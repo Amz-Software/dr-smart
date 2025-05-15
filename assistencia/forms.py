@@ -1,8 +1,9 @@
 from django import forms
-from django_select2.forms import Select2MultipleWidget
+from django_select2.forms import Select2MultipleWidget, Select2Widget
 from estoque.models import Estoque
 from produtos.models import Produto
-from .models import CaixaAssistencia, OrdemServico
+from vendas.models import Cliente
+from .models import CaixaAssistencia, OrdemServico, PecaOrdemServico
 
 class CaixaAssistenciaForm(forms.ModelForm):
     class Meta:
@@ -14,18 +15,12 @@ class CaixaAssistenciaForm(forms.ModelForm):
         }
 
 class OrdemServicoForm(forms.ModelForm):
-    pecas = forms.ModelMultipleChoiceField(
-        queryset=Produto.objects.none(),
-        label='Peças',
-        widget=Select2MultipleWidget(attrs={'class': 'form-control'}),
-        required=False
-    )
-
     class Meta:
         model = OrdemServico
         fields = '__all__'
-        exclude = ['loja', 'criado_por', 'modificado_por']
+        exclude = ['loja', 'criado_por', 'modificado_por', 'pecas']
         widgets = {
+            'cliente': forms.Select(attrs={'class': 'form-control select2'}),
             'data_entrada': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'aparelho': forms.TextInput(attrs={'class': 'form-control'}),
             'defeito_relato': forms.Textarea(attrs={'class': 'form-control'}),
@@ -36,6 +31,7 @@ class OrdemServicoForm(forms.ModelForm):
             'data_finalizacao': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
         }
         labels = {
+            'cliente': 'Cliente',
             'aparelho': 'Aparelho',
             'defeito_relato': 'Defeito Relatado',
             'status': 'Status',
@@ -49,10 +45,41 @@ class OrdemServicoForm(forms.ModelForm):
         loja = kwargs.pop('loja', None)
         super().__init__(*args, **kwargs)
         if loja:
-            self.fields['pecas'].queryset = Produto.objects.filter(
+            self.fields['cliente'].queryset = Cliente.objects.filter(loja=loja)
+        else:
+            self.fields['cliente'].queryset = Cliente.objects.none()
+
+class PecaOrdemServicoForm(forms.ModelForm):
+    class Meta:
+        model = PecaOrdemServico
+        fields = ['produto', 'quantidade', 'valor_unitario']
+        widgets = {
+            'produto': forms.Select(attrs={'class': 'form-control select2'}),
+            'quantidade': forms.NumberInput(attrs={'class': 'form-control'}),
+            'valor_unitario': forms.TextInput(attrs={'class': 'form-control money'}),
+        }
+        labels = {
+            'produto': 'Produto',
+            'quantidade': 'Quantidade',
+            'valor_unitario': 'Valor Unitário',
+        }
+
+    def __init__(self, *args, **kwargs):
+        loja = kwargs.pop('loja', None)
+        super().__init__(*args, **kwargs)
+        if loja:
+            self.fields['produto'].queryset = Produto.objects.filter(
                 estoque_atual__loja=loja, 
                 estoque_atual__quantidade_disponivel__gt=0, 
                 tipo__assistencia=True
             ).distinct()
         else:
-            self.fields['pecas'].queryset = Produto.objects.none()
+            self.fields['produto'].queryset = Produto.objects.none()
+
+pecas_inline_formset = forms.inlineformset_factory(
+    OrdemServico,
+    PecaOrdemServico,
+    form=PecaOrdemServicoForm,
+    extra=1,
+    can_delete=True
+)

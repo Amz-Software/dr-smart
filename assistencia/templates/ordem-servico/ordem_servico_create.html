@@ -4,6 +4,11 @@
 Criar Ordem de Serviço
 {% endblock title %}
 
+{% block extra_head %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+{% endblock extra_head %}
+
+
 {% block content %}
 
 <div class="container-xxl mt-4">
@@ -21,9 +26,75 @@ Criar Ordem de Serviço
                                 <div class="card-body">
                                     <form method="post">
                                         {% csrf_token %}
-                                        {{ form.as_p }}
+                                        <label for="{{ form.cliente.id_for_label }}">{{ form.cliente.label }}</label>
+                                        {{ form.cliente }}
+
+                                        <label for="{{ form.aparelho.id_for_label }}">{{ form.aparelho.label }}</label>
+                                        {{ form.aparelho }}
+
+                                        <label for="{{ form.defeito_relato.id_for_label }}">Defeito Relatado</label>
+                                        {{ form.defeito_relato }}
+
+                                        {{ pecas_formset.management_form }}
+                                        <template id="pecas-empty-form">
+                                            <tr class="pecas-form">
+                                                <td>{{ pecas_formset.empty_form.produto }}</td>
+                                                <td>{{ pecas_formset.empty_form.quantidade }}</td>
+                                                <td>{{ pecas_formset.empty_form.valor_unitario }}</td>
+                                                <td>
+                                                    <button type="button" class="btn btn-danger btn-sm remove-peca"
+                                                        onclick="removerPeca(this)">Remover</button>
+                                                </td>
+                                            </tr>
+                                        </template>
+
+                                        <div class="table-responsive mb-3 mt-3">
+                                            <table class="table table-bordered" style="table-layout: fixed;">
+                                                <caption>Lista de Peças</caption>
+                                                <thead>
+                                                    <tr>
+                                                        <th style="width: 200px;">Peças</th>
+                                                        <th style="width: 200px;">Quantidade</th>
+                                                        <th style="width: 200px;">Valor Unitário</th>
+                                                        <th style="width: 200px;">Ações</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="pecas">
+                                                    {% for form in pecas_formset %}
+                                                    <tr class="pecas-form">
+                                                        <td>{{ form.produto }}</td>
+                                                        <td>{{ form.quantidade }}</td>
+                                                        <td>{{ form.valor_unitario }}</td>
+                                                        <td>
+                                                            <button type="button"
+                                                                class="btn btn-danger btn-sm remove-peca"
+                                                                onclick="removerPeca(this)">Remover</button>
+                                                        </td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                        <div class="acao mb-3">
+                                            <button type="button" id="add-peca" class="btn btn-primary">Adicionar
+                                                Peça</button>
+                                        </div>
+
+                                        <label for="{{ form.mao_de_obra.id_for_label }}">Mão de Obra</label>
+                                        {{ form.mao_de_obra }}
+
+                                        <label for="{{ form.valor_servico.id_for_label }}">Valor Serviço</label>
+                                        {{ form.valor_servico }}
+
+                                        <label for="{{ form.status.id_for_label }}">Status</label>
+                                        {{ form.status }}
+
+                                        <label for="{{ form.observacoes.id_for_label }}">Observações</label>
+                                        {{ form.observacoes }}
+
                                         {% if user|has_perm:"vendas.add_tipovenda" %}
-                                        <button type="submit" class="btn btn-primary">Salvar</button>
+                                        <button type="submit" class="btn btn-primary mt-3">Salvar</button>
                                         {% endif %}
                                     </form>
                                 </div>
@@ -36,4 +107,67 @@ Criar Ordem de Serviço
     </div>
 </div>
 
+{% endblock %}
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+    verificarSelect2();
+
+    function verificarSelect2() {
+        if ($('.select2').length > 0) {
+            $('.select2').select2({
+                width: '100%'
+            });
+        }
+    }
+
+    function verificarMascara() {
+        $('.money').mask('000.000.000,00', { reverse: true });
+    }
+
+    document.getElementById("add-peca").addEventListener("click", function () {
+        adicionarPeca();
+    });
+
+    document.querySelectorAll(".remove-peca").forEach(function (button) {
+        button.addEventListener("click", function () {
+            removerPeca(this);
+        });
+    });
+
+    function adicionarPeca() {
+        const template = document.querySelector("#pecas-empty-form");
+        if (!template) {
+            console.error("Template de peça não encontrado");
+            return;
+        }
+
+        let newForm = template.content.querySelector('tr').cloneNode(true);
+        const pecaForms = document.querySelectorAll(".pecas-form");
+        let totalForms = document.getElementById("id_pecas_ordem_servico-TOTAL_FORMS");
+        let formIndex = pecaForms.length;
+
+        newForm.innerHTML = newForm.innerHTML.replace(/__prefix__/g, formIndex);
+
+        let formInputs = newForm.querySelectorAll('input, select, textarea');
+        formInputs.forEach(input => {
+            input.value = '';
+        });
+
+        totalForms.value = formIndex + 1;
+
+        document.getElementById("pecas").appendChild(newForm);
+        verificarSelect2();
+        verificarMascara();
+    }
+
+    function removerPeca(button) {
+        const pecaForm = button.closest('.pecas-form');
+        if (pecaForm) {
+            pecaForm.remove();
+            atualizarIndicesPecas();
+        }
+    }
+</script>
 {% endblock %}

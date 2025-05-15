@@ -10,7 +10,10 @@ from assistencia.models import CaixaAssistencia, OrdemServico
 from produtos.models import Produto
 from vendas.models import Loja
 from django.views import View
-from .forms import CaixaAssistenciaForm, OrdemServicoForm
+from .forms import OrdemServicoForm, pecas_inline_formset, PecaOrdemServicoForm
+from .models import CaixaAssistencia
+from estoque.models import Estoque
+from django.db import transaction
 
 class BaseView(View):
     def get_loja(self):
@@ -91,6 +94,14 @@ class OrdemServicoCreateView(BaseView, PermissionRequiredMixin, CreateView):
     permission_required = 'assistencia.add_ordemservico'
     success_url = reverse_lazy('assistencia:ordem_servico_list')
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        loja = self.get_loja()
+
+        context['pecas_formset'] = pecas_inline_formset(self.request.POST or None, form_kwargs={'loja': loja})
+
+        return context
+
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         loja = self.get_loja()
@@ -99,16 +110,76 @@ class OrdemServicoCreateView(BaseView, PermissionRequiredMixin, CreateView):
         return kwargs
 
     def form_valid(self, form):
-        form.instance.loja = self.get_loja()
+        # verificar se existe caixa aberto
+        context = self.get_context_data()
+        formset = context['pecas_formset']
+        loja = self.get_loja()
+        caixa = CaixaAssistencia.caixa_aberto(timezone.localtime(timezone.now()).date(), self.get_loja())
+
+        if not (formset.is_valid() and form.is_valid()):
+            messages.error(self.request, 'Erro ao salvar as peças')
+            return self.form_invalid(form)
+
+        if not caixa:
+            messages.error(self.request, 'Não existe caixa aberto para hoje')
+            return self.form_invalid(form)
+        
+        try:
+            with transaction.atomic():
+                self._salvar_os(form, loja)
+                self._salvar_pecas(formset, loja)
+            return super().form_valid(form)
+        except Exception as e:
+            messages.error(self.request, f'Erro ao salvar: {str(e)}')
+            return self.form_invalid(form)
+
+    def _salvar_os(self, form, loja):
+        form.instance.loja = loja
         form.instance.criado_por = self.request.user
-        return super().form_valid(form)
-    
+        form.instance.modificado_por = self.request.user
+        form.instance.caixa = CaixaAssistencia.caixa_aberto(timezone.localtime(timezone.now()).date(), loja)
+        self.object = form.save()
+
+    def _salvar_pecas(self, formset, loja):
+        for form in formset.save(commit=False):
+            peca = form.produto
+            quantidade = form.quantidade
+            valor_unitario = form.valor_unitario
+            self._validar_estoque(peca, quantidade, loja)
+            self._atualizar_estoque(peca, quantidade, loja)
+            form.ordem_servico = self.object
+            form.produto = peca
+            form.valor_unitario = valor_unitario
+            form.loja = loja
+            form.criado_por = self.request.user
+            form.modificado_por = self.request.user
+            form.save()
+
+    def _validar_estoque(self, peca, quantidade, loja):
+        estoque = Estoque.objects.filter(produto=peca, loja=loja).first()
+        if not estoque or estoque.quantidade_disponivel < quantidade:
+            raise ValueError(f"Quantidade indisponível para o produto {peca.nome}")
+
+    def _atualizar_estoque(self, peca, quantidade, loja):
+        estoque = Estoque.objects.filter(produto=peca, loja=loja).first()
+        if estoque:
+            estoque.quantidade_disponivel -= quantidade
+            estoque.save()
+
 class OrdemServicoUpdateView(BaseView, PermissionRequiredMixin, UpdateView):
     model = OrdemServico
     form_class = OrdemServicoForm
     template_name = 'ordem-servico/ordem_servico_update.html'
     permission_required = 'assistencia.change_ordemservico'
     success_url = reverse_lazy('assistencia:ordem_servico_list')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        loja = self.get_loja()
+
+        context['pecas_formset'] = pecas_inline_formset(self.request.POST or None, instance=self.object, form_kwargs={'loja': loja})
+
+        return context
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
