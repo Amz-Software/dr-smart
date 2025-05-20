@@ -191,6 +191,11 @@ def menu_items(request):
                     "label": "Ordens de Serviço",
                     "url_name": "assistencia:ordem_servico_list",
                     "permission": "assistencia.view_ordemservico"
+                },
+                {
+                    "label": "Contas a Receber",
+                    "url_name": "assistencia:contas_a_receber_list",
+                    "permission": "assistencia.view_pagamentoassistencia"
                 }
             ]
         },

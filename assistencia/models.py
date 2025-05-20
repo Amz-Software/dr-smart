@@ -104,3 +104,55 @@ class OrdemServico(Base):
     class Meta:
         verbose_name_plural = 'Ordens de Serviço'
         permissions = [('view_assistencia', 'Pode visualizar assistência')]
+
+
+class PagamentoAssistencia(Base):
+    ordem_servico = models.ForeignKey(
+        'assistencia.OrdemServico', on_delete=models.PROTECT, related_name='pagamentos'
+    )
+    tipo_pagamento = models.ForeignKey(
+        'vendas.TipoPagamento', on_delete=models.PROTECT, related_name='pagamentos_assistencia_tipo'
+    )
+    valor = models.DecimalField(max_digits=10, decimal_places=2)
+    parcelas = models.PositiveIntegerField(default=1, null=True, blank=True)
+    data_primeira_parcela = models.DateField()
+
+    @property
+    def valor_parcela(self):
+        return self.valor / self.parcelas
+
+    def __str__(self):
+        return f"Pagamento de R$ {self.valor} via {self.tipo_pagamento.nome}"
+
+    class Meta:
+        verbose_name_plural = 'Pagamentos Assistência'
+
+class ParcelaAssistencia(Base):
+    pagamento = models.ForeignKey(
+        'assistencia.PagamentoAssistencia', on_delete=models.PROTECT,
+        related_name='parcelas_pagamento_assistencia'
+    )
+    numero_parcela = models.PositiveIntegerField()
+    valor = models.DecimalField(max_digits=10, decimal_places=2)
+    valor_pago = models.DecimalField(max_digits=10, decimal_places=2,
+                                     null=True, blank=True, default=0)
+    tipo_pagamento = models.ForeignKey(
+        'vendas.TipoPagamento', on_delete=models.PROTECT,
+        related_name='parcelas_assistencia_tipo', null=True, blank=True
+    )
+    desconto = models.DecimalField(max_digits=10, decimal_places=2,
+                                  null=True, blank=True, default=0)
+    data_vencimento = models.DateField()
+    pago = models.BooleanField(default=False)
+
+    @property
+    def valor_restante(self):
+        valor_pago = self.valor_pago or 0
+        desconto = self.desconto or 0
+        return (self.valor - desconto) - valor_pago
+
+    def __str__(self):
+        return f"Parcela {self.numero_parcela} de {self.pagamento}"
+
+    class Meta:
+        verbose_name_plural = 'Parcelas Assistência'

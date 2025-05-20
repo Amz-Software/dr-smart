@@ -1,17 +1,19 @@
 from django.shortcuts import render
 from django.urls import reverse_lazy
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
 from django.utils import timezone
 from django.http import Http404
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.shortcuts import get_object_or_404, redirect
-from assistencia.models import CaixaAssistencia, OrdemServico
+from assistencia.models import CaixaAssistencia, OrdemServico, PagamentoAssistencia
 from produtos.models import Produto
 from vendas.models import Loja
 from django.views import View
-from .forms import OrdemServicoForm, pecas_inline_formset, PecaOrdemServicoForm
-from .models import CaixaAssistencia
+from .forms import (
+    OrdemServicoForm, pecas_inline_formset,
+    FormaPagamentoAssistenciaFormSet, FormaPagamentoAssistenciaEditFormSet, parcela_inline_formset
+)
 from estoque.models import Estoque
 from django.db import transaction
 
@@ -98,7 +100,14 @@ class OrdemServicoCreateView(BaseView, PermissionRequiredMixin, CreateView):
         context = super().get_context_data(**kwargs)
         loja = self.get_loja()
 
-        context['pecas_formset'] = pecas_inline_formset(self.request.POST or None, form_kwargs={'loja': loja})
+        context['pecas_formset'] = pecas_inline_formset(
+            self.request.POST or None,
+            form_kwargs={'loja': loja}
+        )
+        context['pagamento_formset'] = FormaPagamentoAssistenciaFormSet(
+            self.request.POST or None,
+            form_kwargs={'loja': loja}
+        )
 
         return context
 
@@ -110,24 +119,27 @@ class OrdemServicoCreateView(BaseView, PermissionRequiredMixin, CreateView):
         return kwargs
 
     def form_valid(self, form):
-        # verificar se existe caixa aberto
         context = self.get_context_data()
-        formset = context['pecas_formset']
+        pecas_formset = context['pecas_formset']
+        pagamento_formset = context['pagamento_formset']
         loja = self.get_loja()
-        caixa = CaixaAssistencia.caixa_aberto(timezone.localtime(timezone.now()).date(), self.get_loja())
+        caixa_aberto = CaixaAssistencia.caixa_aberto(
+            timezone.localtime(timezone.now()).date(), loja
+        )
 
-        if not (formset.is_valid() and form.is_valid()):
-            messages.error(self.request, 'Erro ao salvar as peças')
+        if not (pecas_formset.is_valid() and pagamento_formset.is_valid() and form.is_valid()):
+            messages.error(self.request, 'Erro ao salvar as peças ou pagamentos')
             return self.form_invalid(form)
 
-        if not caixa:
+        if not caixa_aberto:
             messages.error(self.request, 'Não existe caixa aberto para hoje')
             return self.form_invalid(form)
-        
+
         try:
             with transaction.atomic():
                 self._salvar_os(form, loja)
-                self._salvar_pecas(formset, loja)
+                self._salvar_pecas(pecas_formset, loja)
+                self._processar_pagamentos(pagamento_formset, loja)
             return super().form_valid(form)
         except Exception as e:
             messages.error(self.request, f'Erro ao salvar: {str(e)}')
@@ -155,6 +167,13 @@ class OrdemServicoCreateView(BaseView, PermissionRequiredMixin, CreateView):
             form.modificado_por = self.request.user
             form.save()
 
+    def _processar_pagamentos(self, formset, loja):
+        """Processa pagamentos do formset para ordem de serviço."""
+        for pagamento in formset.save(commit=False):
+            pagamento.ordem_servico = self.object
+            pagamento.loja = loja
+            pagamento.save()
+
     def _validar_estoque(self, peca, quantidade, loja):
         estoque = Estoque.objects.filter(produto=peca, loja=loja).first()
         if not estoque or estoque.quantidade_disponivel < quantidade:
@@ -178,6 +197,11 @@ class OrdemServicoUpdateView(BaseView, PermissionRequiredMixin, UpdateView):
         loja = self.get_loja()
 
         context['pecas_formset'] = pecas_inline_formset(self.request.POST or None, instance=self.object, form_kwargs={'loja': loja})
+        context['pagamento_formset'] = FormaPagamentoAssistenciaEditFormSet(
+            self.request.POST or None,
+            instance=self.object,
+            form_kwargs={'loja': loja}
+        )
 
         return context
 
@@ -191,3 +215,39 @@ class OrdemServicoUpdateView(BaseView, PermissionRequiredMixin, UpdateView):
     def form_valid(self, form):
         form.instance.modificado_por = self.request.user
         return super().form_valid(form)
+
+class ContasReceberAssistenciaListView(BaseView, PermissionRequiredMixin, ListView):
+    model = PagamentoAssistencia
+    template_name = 'contas-receber-assistencia/contas_a_receber_list.html'
+    context_object_name = 'contas_receber'
+    permission_required = 'assistencia.view_pagamentoassistencia'
+
+    def get_queryset(self):
+        loja_id = self.request.session.get('loja_id')
+        return PagamentoAssistencia.objects.order_by('-criado_em').filter(loja_id=loja_id).exclude(tipo_pagamento__caixa=True).filter(tipo_pagamento__parcelas=True)
+    
+class ContasReceberAssistenciaDetailView(BaseView, PermissionRequiredMixin, DetailView):
+    model = PagamentoAssistencia
+    template_name = 'contas-receber-assistencia/contas_a_receber_detail.html'
+    context_object_name = 'conta_a_receber'
+    permission_required = 'assistencia.view_pagamentoassistencia'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        conta_receber = self.get_object()
+        print(conta_receber.parcelas_pagamento_assistencia.all())
+        context['parcela_form'] = parcela_inline_formset(instance=conta_receber)
+        return context
+    
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        conta_receber = self.object
+        parcela_form = parcela_inline_formset(request.POST, instance=conta_receber)
+
+        if parcela_form.is_valid():
+            parcela_form.save()
+            messages.success(request, "Parcelas atualizadas com sucesso!")
+            return redirect('assistencia:contas_a_receber_detail', pk=conta_receber.pk)
+
+        messages.error(request, "Erro ao atualizar as parcelas.")
+        return self.render_to_response(self.get_context_data(parcela_form=parcela_form))
