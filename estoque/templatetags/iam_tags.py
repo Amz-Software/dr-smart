@@ -15,3 +15,9 @@ def total_vendas(produto, loja_id):
     if loja_id:
         return produto.produto.total_vendas(loja_id=loja_id)
     return 0
+
+@register.filter
+def total_assistencia(produto, loja_id):
+    if loja_id:
+        return produto.produto.total_assistencia(loja_id=loja_id)
+    return 0

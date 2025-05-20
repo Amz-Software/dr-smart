@@ -45,7 +45,7 @@ Ordem de Serviço
                                 {% for item in ordens_servico %}
                                 <tr>
                                     <td>#{{ item.pk }}</td>
-                                    <td>{{ item.aparelho }}</td>
+                                    <td>{{ item.aparelho }} - {{ item.cliente }}</td>
                                     <td>{{ item.criado_em|date:"d/m/Y" }}</td>
                                     <td>{{ item.status }}</td>
                                     <td>

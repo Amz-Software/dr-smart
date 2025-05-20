@@ -28,6 +28,11 @@ class Produto(Base):
             return self.produto_vendas.filter(venda__loja_id=loja_id, venda__is_deleted=False).count()
         return None
     
+    def total_assistencia(self, loja_id=None):
+        if loja_id:
+            return self.pecas_produto.filter(ordem_servico__loja_id=loja_id).count()
+        return None
+    
     def __str__(self):
         return f"{self.nome} ({self.codigo})"
 

@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% load static iam_tags %}
+{% block title %}
+Contas a Receber
+{% endblock title %}
+
+{% block content %}
+
+<div class="container-xxl mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="card-title">Contas a Receber</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <h5>OS: {{ conta_a_receber.ordem_servico }}</h5>
+                        </div>
+                        <div class="col-md-4">
+                            <h5>Cliente: {{ conta_a_receber.ordem_servico.cliente }}</h5>
+                        </div>
+                        <div class="col-md-4">
+                            <h5>Valor: {{ conta_a_receber.valor }}</h5>
+                        </div>
+                        <div class="col-md-4">
+                            <h5>Forma de Pagamento: {{ conta_a_receber.tipo_pagamento }}</h5>
+                        </div>
+                        <div class="col-md-4">
+                            <h5>Parcelas: {{ conta_a_receber.parcelas }}</h5>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <form action="" method="post">
+                        {{ parcela_form.management_form }}
+                        {% csrf_token %}
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Número da Parcela</th>
+                                    <th scope="col">Valor</th>
+                                    <th scope="col">Desconto</th>
+                                    <th scope="col">Valor Pago</th>
+                                    <th scope="col">Valor Restante</th>
+                                    <th scope="col">Tipo de Pagamento</th>
+                                    <th scope="col">Data de Vencimento</th>
+                                    <th scope="col">Pago?</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for parcela in parcela_form %}
+                                {% if parcela.instance.pago %}
+                                <tr class="table-success">
+                                {% else %}
+                                <tr>
+                                {% endif %}
+                                    {{ parcela.id }}
+                                    <td>{{ parcela.numero_parcela }}</td>
+                                    <td>{{ parcela.valor }}</td>
+                                    <td>{{ parcela.desconto }}</td>
+                                    <td>{{ parcela.valor_pago }}</td>
+                                    <td><input type="text" class="form-control valor-restante" disabled></td>
+                                    <td>{{ parcela.tipo_pagamento }}</td>
+                                    <td>{{ parcela.data_vencimento }}</td>
+                                    <td>{{ parcela.pago }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            
+                        </table> 
+                        <div class="row mt-3 mb-3">
+                            <div class="col-md-12 d-flex justify-content-center align-items-center">
+                                <a href="{% url 'assistencia:contas_a_receber_list' %}" class="btn btn-secondary w-50 me-3">Voltar</a>
+                                {% if user|has_perm:"assistencia.change_pagamentoassistencia" %}
+                                <button type="submit" class="btn btn-primary w-50">Salvar</button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </form>
+                        {% include "snippets/pagination.html" %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function obterValorSemMascara(seletor) {
+    const valor = $(seletor).cleanVal();
+    if (valor === "") return; // se estiver vazio, pula
+    // Converte para número considerando os dois últimos dígitos como decimais
+    var numericValue = parseInt(valor, 10) / 100;
+    // Garante duas casas decimais no valor final
+        $(this).val(numericValue.toFixed(2));
+    return numericValue
+}
+
+$(document).ready(function() {
+    $('.valor-restante').each(function() {
+        const row = $(this).closest('tr');
+        const valorInput = row.find('[name$="-valor"]');
+        const valorPagoInput = row.find('[name$="-valor_pago"]');
+        const valorDescontoInput = row.find('[name$="-desconto"]');
+        const valorRestanteInput = $(this);
+
+        if (valorInput && valorPagoInput && valorDescontoInput && valorRestanteInput) {
+            const valor = parseFloat(valorInput.val());
+            let valorPago = obterValorSemMascara(valorPagoInput)
+            let desconto = obterValorSemMascara(valorDescontoInput)
+
+            const valorRestante = valor - valorPago - desconto;
+            valorRestanteInput.val(valorRestante.toFixed(2))
+        }
+    });
+
+    $('input[name$="-valor"], input[name$="-valor_pago"], input[name$="-desconto"]').on('input', function() {
+        const row = $(this).closest('tr');
+        const valorInput = row.find('[name$="-valor"]');
+        const valorPagoInput = row.find('[name$="-valor_pago"]');
+        const valorDescontoInput = row.find('[name$="-desconto"]');
+        const valorRestanteInput = row.find('.valor-restante');
+
+        if (valorInput && valorPagoInput && valorDescontoInput) {
+            const valor = parseFloat(valorInput.val());
+            let valorPago = obterValorSemMascara(valorPagoInput)
+            let desconto = obterValorSemMascara(valorDescontoInput)
+
+            const valorRestante = valor - valorPago - desconto;
+            valorRestanteInput.val(valorRestante.toFixed(2))
+        }
+    });
+});
+</script>
+{% endblock %}

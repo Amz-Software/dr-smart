@@ -85,6 +85,7 @@ Estoque
                   <th scope="col">Nome</th>
                   <th scope="col" class="text-center">Quantidade</th>
                   <th scope="col" class="text-center">Qtd. Vendas</th>
+                  <th scope="col" class="text-center">Qtd. Assistência</th>
                   <th scope="col" class="text-center">Custo médio</th>
                   <th scope="col" class="text-center">Preço médio</th>
                   <th scope="col" class="text-center">Última entrada</th>
@@ -100,6 +101,9 @@ Estoque
                   <td class="text-center">{{ produto.quantidade_disponivel }}</td>
                   <td class="text-center">
                     {{ produto|total_vendas:loja_id }}
+                  </td>
+                  <td class="text-center">
+                    {{ produto|total_assistencia:loja_id }}
                   </td>
                   <td class="text-center">R$ {{ produto.preco_medio_custo|floatformat:2 }}</td>
                   <td class="text-center">R$ {{ produto.preco_medio|floatformat:2 }}</td>

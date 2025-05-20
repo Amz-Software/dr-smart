@@ -1,8 +1,14 @@
 {% extends "base.html" %}
+{% load static %}
 {% load static iam_tags %}
 {% block title %}
 Criar Ordem de Serviço
 {% endblock title %}
+
+{% block extra_head %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+{% endblock extra_head %}
+
 
 {% block content %}
 
@@ -21,9 +27,124 @@ Criar Ordem de Serviço
                                 <div class="card-body">
                                     <form method="post">
                                         {% csrf_token %}
-                                        {{ form.as_p }}
+                                        <label for="{{ form.cliente.id_for_label }}">{{ form.cliente.label }}</label>
+                                        {{ form.cliente }}
+
+                                        <label for="{{ form.aparelho.id_for_label }}">{{ form.aparelho.label }}</label>
+                                        {{ form.aparelho }}
+
+                                        <label for="{{ form.defeito_relato.id_for_label }}">Defeito Relatado</label>
+                                        {{ form.defeito_relato }}
+
+                                        {{ pecas_formset.management_form }}
+                                        <template id="pecas-empty-form">
+                                            <tr class="pecas-form">
+                                                <td>{{ pecas_formset.empty_form.produto }}</td>
+                                                <td>{{ pecas_formset.empty_form.quantidade }}</td>
+                                                <td>{{ pecas_formset.empty_form.valor_unitario }}</td>
+                                                <td>
+                                                    <button type="button" class="btn btn-danger btn-sm remove-peca"
+                                                        onclick="removerPeca(this)">Remover</button>
+                                                </td>
+                                            </tr>
+                                        </template>
+
+                                        <div class="table-responsive mb-3 mt-3">
+                                            <table class="table table-bordered" style="table-layout: fixed;">
+                                                <caption>Lista de Peças</caption>
+                                                <thead>
+                                                    <tr>
+                                                        <th style="width: 200px;">Peças</th>
+                                                        <th style="width: 200px;">Quantidade</th>
+                                                        <th style="width: 200px;">Valor Unitário</th>
+                                                        <th style="width: 200px;">Ações</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="pecas">
+                                                    {% for form in pecas_formset %}
+                                                    <tr class="pecas-form">
+                                                        <td>{{ form.produto }}</td>
+                                                        <td>{{ form.quantidade }}</td>
+                                                        <td>{{ form.valor_unitario }}</td>
+                                                        <td>
+                                                            <button type="button"
+                                                                class="btn btn-danger btn-sm remove-peca"
+                                                                onclick="removerPeca(this)">Remover</button>
+                                                        </td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                        <div class="acao mb-3">
+                                            <button type="button" id="add-peca" class="btn btn-primary">Adicionar
+                                                Peça</button>
+                                        </div>
+
+                                        <h5>Pagamentos</h5>
+                                        <hr>
+                                        {{ pagamento_formset.management_form }}
+                                        <template id="pagamento-empty-form">
+                                            <tr class="pagamento-form">
+                                                <td>{{ pagamento_formset.empty_form.tipo_pagamento }}</td>
+                                                <td>{{ pagamento_formset.empty_form.valor }}</td>
+                                                <td>{{ pagamento_formset.empty_form.parcelas }}</td>
+                                                <td>{{ pagamento_formset.empty_form.data_primeira_parcela }}</td>
+                                                <td>
+                                                    <button type="button" class="btn btn-danger btn-sm remove-pagamento"
+                                                        onclick="removerPagamento(this)">Remover</button>
+                                                </td>
+                                            </tr>
+                                        </template>
+                                        <div class="table-responsive mb-3 mt-3">
+                                            <table class="table table-bordered" style="table-layout: fixed;">
+                                                <caption>Formas de Pagamento</caption>
+                                                <thead>
+                                                    <tr>
+                                                        <th>Tipo Pagamento</th>
+                                                        <th>Valor</th>
+                                                        <th>Parcelas</th>
+                                                        <th>Data 1ª Parcela</th>
+                                                        <th>Ações</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="pagamentos">
+                                                    {% for form in pagamento_formset %}
+                                                    <tr class="pagamento-form">
+                                                        <td>{{ form.tipo_pagamento }}</td>
+                                                        <td>{{ form.valor }}</td>
+                                                        <td>{{ form.parcelas }}</td>
+                                                        <td>{{ form.data_primeira_parcela }}</td>
+                                                        <td>
+                                                            <button type="button"
+                                                                class="btn btn-danger btn-sm remove-pagamento"
+                                                                onclick="removerPagamento(this)">Remover</button>
+                                                        </td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div class="acao mb-3">
+                                            <button type="button" id="add-pagamento" class="btn btn-primary">Adicionar
+                                                Pagamento</button>
+                                        </div>
+
+                                        <label for="{{ form.mao_de_obra.id_for_label }}">Mão de Obra</label>
+                                        {{ form.mao_de_obra }}
+
+                                        <label for="{{ form.valor_servico.id_for_label }}">Valor Serviço</label>
+                                        {{ form.valor_servico }}
+
+                                        <label for="{{ form.status.id_for_label }}">Status</label>
+                                        {{ form.status }}
+
+                                        <label for="{{ form.observacoes.id_for_label }}">Observações</label>
+                                        {{ form.observacoes }}
+
                                         {% if user|has_perm:"vendas.add_tipovenda" %}
-                                        <button type="submit" class="btn btn-primary">Salvar</button>
+                                        <button type="submit" class="btn btn-primary mt-3">Salvar</button>
                                         {% endif %}
                                     </form>
                                 </div>
@@ -36,4 +157,51 @@ Criar Ordem de Serviço
     </div>
 </div>
 
+{% endblock %}
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="{% static 'js/assistencia.js' %}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // ao alterar valor em pagamento ou mao de obra, recalcular valor do serviço
+        const valorFields = document.querySelectorAll('input[name$=valor]');
+        const maoDeObraField = document.querySelector('input[name$=mao_de_obra]');
+
+        if (valorFields.length > 0) {
+            valorFields.forEach(field => {
+                field.addEventListener('input', calcularValorServico);
+            });
+        }
+        if (maoDeObraField) {
+            maoDeObraField.addEventListener('input', calcularValorServico);
+        }
+    });
+
+    const calcularValorServico = () => {
+        const valoresFields = document.querySelectorAll('input[name$=valor]');
+        const maoDeObraInput = document.querySelector('input[name$=mao_de_obra]');
+        const valorServicoField = document.querySelector('input[name$=valor_servico]');
+        let total = 0;
+
+        if (!maoDeObraInput || !valoresFields) {
+            return;
+        }
+
+        valoresFields.forEach(field => {
+            const valor_sem_mascara = obterValorSemMascara(field);
+            const valor = valor_sem_mascara // se não for número, retorna 0
+            total += valor;
+        });
+        total += obterValorSemMascara(maoDeObraInput);
+        valorServicoField.value = total.toFixed(2); // Formata para duas casas decimais
+        valorServicoField.dispatchEvent(new Event('input')); // Dispara o evento de input para atualizar a máscara
+    };
+
+    function obterValorSemMascara(seletor) {
+        const valor = $(seletor).cleanVal();
+        if (!valor) return 0; // se estiver vazio, retorna 0
+        // Converte para número considerando os dois últimos dígitos como decimais
+        return parseInt(valor, 10) / 100;
+    }
+</script>
 {% endblock %}
