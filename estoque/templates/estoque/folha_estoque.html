@@ -98,28 +98,40 @@
         <div class="section-title">Produtos</div>
         <table>
             <thead>
-                <tr>
-                    <th>Nome</th>
-                    <th>Quantidade</th>
-                    <th>Custo médio</th>
-                    <th>Preço médio</th>
-                </tr>
+            <tr>
+                <th>Nome</th>
+                <th>Quantidade</th>
+                {% if 'custo' in campos or 'ambos' in campos %}
+                <th>Preço Médio de Custo</th>
+                {% endif %}
+                {% if 'venda' in campos or 'ambos' in campos %}
+                <th>Preço de Venda</th>
+                {% endif %}
+            </tr>
             </thead>
             <tbody>
-                {% for produto in produtos %}
-                    <tr>
-                        <td>{{ produto.produto|title }}</td>
-                        <td class="text-center">{{ produto.quantidade_disponivel }}</td>
-                        <td class="text-right">R$ {{ produto.preco_medio_custo|floatformat:2 }}</td>
-                        <td class="text-right">R$ {{ produto.preco_medio|floatformat:2 }}</td>
-                    </tr>
-                {% endfor %}
+            {% for produto in produtos %}
                 <tr>
-                    <td></td>
-                    <td>Totais de produtos: {{ quantidade_total }}</td>
-                    <td>Custo médio total: R$ {{ custo_medio_total }}</td>
-                    <td>Preço médio total: R$ {{ preco_medio_total }}</td>
+                <td>{{ produto.produto|title }}</td>
+                <td class="text-center">{{ produto.quantidade_disponivel }}</td>
+                {% if 'custo' in campos or 'ambos' in campos %}
+                    <td class="text-right">R$ {{ produto.preco_medio_custo|floatformat:2 }}</td>
+                {% endif %}
+                {% if 'venda' in campos or 'ambos' in campos %}
+                    <td class="text-right">R$ {{ produto.preco_medio|floatformat:2 }}</td>
+                {% endif %}
                 </tr>
+            {% endfor %}
+            <tr>
+                <td></td>
+                <td>Totais de produtos: {{ quantidade_total }}</td>
+                {% if 'custo' in campos or 'ambos' in campos %}
+                <td>Preço Médio de Custo Total: R$ {{ custo_medio_total }}</td>
+                {% endif %}
+                {% if 'venda' in campos or 'ambos' in campos %}
+                <td>Preço de Venda Total: R$ {{ preco_medio_total }}</td>
+                {% endif %}
+            </tr>
             </tbody>
         </table>
     </div>
