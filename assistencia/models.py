@@ -26,8 +26,8 @@ class CaixaAssistencia(Base):
     
     @property
     def saldo_total(self):
-        return sum(venda.pagamentos_valor_total for venda in self.vendas.filter(is_deleted=False).filter(loja=self.loja).filter(caixa=self))
-    
+        return sum(ordem_servico.valor_servico for ordem_servico in self.ordem_servico_caixa.filter(is_deleted=False).filter(loja=self.loja).filter(caixa=self))
+
     @property
     def saldo_total_dinheiro(self):
         total = sum(venda.pagamentos_valor_total_dinheiro for venda in self.vendas.filter(is_deleted=False, pagamentos__tipo_pagamento__caixa=True).filter(loja=self.loja).filter(caixa=self))
@@ -45,9 +45,9 @@ class CaixaAssistencia(Base):
         return sum(lancamento.valor for lancamento in self.lancamentos_caixa.filter(tipo_lancamento='1'))
     
     @property
-    def quantidade_vendas(self):
-        return self.vendas.filter(is_deleted=False).filter(loja=self.loja).filter(caixa=self).count()
-    
+    def quantidade_servicos(self):
+        return self.ordem_servico_caixa.filter(is_deleted=False).filter(loja=self.loja).filter(caixa=self).count()
+
     @property
     def caixa_fechado(self):
         if self.data_fechamento:
@@ -96,10 +96,11 @@ class OrdemServico(Base):
     valor_servico = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
     observacoes = models.TextField(blank=True, null=True)
     data_finalizacao = models.DateTimeField(null=True, blank=True)
-    loja = models.ForeignKey('vendas.Loja', on_delete=models.PROTECT, related_name='ordem_servico_loja', null=True, blank=True)
+    caixa = models.ForeignKey('assistencia.CaixaAssistencia', on_delete=models.PROTECT, related_name='ordem_servico_caixa', null=True, blank=True)
+    is_deleted = models.BooleanField(default=False)
 
     def __str__(self):
-        return f'OS #{self.id} - {self.aparelho} - {self.loja}'
+        return f'OS #{self.id} - {self.aparelho} - {self.caixa}'
 
     class Meta:
         verbose_name_plural = 'Ordens de Serviço'

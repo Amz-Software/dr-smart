@@ -47,7 +47,19 @@ Ordem de Serviço
                                     <td>#{{ item.pk }}</td>
                                     <td>{{ item.aparelho }} - {{ item.cliente }}</td>
                                     <td>{{ item.criado_em|date:"d/m/Y" }}</td>
-                                    <td>{{ item.status }}</td>
+                                    <td>
+                                        {% if item.status == 'EM MONTAGEM' %}
+                                            <span class="badge bg-warning text-dark">Em Montagem</span>
+                                        {% elif item.status == 'EM TESTE' %}
+                                            <span class="badge bg-info">Em Teste</span>
+                                        {% elif item.status == 'SEM CONSERTO' %}
+                                            <span class="badge bg-danger">Sem Conserto</span>
+                                        {% elif item.status == 'FINALIZADA' %}
+                                            <span class="badge bg-success">Finalizada</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ item.status }}</span>
+                                        {% endif %}
+                                    </td>
                                     <td>
                                         <div class="dropdown">
                                             <button type="button" class="btn p-0 dropdown-toggle hide-arrow"

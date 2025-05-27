@@ -14,16 +14,21 @@ Estoque
           <div>
             <!-- botão gerar inventário estoque -->
             <div class="d-inline-block">
-              <form method="get" action="{% url 'estoque:inventario_pdf' %}" class="d-inline-block me-2">
+              <form method="get" action="{% url 'estoque:inventario_pdf' %}" class="d-inline-block me-2" target="_blank">
                 <select name="tipo" id="tipo_estoque" class="form-select d-inline-block me-2" style="width: auto;">
                   <option value="">Selecione o tipo</option>
                   {% for tipo in tipos %}
                   <option value="{{ tipo.id }}">{{ tipo.nome }}</option>
                   {% endfor %}
                 </select>
-                <button type="submit" class="btn btn-primary">
-                  <i class="bx bx-file me-1"></i> Gerar Inventário
-                </button>
+                <select name="campos" id="campo_estoque" class="form-select d-inline-block me-2"
+                  style="width: auto;" required>
+                  <option value="">Selecione o campo</option>
+                  <option value="ambos">Ambos</option>
+                  <option value="custo">Preço de Custo</option>
+                  <option value="venda">Preço de Venda</option>
+                </select>
+                <input type="submit" value="Gerar PDF" class="btn btn-primary">
               </form>
             </div>
 
@@ -86,8 +91,8 @@ Estoque
                   <th scope="col" class="text-center">Quantidade</th>
                   <th scope="col" class="text-center">Qtd. Vendas</th>
                   <th scope="col" class="text-center">Qtd. Assistência</th>
-                  <th scope="col" class="text-center">Custo médio</th>
-                  <th scope="col" class="text-center">Preço médio</th>
+                  <th scope="col" class="text-center">Preço Médio de Custo</th>
+                  <th scope="col" class="text-center">Preço de Venda</th>
                   <th scope="col" class="text-center">Última entrada</th>
                   <th scope="col" class="text-center">Última modificação</th>
                   <th scope="col" class="text-center">Ações</th>

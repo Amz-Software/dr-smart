@@ -82,15 +82,9 @@ class Estoque(Base):
         return self.produto.entradas_estoque.last()
     
     def preco_medio(self):
-        qtd_entradas = self.produto.entradas_estoque.count()
-        total = 0
-        for entrada in self.produto.entradas_estoque.all():
-            total += entrada.venda_unitaria
-        
-        if qtd_entradas > 0:
-            preco_medio = total / qtd_entradas
-            preco_formatado = f"{preco_medio:.2f}"
-            return preco_formatado
+        ultima_entrada = self.produto.entradas_estoque.last()
+        if ultima_entrada:
+            return f"{ultima_entrada.venda_unitaria:.2f}"
         return 0
     
     def preco_medio_custo(self):

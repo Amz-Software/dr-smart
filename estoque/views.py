@@ -305,6 +305,7 @@ class EstoqueImeiSearchEditView(View):
 def inventario_estoque_pdf (request):
     loja = get_object_or_404(Loja, pk=request.session.get('loja_id'))
     tipo = request.GET.get('tipo', None)
+    campos = request.GET.get('campos', None)
     produtos = Estoque.objects.filter(loja=loja).filter(quantidade_disponivel__gt=0)
 
     if tipo:
@@ -324,6 +325,7 @@ def inventario_estoque_pdf (request):
         'quantidade_total': quantidade_total,
         'custo_medio_total': f'{custo_medio_total:.2f}',
         'preco_medio_total': f'{preco_medio_total:.2f}',
+        'campos': campos
     }
 
     return render(request, "estoque/folha_estoque.html", context)
