@@ -7,6 +7,7 @@ app_name = 'assistencia'
 
 urlpatterns = [
     path('assistencia/caixas-assistencia/', CaixaAssistenciaListView.as_view(), name='caixa_assistencia_list'),
+    path('assistencia/caixas-assistencia/<int:pk>/', CaixaAssistenciaDetailView.as_view(), name='caixa_assistencia_detail'),
 
     path('assistencia/ordem-servicos/', OrdemServicoListView.as_view(), name='ordem_servico_list'),
     path('assistencia/ordem-servicos/novo/', OrdemServicoCreateView.as_view(), name='ordem_servico_create'),

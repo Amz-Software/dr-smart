@@ -38,6 +38,7 @@ Criar Ordem de Serviço
                                         {{ pecas_formset.management_form }}
                                         <template id="pecas-empty-form">
                                             <tr class="pecas-form">
+                                                {{ pecas_formset.empty_form.id }}
                                                 <td>{{ pecas_formset.empty_form.produto }}</td>
                                                 <td>{{ pecas_formset.empty_form.quantidade }}</td>
                                                 <td>{{ pecas_formset.empty_form.valor_unitario }}</td>
@@ -56,29 +57,19 @@ Criar Ordem de Serviço
                                                         <th style="width: 200px;">Peças</th>
                                                         <th style="width: 200px;">Quantidade</th>
                                                         <th style="width: 200px;">Valor Unitário</th>
-                                                        <th style="width: 200px;">Ações</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody id="pecas">
                                                     {% for form in pecas_formset %}
+                                                    {{ form.id }}
                                                     <tr class="pecas-form">
                                                         <td>{{ form.produto }}</td>
                                                         <td>{{ form.quantidade }}</td>
                                                         <td>{{ form.valor_unitario }}</td>
-                                                        <td>
-                                                            <button type="button"
-                                                                class="btn btn-danger btn-sm remove-peca"
-                                                                onclick="removerPeca(this)">Remover</button>
-                                                        </td>
                                                     </tr>
                                                     {% endfor %}
                                                 </tbody>
                                             </table>
-                                        </div>
-
-                                        <div class="acao mb-3">
-                                            <button type="button" id="add-peca" class="btn btn-primary">Adicionar
-                                                Peça</button>
                                         </div>
 
                                         <h5>Pagamentos</h5>
@@ -86,6 +77,7 @@ Criar Ordem de Serviço
                                         {{ pagamento_formset.management_form }}
                                         <template id="pagamento-empty-form">
                                             <tr class="pagamento-form">
+                                                {{ pagamento_formset.empty_form.id }}
                                                 <td>{{ pagamento_formset.empty_form.tipo_pagamento }}</td>
                                                 <td>{{ pagamento_formset.empty_form.valor }}</td>
                                                 <td>{{ pagamento_formset.empty_form.parcelas }}</td>
@@ -105,28 +97,20 @@ Criar Ordem de Serviço
                                                         <th>Valor</th>
                                                         <th>Parcelas</th>
                                                         <th>Data 1ª Parcela</th>
-                                                        <th>Ações</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody id="pagamentos">
                                                     {% for form in pagamento_formset %}
+                                                    {{ form.id }}
                                                     <tr class="pagamento-form">
                                                         <td>{{ form.tipo_pagamento }}</td>
                                                         <td>{{ form.valor }}</td>
                                                         <td>{{ form.parcelas }}</td>
                                                         <td>{{ form.data_primeira_parcela }}</td>
-                                                        <td>
-                                                            <button type="button"
-                                                                class="btn btn-danger btn-sm remove-pagamento"
-                                                                onclick="removerPagamento(this)">Remover</button>
-                                                        </td>
                                                     </tr>
                                                     {% endfor %}
                                                 </tbody>
                                             </table>
-                                        </div>
-                                        <div class="acao mb-3">
-                                            <button type="button" id="add-pagamento" class="btn btn-primary">Adicionar Pagamento</button>
                                         </div>
 
                                         <label for="{{ form.mao_de_obra.id_for_label }}">Mão de Obra</label>
