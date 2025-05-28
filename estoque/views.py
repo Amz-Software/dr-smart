@@ -320,7 +320,7 @@ def inventario_estoque_pdf (request):
         custo_medio_total  += float(produto.preco_medio_custo()) * produto.quantidade_disponivel
 
     context = {
-        'produtos': produtos,
+        'produtos': produtos.order_by('produto__nome'),
         'loja': loja,
         'quantidade_total': quantidade_total,
         'custo_medio_total': f'{custo_medio_total:.2f}',
