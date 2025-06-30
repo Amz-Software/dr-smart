@@ -21,3 +21,10 @@ def total_assistencia(produto, loja_id):
     if loja_id:
         return produto.produto.total_assistencia(loja_id=loja_id)
     return 0
+
+@register.filter
+def formatar_preco(value):
+    """Formata o valor como moeda brasileira."""
+    if value is None:
+        return "0,00"
+    return f"{value:,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.')

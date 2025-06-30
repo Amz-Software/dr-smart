@@ -8,7 +8,6 @@ Caixa Mensal - {{ caixa_mensal.loja }} - {{ caixa_mensal.mes|date:"F Y" }}
 {% endblock title %}
 
 {% block content %}
-
 <div class="container mt-4">
     <div class="card mb-4 shadow-sm">
         <div class="card-header border-0 bg-white">
@@ -61,12 +60,12 @@ Caixa Mensal - {{ caixa_mensal.loja }} - {{ caixa_mensal.mes|date:"F Y" }}
                 {% for nome, valor in valor_venda_por_tipo_pagamento %}
                 <div class="col-md-4">
                     <p class="mb-1"><strong>{{ nome }}:</strong></p>
-                    <p class="text-muted text-uppercase">R$ {{ valor }}</p>
+                    <p class="text-muted text-uppercase">R$ {{ valor|formatar_preco }}</p>
                 </div>
                 {% endfor %}
                 <div class="col-md-4">
                     <p class="mb-1"><strong>Total Vendas:</strong></p>
-                    <p class="text-muted text-uppercase">R$ {{valor_por_tipo_pagamento_total}}</p>
+                    <p class="text-muted text-uppercase">R$ {{valor_por_tipo_pagamento_total|formatar_preco}}</p>
                 </div>
             </div> 
             <hr>
@@ -74,35 +73,35 @@ Caixa Mensal - {{ caixa_mensal.loja }} - {{ caixa_mensal.mes|date:"F Y" }}
                 <h2 class="text-center">Resumo</h2>
                 <div class="col-md-4">
                     <p class="mb-1"><strong>Estoque Custo:</strong></p>
-                    <p class="text-muted text-uppercase">R$ {{total_custo}}</p>
+                    <p class="text-muted text-uppercase">R$ {{total_custo|formatar_preco}}</p>
                 </div>
                 <div class="col-md-4">
                     <p class="mb-1"><strong>Estoque Lucro:</strong></p>
-                    <p class="text-muted text-uppercase">R$ {{total_lucro}}
+                    <p class="text-muted text-uppercase">R$ {{total_lucro|formatar_preco}}</p>
                 </div>
                 <div class="col-md-4">
                     <p class="mb-1"><strong>Lucro Total Vendas:</strong></p>
-                    <p class="text-muted text-uppercase">R$ {{lucro_total}}</p>
-                </div>
-                <div class="col-md-4">
-                    <p class="mb-1"><strong>Total Saidas:</strong></p>
-                    <p class="text-muted text-uppercase">R$ {{total_saidas}}</p>
+                    <p class="text-muted text-uppercase">R$ {{lucro_total|formatar_preco}}</p>
                 </div>
                 <div class="col-md-4">
                     <p class="mb-1"><strong>Total Gastos Fixos:</strong></p>
-                    <p class="text-muted text-uppercase">R$ {{total_gasto_fixos}}</p>
+                    <p class="text-muted text-uppercase">R$ {{total_gasto_fixos|formatar_preco}}</p>
                 </div>
                 <div class="col-md-4">
                     <p class="mb-1"><strong>Total Funcionários Gastos:</strong></p>
-                    <p class="text-muted text-uppercase">R$ {{total_funcionarios}}</p>
+                    <p class="text-muted text-uppercase">R$ {{total_funcionarios|formatar_preco}}</p>
                 </div>
                 <div class="col-md-4">
                     <p class="mb-1"><strong>Total Gastos Aleatórios:</strong></p>
-                    <p class="text-muted text-uppercase">R$ {{total_gastos_aleatorios}}</p>
+                    <p class="text-muted text-uppercase">R$ {{total_gastos_aleatorios|formatar_preco}}</p>
+                </div>
+                <div class="col-md-4">
+                    <p class="mb-1"><strong>Total Saidas:</strong></p>
+                    <p class="text-muted text-uppercase">R$ {{total_saidas|formatar_preco}}</p>
                 </div>
                 <div class="col-md-4">
                     <p class="mb-1"><strong>Saldo Final:</strong></p>
-                    <p class="text-muted text-uppercase">R$ {{saldo_final}}</p>
+                    <p class="text-muted text-uppercase">R$ {{saldo_final|formatar_preco}}</p>
                 </div>
             </div>   
             <hr>
@@ -242,7 +241,6 @@ Caixa Mensal - {{ caixa_mensal.loja }} - {{ caixa_mensal.mes|date:"F Y" }}
     </div>
 
 </div>
-
 {% endblock %}
 
 {% block extra_scripts %}
