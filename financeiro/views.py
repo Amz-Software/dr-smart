@@ -272,7 +272,7 @@ class CaixaMensalDetailView(PermissionRequiredMixin, DetailView):
             'total_custo': total_custo,
             'total_lucro': total_lucro,
             'lucro_total': lucro_total,
-            'total_saidas': total_saidas,
+            'total_saidas': total_gasto_fixos + total_funcionarios + total_gastos_aleatorios,
             'total_gasto_fixos': total_gasto_fixos,
             'total_funcionarios': total_funcionarios,
             'total_gastos_aleatorios': total_gastos_aleatorios,
