@@ -263,7 +263,7 @@ class CaixaMensalDetailView(PermissionRequiredMixin, DetailView):
         total_gastos_aleatorios = sum(gasto.valor for gasto in caixa_mensal_gastos_aleatorios)
         total_gastos = total_gasto_fixos + total_funcionarios + total_gastos_aleatorios
 
-        saldo_final = (caixa_mensal.valor + lucro_total) - total_gastos - total_saidas
+        saldo_final = (caixa_mensal.valor + lucro_total) - total_gastos 
 
         context = {
             'total_vendas': valor_por_tipo_pagamento_total,
